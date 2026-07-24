@@ -94,8 +94,28 @@ Console* Console_new()
 	console->width  = width;
 	console->height = height;
 	console->size   = size;
-	console->buff   = malloc(size * sizeof(char));
-	console->attrs  = malloc(size * sizeof(WORD));
+	console->buff   = NULL;
+	console->attrs  = NULL;
+
+	return console;
+}
+
+// =============================================================================
+// @@@ + Console_init
+// =============================================================================
+Console* Console_init(Console *console)
+{
+	console->buff  = malloc(console->size * sizeof(char));
+	console->attrs = malloc(console->size * sizeof(WORD));
+
+	for (int i = 0; i < console->size; i++)
+		console->buff[i] = rand() % 94 + 32;
+
+	memset(
+		console->attrs,
+		ATTR_BLACK,
+		console->size * sizeof(*console->attrs)
+	);
 
 	return console;
 }
@@ -110,23 +130,11 @@ void Console_free(Console *console)
 }
 
 // =============================================================================
-// @@@ + App_create
+// @@@ + App_drops_alloc
 // =============================================================================
-App App_create()
+Drop* App_drops_alloc(Console *console)
 {
-	srand(time(NULL));
-
-	Console *console = Console_new();
-	Drop *drops      = malloc(sizeof(Drop) * console->width);
-
-	for (int i = 0; i < console->size; i++)
-		console->buff[i] = rand() % 94 + 32;
-
-	memset(
-		console->attrs,
-		ATTR_BLACK,
-		console->size * sizeof(*console->attrs)
-	);
+	Drop *drops = malloc(sizeof(Drop) * console->width);
 
 	for (int i = 0; i < console->width; i++)
 	{
@@ -136,6 +144,21 @@ App App_create()
 			? ATTR_WHITE
 			: drops[i].attr;
 	}
+
+	return drops;
+}
+
+// =============================================================================
+// @@@ + App_create
+// =============================================================================
+App App_create()
+{
+	srand(time(NULL));
+
+	Console *console = Console_new();
+	Console_init(console);
+
+	Drop *drops = App_drops_alloc(console);
 
 	return (App) {
 		.console = console,
@@ -149,35 +172,14 @@ App App_create()
 void App_reset(App *app)
 {
 	free(app->drops);
-	Console_free(app->console);
+	free(app->console->buff);
+	free(app->console->attrs);
 
 	system("cls");
 
-	Console *console = app->console;
-	Drop *drops      = malloc(sizeof(Drop) * console->width);
+	Console_init(app->console);
+	app->drops = App_drops_alloc(app->console);
 
-	console->buff   = malloc(console->size * sizeof(char));
-	console->attrs  = malloc(console->size * sizeof(WORD));
-
-	for (int i = 0; i < console->size; i++)
-		console->buff[i] = rand() % 94 + 32;
-
-	memset(
-		console->attrs,
-		ATTR_BLACK,
-		console->size * sizeof(*console->attrs)
-	);
-
-	for (int i = 0; i < console->width; i++)
-	{
-		drops[i] = Drop_create(console);
-
-		console->attrs[i] = drops[i].attr != ATTR_BLACK
-			? ATTR_WHITE
-			: drops[i].attr;
-	}
-
-	app->drops = drops;
 	App_skip_begin(app);
 }
 
