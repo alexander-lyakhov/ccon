@@ -1,0 +1,1 @@
+gcc main.c -Os -s -o matrix.exe && if %ERRORLEVEL% EQU 0 matrix.exe
