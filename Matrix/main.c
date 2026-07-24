@@ -34,6 +34,7 @@ typedef struct {
 
 } App;
 
+Console* Console_init_buffs(Console *console);
 void App_skip_begin(App *app);
 
 // ================================================================================
@@ -65,12 +66,12 @@ Console Console_create()
 	uint16_t size   = width * height;
 
 	return (Console) {
-		.handle = handle,
-		.width  = width,
-		.height = height,
-		.size   = size,
-		.buff   = malloc(size * sizeof(char)),
-		.attrs  = malloc(size * sizeof(WORD)),
+		.handle   = handle,
+		.width    = width,
+		.height   = height,
+		.size     = size,
+		.buff     = NULL,
+		.attrs    = NULL,
 	};
 }
 
@@ -80,30 +81,18 @@ Console Console_create()
 Console* Console_new()
 {
 	Console *console = malloc(sizeof(Console));
+	Console con = Console_create();
 
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(handle, &csbi);
-
-	uint16_t width  = csbi.srWindow.Right + 1;
-	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-	uint16_t size   = width * height;
-
-	console->handle = handle;
-	console->width  = width;
-	console->height = height;
-	console->size   = size;
-	console->buff   = NULL;
-	console->attrs  = NULL;
+	memcpy(console, &con, sizeof(Console));
+	Console_init_buffs(console);
 
 	return console;
 }
 
 // =============================================================================
-// @@@ + Console_init
+// @@@ + Console_init_buffs
 // =============================================================================
-Console* Console_init(Console *console)
+Console* Console_init_buffs(Console *console)
 {
 	console->buff  = malloc(console->size * sizeof(char));
 	console->attrs = malloc(console->size * sizeof(WORD));
@@ -130,9 +119,9 @@ void Console_free(Console *console)
 }
 
 // =============================================================================
-// @@@ + App_drops_alloc
+// @@@ + App_init_drops
 // =============================================================================
-Drop* App_drops_alloc(Console *console)
+Drop* App_init_drops(Console *console)
 {
 	Drop *drops = malloc(sizeof(Drop) * console->width);
 
@@ -156,9 +145,9 @@ App App_create()
 	srand(time(NULL));
 
 	Console *console = Console_new();
-	Console_init(console);
+	// Console_init_buffs(console);
 
-	Drop *drops = App_drops_alloc(console);
+	Drop *drops = App_init_drops(console);
 
 	return (App) {
 		.console = console,
@@ -177,8 +166,8 @@ void App_reset(App *app)
 
 	system("cls");
 
-	Console_init(app->console);
-	app->drops = App_drops_alloc(app->console);
+	Console_init_buffs(app->console);
+	app->drops = App_init_drops(app->console);
 
 	App_skip_begin(app);
 }
