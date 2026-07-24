@@ -116,6 +116,9 @@ void Console_free(Console *console)
 {
 	free(console->buff);
 	free(console->attrs);
+
+	console->buff  = NULL;
+	console->attrs = NULL;
 }
 
 // =============================================================================
