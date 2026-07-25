@@ -2,7 +2,7 @@
 
 >OS: Windows
 
-<img src="screenshots/life-screenshot-1.png" />
+<img src="./Screenshots/life-screenshot-1.png" />
 
-<img src="screenshots/life-screenshot-2.png" />
+<img src="./Screenshots/life-screenshot-2.png" />
 
