@@ -1,4 +1,4 @@
-# The Matrix rain effect for terminal
+# The Matrix rain effect for console
 
 >OS: Windows
 
