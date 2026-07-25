@@ -9,6 +9,10 @@
 #define ATTR_WHITE 0x0F
 #define ATTR_GREEN 0x0A
 
+#define CURSOR_INIT(app) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((app)->console->handle, &cursorInfo);
+#define CURSOR_HIDE(app) cursorInfo.bVisible = 0; SetConsoleCursorInfo((app)->console->handle, &cursorInfo);
+#define CURSOR_SHOW(app) cursorInfo.bVisible = 1; SetConsoleCursorInfo((app)->console->handle, &cursorInfo);
+
 typedef struct {
 	uint16_t count;
 	WORD attr;
@@ -172,6 +176,9 @@ void App_reset(App *app)
 	Console_init_buffs(app->console);
 	app->drops = App_init_drops(app->console);
 
+	CURSOR_INIT(app);
+	CURSOR_HIDE(app);
+
 	App_skip_begin(app);
 }
 
@@ -316,6 +323,9 @@ int main()
 
 	App app = App_create();
 
+	CURSOR_INIT(&app);
+	CURSOR_HIDE(&app);
+
 	App_skip_begin(&app);
 
 	while (App_listen(&app))
@@ -328,6 +338,8 @@ int main()
 	}
 	
 	App_destroy(&app);
+
+	CURSOR_SHOW(&app);
 
 	return 0;
 }
