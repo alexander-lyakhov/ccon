@@ -13,6 +13,8 @@
 #define CURSOR_HIDE(app) cursorInfo.bVisible = 0; SetConsoleCursorInfo((app)->console->handle, &cursorInfo);
 #define CURSOR_SHOW(app) cursorInfo.bVisible = 1; SetConsoleCursorInfo((app)->console->handle, &cursorInfo);
 
+uint8_t COLOR = 0x0A;
+
 typedef struct {
 	uint16_t count;
 	WORD attr;
@@ -48,7 +50,8 @@ void App_skip_begin(App *app);
 Drop Drop_create(Console *console)
 {
 	uint8_t count = (rand() % console->height >> 1) + 3; // min length
-	WORD attr = (rand() % 100) > 75 ? ATTR_GREEN : ATTR_BLACK;
+	// WORD attr = (rand() % 100) > 75 ? ATTR_GREEN : ATTR_BLACK;
+	WORD attr = (rand() % 100) > 75 ? COLOR : ATTR_BLACK;
 
 	return (Drop) {
 		.count = count,
@@ -124,6 +127,27 @@ void Console_free(Console *console)
 
 	console->buff  = NULL;
 	console->attrs = NULL;
+}
+
+// =============================================================================
+// @@@ + Console_update_colors
+// =============================================================================
+void Console_update_colors(App *app, uint8_t color)
+{
+	Console *console = app->console;
+	COLOR = color;
+
+	for (size_t i = 0; i < console->size; i++)
+	{
+		if (console->attrs[i] && console->attrs[i] < 0x0f)
+			console->attrs[i] = COLOR;
+	}
+
+	for (size_t i = 0; i < console->width; i++)
+	{
+		if (app->drops[i].attr && app->drops[i].attr < 0x0f)
+			app->drops[i].attr = COLOR;
+	}
 }
 
 // =============================================================================
@@ -235,8 +259,12 @@ uint16_t App_listen(App *app)
 
 		if (key == 27 || key == 'q') return 0;
 
-		if (key >= '1' && key <= '9') {
+		/*if (key >= '1' && key <= '9') {
 			app->delay = 10000 * (key & 0x0f);
+		}*/
+
+		if (key >= '1' && key <= '8') {
+			Console_update_colors(app, key & 0x0f);
 		}
 	}
 	return 1;
