@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <time.h>
-// #include <unistd.h>
+#include <unistd.h>
 
 #define ATTR_BLACK 0x00
 #define ATTR_WHITE 0x0F
@@ -35,6 +35,7 @@ typedef struct {
 typedef struct {
 	Console *console;
 	Drop *drops;
+	uint32_t delay;
 
 } App;
 
@@ -159,6 +160,7 @@ App App_create()
 	return (App) {
 		.console = console,
 		.drops = drops,
+		.delay = 40000,
 	};
 }
 
@@ -230,7 +232,12 @@ uint16_t App_listen(App *app)
 	if (kbhit())
 	{
 		int key = getch();
+
 		if (key == 27 || key == 'q') return 0;
+
+		if (key >= '1' && key <= '9') {
+			app->delay = 10000 * (key & 0x0f);
+		}
 	}
 	return 1;
 }
@@ -333,8 +340,8 @@ int main()
 		App_render(&app);
 		App_update(&app);
 
-		Sleep(30);
-		// usleep(30000);
+		// Sleep(30);
+		usleep(app.delay);
 	}
 	
 	App_destroy(&app);
