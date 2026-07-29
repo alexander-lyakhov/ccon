@@ -16,6 +16,7 @@
 typedef struct {
 	uint16_t count;
 	WORD attr;
+
 } Drop;
 
 typedef struct {
@@ -153,7 +154,6 @@ App App_create()
 	srand(time(NULL));
 
 	Console *console = Console_new();
-	// Console_init_buffs(console);
 
 	Drop *drops = App_init_drops(console);
 
@@ -278,26 +278,7 @@ void App_update(App *app)
 			if (console->attrs[i] != ATTR_BLACK && console->attrs[i + console->width] == ATTR_BLACK)
 				console->attrs[i] = ATTR_WHITE;
 		}
-		
-		/*
-		if (!drops[i].count--)
-			drops[i] = create_drop(console);
-
-		console->attrs[i] = drops[i].attr;
-
-		if (console->attrs[i] != ATTR_BLACK && console->attrs[i + console->width] == ATTR_BLACK)
-			console->attrs[i] = ATTR_WHITE;
-		*/
 	}
-}
-
-// ================================================================================
-// @@@ + App_skip_begin
-// ================================================================================
-void App_skip_begin(App *app)
-{
-	for (int row = 0; row < app->console->height - 1; row++)
-		App_update(app);
 }
 
 // =============================================================================
@@ -322,6 +303,15 @@ void App_render(App *app)
 		(COORD){0, 0},
 		&console->written
 	);
+}
+
+// ================================================================================
+// @@@ + App_skip_begin
+// ================================================================================
+void App_skip_begin(App *app)
+{
+	for (int row = 0; row < app->console->height - 1; row++)
+		App_update(app);
 }
 
 int main()
