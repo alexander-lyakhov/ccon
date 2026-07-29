@@ -2,10 +2,9 @@
 
 > Inspired by `cmatrix` for Linux
 
-### Keyboard shortcuts
-| Key          | Action |
-|--------------|--------|
-| `1..9`       | Speed control
-| `Esc` or `q` | Exit
+|Keyboard shortcuts| Action|
+|------------------|--------|
+| `1..9`           | Speed control
+| `Esc` or `q`     | Exit
 
 <img src="./matrix.gif" />
