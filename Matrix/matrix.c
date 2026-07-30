@@ -31,6 +31,8 @@ typedef struct {
 	uint16_t height;
 	uint16_t size;
 
+	uint8_t  depth;
+
 } Console;
 
 typedef struct {
@@ -50,6 +52,12 @@ Drop Drop_create(Console *console)
 {
 	uint8_t count = (rand() % console->height >> 1) + 3; // min length
 	WORD attr = (rand() % 100) > 75 ? ATTR_GREEN : ATTR_BLACK;
+
+	if (console->depth && attr != ATTR_BLACK)
+	{
+		if ((rand() % 10) > 5)
+			attr &= 0b0111;
+	}
 
 	return (Drop) {
 		.count = count,
@@ -78,6 +86,7 @@ Console Console_create()
 		.size     = size,
 		.buff     = NULL,
 		.attrs    = NULL,
+		.depth    = 1,
 	};
 }
 
@@ -238,6 +247,9 @@ uint16_t App_listen(App *app)
 		if (key >= '1' && key <= '9') {
 			app->delay = 10000 * (key & 0x0f);
 		}
+
+		if (key == 'b')
+			app->console->depth ^= 1;
 	}
 	return 1;
 }
@@ -269,14 +281,19 @@ void App_update(App *app)
 	//
 	for (int i = 0; i < console->width; i++)
 	{
-		if (!app->drops[i].count--)
+		if (!app->drops[i].count--) {
 			app->drops[i] = Drop_create(console);
+		}
 		else
 		{
 			console->attrs[i] = app->drops[i].attr;
 
 			if (console->attrs[i] != ATTR_BLACK && console->attrs[i + console->width] == ATTR_BLACK)
-				console->attrs[i] = ATTR_WHITE;
+			{
+				console->attrs[i] = console->attrs[i] & 0b1000 // check if current attr is bright
+					? ATTR_WHITE
+					: ATTR_WHITE & 0b0111;
+			}
 		}
 	}
 }
