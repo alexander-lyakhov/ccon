@@ -31,14 +31,13 @@ typedef struct {
 	uint16_t height;
 	uint16_t size;
 
-	uint8_t  depth;
-
 } Console;
 
 typedef struct {
 	Console *console;
 	Drop *drops;
 	uint32_t delay;
+	uint8_t  depth;
 
 } App;
 
@@ -48,14 +47,15 @@ void App_skip_begin(App *app);
 // ================================================================================
 // @@@ + Drop_create
 // ================================================================================
-Drop Drop_create(Console *console)
+Drop Drop_create(App *app)
 {
-	uint8_t count = (rand() % console->height >> 1) + 3; // min length
+	uint8_t count = (rand() % app->console->height >> 1) + 3; // min length
+
 	WORD attr = (rand() % 100) > 75 ? ATTR_GREEN : ATTR_BLACK;
 
-	if (console->depth && attr != ATTR_BLACK)
+	if (app->depth && attr != ATTR_BLACK)
 	{
-		if ((rand() % 10) > 5)
+		if ((rand() % 10) > 3)
 			attr &= 0b0111;
 	}
 
@@ -86,7 +86,6 @@ Console Console_create()
 		.size     = size,
 		.buff     = NULL,
 		.attrs    = NULL,
-		.depth    = 1,
 	};
 }
 
@@ -125,9 +124,9 @@ Console* Console_init_buffs(Console *console)
 }
 
 // =============================================================================
-// @@@ + Console_free
+// @@@ + Console_free_buffs
 // =============================================================================
-void Console_free(Console *console)
+void Console_free_buffs(Console *console)
 {
 	free(console->buff);
 	free(console->attrs);
@@ -139,17 +138,16 @@ void Console_free(Console *console)
 // =============================================================================
 // @@@ + App_init_drops
 // =============================================================================
-Drop* App_init_drops(Console *console)
+Drop* App_init_drops(App *app)
 {
+	Console *console = app->console;
+
 	Drop *drops = malloc(sizeof(Drop) * console->width);
 
 	for (int i = 0; i < console->width; i++)
 	{
-		drops[i] = Drop_create(console);
-
-		console->attrs[i] = drops[i].attr != ATTR_BLACK
-			? ATTR_WHITE
-			: drops[i].attr;
+		drops[i] = Drop_create(app);
+		console->attrs[i] = ATTR_WHITE; // first top line is always WHITE
 	}
 
 	return drops;
@@ -164,13 +162,14 @@ App App_create()
 
 	Console *console = Console_new();
 
-	Drop *drops = App_init_drops(console);
+	App app;
 
-	return (App) {
-		.console = console,
-		.drops = drops,
-		.delay = 40000,
-	};
+	app.console = console;
+	app.delay   = 40000;
+	app.depth   = 1;
+	app.drops   = App_init_drops(&app);
+
+	return app;
 }
 
 // =============================================================================
@@ -185,7 +184,7 @@ void App_reset(App *app)
 	system("cls");
 
 	Console_init_buffs(app->console);
-	app->drops = App_init_drops(app->console);
+	app->drops = App_init_drops(app);
 
 	CURSOR_INIT(app);
 	CURSOR_HIDE(app);
@@ -198,7 +197,7 @@ void App_reset(App *app)
 // =============================================================================
 void App_destroy(App *app)
 {
-	Console_free(app->console);
+	Console_free_buffs(app->console);
 
 	free(app->drops);
 	free(app->console);
@@ -207,7 +206,7 @@ void App_destroy(App *app)
 // =============================================================================
 // @@@ + App_check_resize
 // =============================================================================
-uint16_t App_check_resize(App *app)
+uint8_t App_check_resize(App *app)
 {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -234,7 +233,7 @@ uint16_t App_check_resize(App *app)
 // =============================================================================
 // @@@ + App_listen
 // =============================================================================
-uint16_t App_listen(App *app)
+uint8_t App_listen(App *app)
 {
 	if (App_check_resize(app)) return 1;
 
@@ -249,7 +248,7 @@ uint16_t App_listen(App *app)
 			app->delay = 10000 * (key & 0x0f);
 
 		if ((key | 32) == 'b')
-			app->console->depth ^= 1;
+			app->depth ^= 1;
 	}
 	return 1;
 }
@@ -282,7 +281,7 @@ void App_update(App *app)
 	for (int i = 0; i < console->width; i++)
 	{
 		if (!app->drops[i].count--) {
-			app->drops[i] = Drop_create(console);
+			app->drops[i] = Drop_create(app);
 		}
 		else
 		{
