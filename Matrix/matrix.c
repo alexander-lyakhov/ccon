@@ -242,13 +242,13 @@ uint16_t App_listen(App *app)
 	{
 		int key = getch();
 
-		if (key == 27 || key == 'q') return 0;
+		if (key == 27 || (key | 32) == 'q')
+			return 0;
 
-		if (key >= '1' && key <= '9') {
+		if (key >= '1' && key <= '9') 
 			app->delay = 10000 * (key & 0x0f);
-		}
 
-		if (key == 'b')
+		if ((key | 32) == 'b')
 			app->console->depth ^= 1;
 	}
 	return 1;
