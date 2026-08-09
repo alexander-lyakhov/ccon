@@ -106,8 +106,8 @@ void Console_free(Console *console)
 // =============================================================================
 Frame Frame_create(Console *console, const char *format)
 {
-	uint16_t padding_x = 3;
-	uint16_t padding_y = 2;
+	uint16_t padding_x = 4;
+	uint16_t padding_y = 3;
 
 	uint16_t text_width  = DIG_W * strlen(format);
 	uint16_t text_height = DIG_H;
@@ -133,7 +133,6 @@ Frame Frame_create(Console *console, const char *format)
 // =============================================================================
 void Clock_render(Console *console)
 {
-
 	WriteConsoleOutputCharacter(
 		console->handle,
 		console->buff,
