@@ -13,17 +13,28 @@
 #ifndef CHARSET_H_
 #define CHARSET_H_
 
-#define DIG_W 9
-#define DIG_H 5
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 
-typedef char *Digit[];
-typedef char **Charset[];
+typedef const char *Cell[];
+typedef const char **Cells[];
 
-extern Charset charset;
+typedef struct {
+	size_t cell_w;
+	size_t cell_h;
+	// const char ***data; // the same as Cells
+	Cells data;
 
+} Charset;
+
+// extern Charset charset;
+// extern Cells cells;
+
+// #define CHARSET_IMPLEMENTATION
 #ifdef CHARSET_IMPLEMENTATION
 
-	static Digit zero = {
+	static Cell zero = {
 		" ллллллл ",
 		" лл   лл ",
 		" лл   лл ",
@@ -31,7 +42,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit one = {
+	static Cell one = {
 		"      лл ",
 		"      лл ",
 		"      лл ",
@@ -39,7 +50,7 @@ extern Charset charset;
 		"      лл ",
 	};
 
-	static Digit two = {
+	static Cell two = {
 		" ллллллл ",
 		"      лл ",
 		" ллллллл ",
@@ -47,7 +58,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit three = {
+	static Cell three = {
 		" ллллллл ",
 		"      лл ",
 		"   ллллл ",
@@ -55,7 +66,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit four = {
+	static Cell four = {
 		" лл   лл ",
 		" лл   лл ",
 		" ллллллл ",
@@ -63,7 +74,7 @@ extern Charset charset;
 		"      лл ",
 	};
 
-	static Digit five = {
+	static Cell five = {
 		" ллллллл ",
 		" лл      ",
 		" ллллллл ",
@@ -71,7 +82,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit six = {
+	static Cell six = {
 		" ллллллл ",
 		" лл      ",
 		" ллллллл ",
@@ -79,7 +90,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit seven = {
+	static Cell seven = {
 		" ллллллл ",
 		"      лл ",
 		"      лл ",
@@ -87,7 +98,7 @@ extern Charset charset;
 		"      лл ",
 	};
 
-	static Digit eight = {
+	static Cell eight = {
 		" ллллллл ",
 		" лл   лл ",
 		" ллллллл ",
@@ -95,7 +106,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit nine = {
+	static Cell nine = {
 		" ллллллл ",
 		" лл   лл ",
 		" ллллллл ",
@@ -103,7 +114,7 @@ extern Charset charset;
 		" ллллллл ",
 	};
 
-	static Digit dots = {
+	static Cell dots = {
 		"         ",
 		"   ллл   ",
 		"         ",
@@ -111,7 +122,12 @@ extern Charset charset;
 		"         ",
 	};
 
-	Charset charset = { zero, one, two, three, four, five, six, seven, eight, nine, dots };
-
+	// Cells cells = { zero, one, two, three, four, five, six, seven, eight, nine, dots };
+	
+	Charset charset = {
+		.cell_w = 9,
+		.cell_h = 5,
+		.data = { zero, one, two, three, four, five, six, seven, eight, nine, dots },
+	};
 #endif
 #endif

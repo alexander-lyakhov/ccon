@@ -109,8 +109,8 @@ Frame Frame_create(Console *console, const char *format)
 	uint16_t padding_x = 4;
 	uint16_t padding_y = 3;
 
-	uint16_t text_width  = DIG_W * strlen(format);
-	uint16_t text_height = DIG_H;
+	uint16_t text_width  = charset.cell_w * strlen(format);
+	uint16_t text_height = charset.cell_h;
 
 	uint16_t frame_width  = text_width  + padding_x * 2;
 	uint16_t frame_height = text_height + padding_y * 2;
@@ -157,20 +157,20 @@ void Clock_print(Clock *clock, const char *str)
 {
 	Console *console = clock->console;
 
-	int screenx = (console->width  - DIG_W * strlen(str)) >> 1;
-	int screeny = (console->height - DIG_H) >> 1;
+	int screenx = (console->width  - charset.cell_w * strlen(str)) >> 1;
+	int screeny = (console->height - charset.cell_h) >> 1;
 
 	char *dest = console->buff + screeny * console->width + screenx;
 
-	for (int line = 0; line < DIG_H; line++)
+	for (int line = 0; line < charset.cell_h; line++)
 	{
 		PUSH_ADDR(dest);
 
 		for (const char *p = str; *p; p++)
 		{
 			int index = *p - 48;
-			memcpy(dest, charset[index][line], DIG_W);
-			dest += DIG_W;
+			memcpy(dest, charset.data[index][line], charset.cell_w);
+			dest += charset.cell_w;
 		}
 
 		POP_ADDR(dest);
@@ -238,7 +238,7 @@ void Clock_draw_frame(Clock *clock, const char *str)
 // =============================================================================
 void print_char(char *digit[])
 {
-	for (int i = 0; i < DIG_H; i++)
+	for (int i = 0; i < charset.cell_h; i++)
 	{
 		printf("%s\n", digit[i]);
 	}
@@ -272,19 +272,20 @@ int main()
 		.frame   = &frame,
 	};
 
-	Clock_draw_frame(&clock, "12:48:03");
-	// Clock_print(&clock, "02:48:03");
-	Clock_print_time(&clock);
+	// printf("w = %d\n", charset.cell_w);
+	// printf("h = %d\n", charset.cell_h);
 
+	// Clock_draw_frame(&clock, "12:48:03");
+	// Clock_print(&clock, "02:48:03");
+	// Clock_print_time(&clock);
+	
 	while (App_listen(&console))
 	{
-		// app_render(&console);
-		// app_update(&console);
 		Clock_print_time(&clock);
 
 		Sleep(50);
 	}
-
+	
 	Console_free(&console);
 
 	return 0;
