@@ -16,9 +16,16 @@
 #include <string.h>
 #include <windows.h>
 #include <time.h>
+#include "h/charset.h"
 
-#define CHARSET_IMPLEMENTATION
+// #define CHARSET_01_IMPLEMENTATION
 #include "h/charset01.h"
+
+// #define CHARSET_02_IMPLEMENTATION
+#include "h/charset02.h"
+
+#define CHARSET_03_IMPLEMENTATION
+#include "h/charset03.h"
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
@@ -50,6 +57,7 @@ typedef struct _Frame {
 
 typedef struct _Clock {
 	Console *console;
+	Charset *charset;
 	Frame *frame;
 	struct tm time;
 	char timebuff[32];
@@ -104,13 +112,16 @@ void Console_free(Console *console)
 // =============================================================================
 // @@@ + Frame_create
 // =============================================================================
-Frame Frame_create(Console *console, const char *format)
+Frame Frame_create(Clock *clock, const char *format)
 {
+	Console *console = clock->console;
+	Charset *charset = clock->charset;
+
 	uint16_t padding_x = 4;
 	uint16_t padding_y = 3;
 
-	uint16_t text_width  = charset.cell_w * strlen(format);
-	uint16_t text_height = charset.cell_h;
+	uint16_t text_width  = charset->cell_w * strlen(format);
+	uint16_t text_height = charset->cell_h;
 
 	uint16_t frame_width  = text_width  + padding_x * 2;
 	uint16_t frame_height = text_height + padding_y * 2;
@@ -156,21 +167,22 @@ void Clock_render(Console *console)
 void Clock_print(Clock *clock, const char *str)
 {
 	Console *console = clock->console;
+	Charset *charset = clock->charset;
 
-	int screenx = (console->width  - charset.cell_w * strlen(str)) >> 1;
-	int screeny = (console->height - charset.cell_h) >> 1;
+	int screenx = (console->width  - charset->cell_w * strlen(str)) >> 1;
+	int screeny = (console->height - charset->cell_h) >> 1;
 
 	char *dest = console->buff + screeny * console->width + screenx;
 
-	for (int line = 0; line < charset.cell_h; line++)
+	for (int line = 0; line < charset->cell_h; line++)
 	{
 		PUSH_ADDR(dest);
 
 		for (const char *p = str; *p; p++)
 		{
 			int index = *p - 48;
-			memcpy(dest, charset.data[index][line], charset.cell_w);
-			dest += charset.cell_w;
+			memcpy(dest, charset->data[index][line], charset->cell_w);
+			dest += charset->cell_w;
 		}
 
 		POP_ADDR(dest);
@@ -191,7 +203,6 @@ void Clock_print_time(Clock *clock)
 		clock->time.tm_sec
 	);
 	Clock_print(clock, clock->timebuff);
-	// printf("%s\n", clock->timebuff);
 }
 
 // =============================================================================
@@ -234,17 +245,6 @@ void Clock_draw_frame(Clock *clock, const char *str)
 }
 
 // =============================================================================
-// @@@ + print_char
-// =============================================================================
-void print_char(char *digit[])
-{
-	for (int i = 0; i < charset.cell_h; i++)
-	{
-		printf("%s\n", digit[i]);
-	}
-	puts("");
-}
-// =============================================================================
 // @@@ + app_listen
 // =============================================================================
 uint16_t App_listen(Console *console)
@@ -264,13 +264,16 @@ int main()
 
 	const char *time_format = "##:##:##";
 
+	// Charset charset = charset02;
+
 	Console console = Console_create();
-	Frame frame = Frame_create(&console, time_format);
 
 	Clock clock = {
 		.console = &console,
-		.frame   = &frame,
+		.charset = &charset03,
 	};
+	Frame frame = Frame_create(&clock, time_format);
+	clock.frame = &frame;
 
 	// printf("w = %d\n", charset.cell_w);
 	// printf("h = %d\n", charset.cell_h);

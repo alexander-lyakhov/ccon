@@ -10,29 +10,13 @@
   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 */
 
-#ifndef CHARSET_H_
-#define CHARSET_H_
+#ifndef CHARSET_01_H_
+#define CHARSET_01_H_
 
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
+#include "charset.h"
 
-typedef const char *Cell[];
-typedef const char **Cells[];
-
-typedef struct {
-	size_t cell_w;
-	size_t cell_h;
-	// const char ***data; // the same as Cells
-	Cells data;
-
-} Charset;
-
-// extern Charset charset;
-// extern Cells cells;
-
-// #define CHARSET_IMPLEMENTATION
-#ifdef CHARSET_IMPLEMENTATION
+#ifdef CHARSET_01_IMPLEMENTATION
 
 	static Cell zero = {
 		" ÛÛÛÛÛÛÛ ",
@@ -124,10 +108,11 @@ typedef struct {
 
 	// Cells cells = { zero, one, two, three, four, five, six, seven, eight, nine, dots };
 	
-	Charset charset = {
+	Charset charset01 = {
 		.cell_w = 9,
 		.cell_h = 5,
 		.data = { zero, one, two, three, four, five, six, seven, eight, nine, dots },
 	};
+
 #endif
 #endif
