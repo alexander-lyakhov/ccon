@@ -16,7 +16,13 @@
 #include <string.h>
 #include <windows.h>
 #include <time.h>
+#include "h/console.h"
+#include "h/clock.h"
 #include "h/charset.h"
+#include "h/frame.h"
+
+// #define FRAME_IMPLEMENTATION
+// #include "h/frame.h"
 
 #define CHARSET_01_IMPLEMENTATION
 #include "h/charset01.h"
@@ -34,39 +40,74 @@
 #define  POP_ADDR(addr) (addr) = tmp;
 #define  INC_LINE(addr) (addr) += console->width;
 
-typedef struct _Console {
-	HANDLE handle;
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	DWORD written;
+// =============================================================================
+// @@@ + Frame_create
+// =============================================================================
+Frame Frame_create(Clock *clock, const char *format)
+{
+	Console *console = clock->console;
+	Charset *charset = clock->charset;
 
-	char* buff;
-	WORD* attrs;
+	uint16_t padding_x = 4;
+	uint16_t padding_y = 3;
 
-	uint16_t width;
-	uint16_t height;
-	uint16_t size;
+	uint16_t text_width  = charset->cell_w * strlen(format);
+	uint16_t text_height = charset->cell_h;
 
-} Console;
+	uint16_t frame_width  = text_width  + padding_x * 2;
+	uint16_t frame_height = text_height + padding_y * 2;
 
-typedef struct _Frame {
-	uint16_t screen_x;
-	uint16_t screen_y;
-	uint16_t width;
-	uint16_t height;
-	uint16_t padding_x;
-	uint16_t padding_y;
+	uint16_t frame_screen_x = (console->width  - frame_width)  >> 1;
+	uint16_t frame_screen_y = (console->height - frame_height) >> 1;
 
-} Frame;
+	return (Frame) {
+		.screen_x  = frame_screen_x,
+		.screen_y  = frame_screen_y,
+		.width     = frame_width,
+		.height    = frame_height,
+		.padding_x = padding_x,
+		.padding_y = padding_y,
+	};
+}
 
-typedef struct _Clock {
-	Console *console;
-	Charset *charset;
-	Charset *charsets;
-	Frame *frame;
-	struct tm time;
-	char timebuff[32];
+// =============================================================================
+// @@@ + Frame_draw
+// =============================================================================
+void Frame_draw(Clock *clock, const char *str)
+{
+	Frame *frame     = clock->frame;
+	Console *console = clock->console;
 
-} Clock;
+	int first_row = 0;
+	int final_row = frame->height - 1;
+
+	char *dest = console->buff + frame->screen_x + frame->screen_y * console->width;
+	
+	for (int line = 0; line < frame->height; line++)
+	{
+		PUSH_ADDR(dest);
+
+		if (line == first_row) {
+			dest[0]                = 'Ú';
+			dest[frame->width - 1] = '¿';
+		}
+		else if (line == final_row) {
+			dest[0]                = 'À';
+			dest[frame->width - 1] = 'Ù';
+		}
+		else {
+			dest[0]                = '³';
+			dest[frame->width - 1] = '³';
+		}
+
+		for (int x = 0; x < frame->width - 2; x++) {
+			dest[x + 1] = (!line || line == frame->height - 1) ? 'Ä' : ' ';
+		}
+
+		POP_ADDR(dest);
+		INC_LINE(dest);
+	}
+}
 
 // ================================================================================
 // @@@ + Console_create
@@ -113,7 +154,7 @@ void Console_free(Console *console)
 	console->attrs = NULL;
 }
 
-// =============================================================================
+/*// =============================================================================
 // @@@ + Frame_create
 // =============================================================================
 Frame Frame_create(Clock *clock, const char *format)
@@ -142,7 +183,7 @@ Frame Frame_create(Clock *clock, const char *format)
 		.padding_y = padding_y,
 	};
 }
-
+*/
 // =============================================================================
 // @@@ + Clock_render
 // =============================================================================
@@ -184,7 +225,7 @@ void Clock_print(Clock *clock, const char *str)
 
 		for (const char *p = str; *p; p++)
 		{
-			int index = *p - 48;
+			int index = *p - 47;
 			memcpy(dest, charset->data[index][line], charset->cell_w);
 			dest += charset->cell_w;
 		}
@@ -196,7 +237,10 @@ void Clock_print(Clock *clock, const char *str)
 	Clock_render(console);
 }
 
-void Clock_print_time(Clock *clock)
+// =============================================================================
+// @@@ + Clock_get_time
+// =============================================================================
+void Clock_get_time(Clock *clock)
 {
 	time_t now = time(NULL);
 	localtime_s(&clock->time, &now);
@@ -209,7 +253,7 @@ void Clock_print_time(Clock *clock)
 	Clock_print(clock, clock->timebuff);
 }
 
-// =============================================================================
+/*// =============================================================================
 // @@@ + Clock_draw_frame
 // =============================================================================
 void Clock_draw_frame(Clock *clock, const char *str)
@@ -247,7 +291,7 @@ void Clock_draw_frame(Clock *clock, const char *str)
 		INC_LINE(dest);
 	}
 }
-
+*/
 // =============================================================================
 // @@@ + app_listen
 // =============================================================================
@@ -258,8 +302,10 @@ uint16_t App_listen(Clock *clock)
 		char key = _getch();
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-		if (key >= '1' && key <= '3') {
-			clock->charset = &clock->charsets[key - 49];
+		if (key >= '1' && key <= '9')
+		{
+			int index = (key - 49) % clock->charset_list_size;
+			clock->charset = &clock->charset_list[index];
 		}
 	}
 
@@ -268,9 +314,7 @@ uint16_t App_listen(Clock *clock)
 
 int main()
 {
-	// system("cls");
-
-	Charset charsets[] = {
+	Charset charset_list[] = {
 		charset01,
 		charset02,
 		charset03,
@@ -281,16 +325,17 @@ int main()
 	Console console = Console_create();
 
 	Clock clock = {
-		.console = &console,
-		.charset = &charsets[0],
-		.charsets = charsets,
+		.console           = &console,
+		.charset           = &charset_list[1],
+		.charset_list      = charset_list,
+		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 	};
 	Frame frame = Frame_create(&clock, time_format);
 	clock.frame = &frame;
 	
 	while (App_listen(&clock))
 	{
-		Clock_print_time(&clock);
+		Clock_get_time(&clock);
 		Sleep(50);
 	}
 	// printf("%d\n", sizeof(charsets) / sizeof(*charsets));
