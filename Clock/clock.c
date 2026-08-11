@@ -18,14 +18,17 @@
 #include <time.h>
 #include "h/charset.h"
 
-// #define CHARSET_01_IMPLEMENTATION
+#define CHARSET_01_IMPLEMENTATION
 #include "h/charset01.h"
 
-// #define CHARSET_02_IMPLEMENTATION
+#define CHARSET_02_IMPLEMENTATION
 #include "h/charset02.h"
 
 #define CHARSET_03_IMPLEMENTATION
 #include "h/charset03.h"
+
+#define CHARSET_04_IMPLEMENTATION
+#include "h/charset04.h"
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
@@ -264,8 +267,6 @@ int main()
 
 	const char *time_format = "##:##:##";
 
-	// Charset charset = charset02;
-
 	Console console = Console_create();
 
 	Clock clock = {
@@ -274,13 +275,6 @@ int main()
 	};
 	Frame frame = Frame_create(&clock, time_format);
 	clock.frame = &frame;
-
-	// printf("w = %d\n", charset.cell_w);
-	// printf("h = %d\n", charset.cell_h);
-
-	// Clock_draw_frame(&clock, "12:48:03");
-	// Clock_print(&clock, "02:48:03");
-	// Clock_print_time(&clock);
 	
 	while (App_listen(&console))
 	{

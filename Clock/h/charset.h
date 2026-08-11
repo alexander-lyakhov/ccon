@@ -7,8 +7,8 @@ typedef const char **Cells[];
 typedef struct {
 	size_t cell_w;
 	size_t cell_h;
-	Cells data;
-	// const char ***data; // the same as Cells
+	// Cells data;
+	const char ***data; // the same as Cells
 
 } Charset;
 
