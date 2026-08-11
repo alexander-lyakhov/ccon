@@ -38,6 +38,9 @@
 #define CHARSET_04_IMPLEMENTATION
 #include "h/charset04.h"
 
+#define CHARSET_05_IMPLEMENTATION
+#include "h/charset05.h"
+
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
 #include "h/charset-electronika.h"
 
@@ -269,6 +272,7 @@ int main()
 		charset02,
 		charset03,
 		charset04,
+		charset05,
 		charset_electronika,
 	};
 
@@ -279,7 +283,7 @@ int main()
 
 	Clock clock = {
 		.console           = &console,
-		.charset           = &charset_list[3],
+		.charset           = &charset_list[2],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 	};
