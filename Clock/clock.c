@@ -38,6 +38,9 @@
 #define CHARSET_04_IMPLEMENTATION
 #include "h/charset04.h"
 
+#define CHARSET_ELECTRONOCA_IMPLEMENTATION
+#include "h/charset-electronika.h"
+
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
 #define  INC_LINE(addr) (addr) += console->width;
@@ -127,13 +130,13 @@ Console Console_create()
 
 	char *buff = malloc(size);
 	WORD *attrs = malloc(sizeof(WORD) * size);
-
+	/*
 	for (size_t i = 0; i < size; i++)
 	{
 		buff[i] = ' ';
 		attrs[i] = 0x07;
 	}
-
+	*/
 	return (Console) {
 		.handle   = handle,
 		.width    = width,
@@ -142,6 +145,18 @@ Console Console_create()
 		.buff     = buff,
 		.attrs    = attrs,
 	};
+}
+
+// =============================================================================
+// @@@ + Console_clear
+// =============================================================================
+void Console_clear(Console *console)
+{
+	for (size_t i = 0; i < console->size; i++)
+	{
+		console->buff[i] = ' ';
+		console->attrs[i] = 0x07;
+	}
 }
 
 // =============================================================================
@@ -237,6 +252,8 @@ uint16_t App_listen(Clock *clock)
 
 		if (key >= '1' && key <= '9')
 		{
+			Console_clear(clock->console);
+
 			int index = (key - 49) % clock->charset_list_size;
 			clock->charset = &clock->charset_list[index];
 		}
@@ -252,11 +269,13 @@ int main()
 		charset02,
 		charset03,
 		charset04,
+		charset_electronika,
 	};
 
 	const char *time_format = "##:##:##";
 
 	Console console = Console_create();
+	Console_clear(&console);
 
 	Clock clock = {
 		.console           = &console,
