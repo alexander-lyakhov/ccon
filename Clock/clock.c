@@ -16,13 +16,15 @@
 #include <string.h>
 #include <windows.h>
 #include <time.h>
-#include "h/console.h"
 #include "h/clock.h"
 #include "h/charset.h"
 #include "h/frame.h"
 
 // #define FRAME_IMPLEMENTATION
 // #include "h/frame.h"
+
+#define CONSOLE_IMPLEMENTATION
+#include "h/console.h"
 
 #define CHARSET_01_IMPLEMENTATION
 #include "h/charset01.h"
@@ -154,36 +156,6 @@ void Console_free(Console *console)
 	console->attrs = NULL;
 }
 
-/*// =============================================================================
-// @@@ + Frame_create
-// =============================================================================
-Frame Frame_create(Clock *clock, const char *format)
-{
-	Console *console = clock->console;
-	Charset *charset = clock->charset;
-
-	uint16_t padding_x = 4;
-	uint16_t padding_y = 3;
-
-	uint16_t text_width  = charset->cell_w * strlen(format);
-	uint16_t text_height = charset->cell_h;
-
-	uint16_t frame_width  = text_width  + padding_x * 2;
-	uint16_t frame_height = text_height + padding_y * 2;
-
-	uint16_t frame_screen_x = (console->width  - frame_width)  >> 1;
-	uint16_t frame_screen_y = (console->height - frame_height) >> 1;
-
-	return (Frame) {
-		.screen_x  = frame_screen_x,
-		.screen_y  = frame_screen_y,
-		.width     = frame_width,
-		.height    = frame_height,
-		.padding_x = padding_x,
-		.padding_y = padding_y,
-	};
-}
-*/
 // =============================================================================
 // @@@ + Clock_render
 // =============================================================================
@@ -253,45 +225,6 @@ void Clock_get_time(Clock *clock)
 	Clock_print(clock, clock->timebuff);
 }
 
-/*// =============================================================================
-// @@@ + Clock_draw_frame
-// =============================================================================
-void Clock_draw_frame(Clock *clock, const char *str)
-{
-	Frame *frame     = clock->frame;
-	Console *console = clock->console;
-
-	int first_row = 0;
-	int final_row = frame->height - 1;
-
-	char *dest = console->buff + frame->screen_x + frame->screen_y * console->width;
-	
-	for (int line = 0; line < frame->height; line++)
-	{
-		PUSH_ADDR(dest);
-
-		if (line == first_row) {
-			dest[0]                = 'Ú';
-			dest[frame->width - 1] = '¿';
-		}
-		else if (line == final_row) {
-			dest[0]                = 'À';
-			dest[frame->width - 1] = 'Ù';
-		}
-		else {
-			dest[0]                = '³';
-			dest[frame->width - 1] = '³';
-		}
-
-		for (int x = 0; x < frame->width - 2; x++) {
-			dest[x + 1] = (!line || line == frame->height - 1) ? 'Ä' : ' ';
-		}
-
-		POP_ADDR(dest);
-		INC_LINE(dest);
-	}
-}
-*/
 // =============================================================================
 // @@@ + app_listen
 // =============================================================================
@@ -318,6 +251,7 @@ int main()
 		charset01,
 		charset02,
 		charset03,
+		charset04,
 	};
 
 	const char *time_format = "##:##:##";
@@ -326,7 +260,7 @@ int main()
 
 	Clock clock = {
 		.console           = &console,
-		.charset           = &charset_list[1],
+		.charset           = &charset_list[3],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 	};
