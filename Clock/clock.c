@@ -35,11 +35,11 @@
 #define CHARSET_03_IMPLEMENTATION
 #include "h/charset03.h"
 
-#define CHARSET_04_IMPLEMENTATION
-#include "h/charset04.h"
-
 #define CHARSET_05_IMPLEMENTATION
 #include "h/charset05.h"
+
+#define CHARSET_LINES_IMPLEMENTATION
+#include "h/charset-lines.h"
 
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
 #include "h/charset-electronika.h"
@@ -271,8 +271,8 @@ int main()
 		charset01,
 		charset02,
 		charset03,
-		charset04,
 		charset05,
+		charset_lines,
 		charset_electronika,
 	};
 

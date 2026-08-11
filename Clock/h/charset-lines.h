@@ -10,14 +10,14 @@
   읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 */
 
-#ifndef CHARSET_04_H_
-#define CHARSET_04_H_
+#ifndef CHARSET_LINES_H_
+#define CHARSET_LINES_H_
 
 #include <stdio.h>
 #include "charset.h"
 
-#ifdef CHARSET_04_IMPLEMENTATION
-	Charset charset04 = {
+#ifdef CHARSET_LINES_IMPLEMENTATION
+	Charset charset_lines = {
 		.cell_w = 10,
 		.cell_h = 8,
 		.data = (Cells){
