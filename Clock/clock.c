@@ -61,6 +61,7 @@ typedef struct _Frame {
 typedef struct _Clock {
 	Console *console;
 	Charset *charset;
+	Charset *charsets;
 	Frame *frame;
 	struct tm time;
 	char timebuff[32];
@@ -250,12 +251,16 @@ void Clock_draw_frame(Clock *clock, const char *str)
 // =============================================================================
 // @@@ + app_listen
 // =============================================================================
-uint16_t App_listen(Console *console)
+uint16_t App_listen(Clock *clock)
 {
 	if (_kbhit())
 	{
 		char key = _getch();
 		if (key == 27 || ((key | 32) == 'q')) return 0;
+
+		if (key >= '1' && key <= '3') {
+			clock->charset = &clock->charsets[key - 49];
+		}
 	}
 
 	return 1;
@@ -265,23 +270,30 @@ int main()
 {
 	// system("cls");
 
+	Charset charsets[] = {
+		charset01,
+		charset02,
+		charset03,
+	};
+
 	const char *time_format = "##:##:##";
 
 	Console console = Console_create();
 
 	Clock clock = {
 		.console = &console,
-		.charset = &charset03,
+		.charset = &charsets[0],
+		.charsets = charsets,
 	};
 	Frame frame = Frame_create(&clock, time_format);
 	clock.frame = &frame;
 	
-	while (App_listen(&console))
+	while (App_listen(&clock))
 	{
 		Clock_print_time(&clock);
-
 		Sleep(50);
 	}
+	// printf("%d\n", sizeof(charsets) / sizeof(*charsets));
 	
 	Console_free(&console);
 
