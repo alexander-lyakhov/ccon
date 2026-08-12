@@ -1,15 +1,3 @@
-/*
-  кФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФП
-  Г                                                                                  Г
-  Г   ллллллл  ллллллл             ллллллл   лл   лл             ллллллл   ллллллл   Г
-  Г   лл   лл       лл     ллл          лл   лл   лл     ллл     лл        лл        Г
-  Г   лл   лл  ллллллл               ллллл   ллллллл             ллллллл   ллллллл   Г
-  Г   лл   лл  лл          ллл          лл        лл     ллл          лл   лл   лл   Г
-  Г   ллллллл  ллллллл             ллллллл        лл             ллллллл   ллллллл   Г
-  Г                                                                                  Г
-  РФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФй
-*/
-
 #include <stdio.h>
 #include <stdint.h>
 #include <conio.h>
@@ -25,22 +13,22 @@
 #include "h/frame.h"
 
 #define CHARSET_01_IMPLEMENTATION
-#include "h/charset01.h"
+	#include "h/charset01.h"
 
 #define CHARSET_02_IMPLEMENTATION
-#include "h/charset02.h"
+	#include "h/charset02.h"
 
 #define CHARSET_03_IMPLEMENTATION
-#include "h/charset03.h"
+	#include "h/charset03.h"
 
 #define CHARSET_05_IMPLEMENTATION
-#include "h/charset05.h"
+	#include "h/charset05.h"
 
 #define CHARSET_LINES_IMPLEMENTATION
-#include "h/charset-lines.h"
+	#include "h/charset-lines.h"
 
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
-#include "h/charset-electronika-01.h"
+	#include "h/charset-electronika-01.h"
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
@@ -227,6 +215,8 @@ int main()
 		.charset           = &charset_list[2],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
+		.padding_x         = 4,
+		.padding_y         = 3,
 	};
 	Frame frame = Frame_create(&clock, time_format);
 	clock.frame = &frame;

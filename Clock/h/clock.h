@@ -12,6 +12,9 @@ typedef struct {
 	Charset *charset_list;
 	uint8_t charset_list_size;
 
+	uint8_t padding_x;
+	uint8_t padding_y;
+
 	Frame *frame;
 
 	struct tm time;
