@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "console.h"
 #include "charset.h"
-#include "frame.h"
 
 typedef struct {
 	Console *console;
@@ -14,8 +13,6 @@ typedef struct {
 
 	uint8_t padding_x;
 	uint8_t padding_y;
-
-	Frame *frame;
 
 	struct tm time;
 	char timebuff[32];

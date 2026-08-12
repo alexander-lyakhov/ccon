@@ -10,7 +10,6 @@
 
 #include "h/clock.h"
 #include "h/charset.h"
-#include "h/frame.h"
 
 #define CHARSET_01_IMPLEMENTATION
 	#include "h/charset01.h"
@@ -35,75 +34,6 @@
 #define  INC_LINE(addr) (addr) += console->width;
 
 // =============================================================================
-// @@@ + Frame_create
-// =============================================================================
-Frame Frame_create(Clock *clock, const char *format)
-{
-	Console *console = clock->console;
-	Charset *charset = clock->charset;
-
-	uint16_t padding_x = 4;
-	uint16_t padding_y = 3;
-
-	uint16_t text_width  = charset->cell_w * strlen(format);
-	uint16_t text_height = charset->cell_h;
-
-	uint16_t frame_width  = text_width  + padding_x * 2;
-	uint16_t frame_height = text_height + padding_y * 2;
-
-	uint16_t frame_screen_x = (console->width  - frame_width)  >> 1;
-	uint16_t frame_screen_y = (console->height - frame_height) >> 1;
-
-	return (Frame) {
-		.screen_x  = frame_screen_x,
-		.screen_y  = frame_screen_y,
-		.width     = frame_width,
-		.height    = frame_height,
-		.padding_x = padding_x,
-		.padding_y = padding_y,
-	};
-}
-
-// =============================================================================
-// @@@ + Frame_draw
-// =============================================================================
-void Frame_draw(Clock *clock, const char *str)
-{
-	Frame *frame     = clock->frame;
-	Console *console = clock->console;
-
-	int first_row = 0;
-	int final_row = frame->height - 1;
-
-	char *dest = console->buff + frame->screen_x + frame->screen_y * console->width;
-	
-	for (int line = 0; line < frame->height; line++)
-	{
-		PUSH_ADDR(dest);
-
-		if (line == first_row) {
-			dest[0]                = 'Ú';
-			dest[frame->width - 1] = '¿';
-		}
-		else if (line == final_row) {
-			dest[0]                = 'À';
-			dest[frame->width - 1] = 'Ù';
-		}
-		else {
-			dest[0]                = '³';
-			dest[frame->width - 1] = '³';
-		}
-
-		for (int x = 0; x < frame->width - 2; x++) {
-			dest[x + 1] = (!line || line == frame->height - 1) ? 'Ä' : ' ';
-		}
-
-		POP_ADDR(dest);
-		INC_LINE(dest);
-	}
-}
-
-// =============================================================================
 // @@@ + Clock_render
 // =============================================================================
 void Clock_render(Console *console)
@@ -126,14 +56,60 @@ void Clock_render(Console *console)
 }
 
 // =============================================================================
+// @@@ + Clock_draw_frame
+// =============================================================================
+void Clock_draw_frame(Clock *clock)
+{
+	Console *console = clock->console;
+
+	uint16_t frame_width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
+	uint16_t frame_height = clock->padding_y * 2 + clock->charset->cell_h;
+
+	uint16_t frame_screen_x = (console->width  - frame_width)  >> 1;
+	uint16_t frame_screen_y = (console->height - frame_height) >> 1;
+
+	int first_row = 0;
+	int final_row = frame_height - 1;
+
+	char *dest = console->buff + frame_screen_x + frame_screen_y * console->width;
+	
+	for (int line = 0; line < frame_height; line++)
+	{
+		PUSH_ADDR(dest);
+
+		if (line == first_row) {
+			dest[0]                = 'Ú';
+			dest[frame_width - 1] = '¿';
+		}
+		else if (line == final_row) {
+			dest[0]                = 'À';
+			dest[frame_width - 1] = 'Ù';
+		}
+		else {
+			dest[0]                = '³';
+			dest[frame_width - 1] = '³';
+		}
+
+		for (int x = 0; x < frame_width - 2; x++) {
+			dest[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
+		}
+
+		POP_ADDR(dest);
+		INC_LINE(dest);
+	}
+}
+
+// =============================================================================
 // @@@ + Clock_print
 // =============================================================================
-void Clock_print(Clock *clock, const char *str)
+void Clock_print(Clock *clock)
 {
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
+	
+	const char *str_time = clock->timebuff;
 
-	int screenx = (console->width  - charset->cell_w * strlen(str)) >> 1;
+	int screenx = (console->width  - charset->cell_w * strlen(str_time)) >> 1;
 	int screeny = (console->height - charset->cell_h) >> 1;
 
 	char *dest = console->buff + screeny * console->width + screenx;
@@ -142,7 +118,7 @@ void Clock_print(Clock *clock, const char *str)
 	{
 		PUSH_ADDR(dest);
 
-		for (const char *p = str; *p; p++)
+		for (const char *p = str_time; *p; p++)
 		{
 			int index = *p - 47;
 			memcpy(dest, charset->data[index][line], charset->cell_w);
@@ -169,7 +145,6 @@ void Clock_get_time(Clock *clock)
 		clock->time.tm_min,
 		clock->time.tm_sec
 	);
-	Clock_print(clock, clock->timebuff);
 }
 
 // =============================================================================
@@ -215,15 +190,15 @@ int main()
 		.charset           = &charset_list[2],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
-		.padding_x         = 4,
+		.padding_x         = 6,
 		.padding_y         = 3,
 	};
-	Frame frame = Frame_create(&clock, time_format);
-	clock.frame = &frame;
 	
 	while (App_listen(&clock))
 	{
 		Clock_get_time(&clock);
+		Clock_draw_frame(&clock);
+		Clock_print(&clock);
 		Sleep(50);
 	}
 	// printf("%d\n", sizeof(charsets) / sizeof(*charsets));
