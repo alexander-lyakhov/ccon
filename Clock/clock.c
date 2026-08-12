@@ -6,7 +6,7 @@
 #include <time.h>
 
 #define CONSOLE_IMPLEMENTATION
-#include "h/console.h"
+	#include "h/console.h"
 
 #include "h/clock.h"
 #include "h/charset.h"
@@ -78,15 +78,15 @@ void Clock_draw_frame(Clock *clock)
 		PUSH_ADDR(dest);
 
 		if (line == first_row) {
-			dest[0]                = 'Ú';
+			dest[0]               = 'Ú';
 			dest[frame_width - 1] = '¿';
 		}
 		else if (line == final_row) {
-			dest[0]                = 'À';
+			dest[0]               = 'À';
 			dest[frame_width - 1] = 'Ù';
 		}
 		else {
-			dest[0]                = '³';
+			dest[0]               = '³';
 			dest[frame_width - 1] = '³';
 		}
 
@@ -214,7 +214,6 @@ int main()
 		Clock_print(&clock);
 		Sleep(50);
 	}
-	// printf("%d\n", sizeof(charsets) / sizeof(*charsets));
 	
 	Console_free(&console);
 
