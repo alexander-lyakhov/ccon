@@ -16,15 +16,13 @@
 #include <string.h>
 #include <windows.h>
 #include <time.h>
-#include "h/clock.h"
-#include "h/charset.h"
-#include "h/frame.h"
-
-// #define FRAME_IMPLEMENTATION
-// #include "h/frame.h"
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
+
+#include "h/clock.h"
+#include "h/charset.h"
+#include "h/frame.h"
 
 #define CHARSET_01_IMPLEMENTATION
 #include "h/charset01.h"
@@ -42,7 +40,7 @@
 #include "h/charset-lines.h"
 
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
-#include "h/charset-electronika.h"
+#include "h/charset-electronika-01.h"
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
@@ -115,63 +113,6 @@ void Frame_draw(Clock *clock, const char *str)
 		POP_ADDR(dest);
 		INC_LINE(dest);
 	}
-}
-
-// ================================================================================
-// @@@ + Console_create
-// ================================================================================
-Console Console_create()
-{
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(handle, &csbi);
-
-	uint16_t width  = csbi.srWindow.Right + 1;
-	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-	uint16_t size   = width * height;
-
-	char *buff = malloc(size);
-	WORD *attrs = malloc(sizeof(WORD) * size);
-	/*
-	for (size_t i = 0; i < size; i++)
-	{
-		buff[i] = ' ';
-		attrs[i] = 0x07;
-	}
-	*/
-	return (Console) {
-		.handle   = handle,
-		.width    = width,
-		.height   = height,
-		.size     = size,
-		.buff     = buff,
-		.attrs    = attrs,
-	};
-}
-
-// =============================================================================
-// @@@ + Console_clear
-// =============================================================================
-void Console_clear(Console *console)
-{
-	for (size_t i = 0; i < console->size; i++)
-	{
-		console->buff[i] = ' ';
-		console->attrs[i] = 0x07;
-	}
-}
-
-// =============================================================================
-// @@@ + Console_free
-// =============================================================================
-void Console_free(Console *console)
-{
-	free(console->buff);
-	free(console->attrs);
-
-	console->buff = NULL;
-	console->attrs = NULL;
 }
 
 // =============================================================================
@@ -255,7 +196,7 @@ uint16_t App_listen(Clock *clock)
 
 		if (key >= '1' && key <= '9')
 		{
-			Console_clear(clock->console);
+			Console_clear_buff(clock->console);
 
 			int index = (key - 49) % clock->charset_list_size;
 			clock->charset = &clock->charset_list[index];
@@ -279,7 +220,7 @@ int main()
 	const char *time_format = "##:##:##";
 
 	Console console = Console_create();
-	Console_clear(&console);
+	Console_clear_buff(&console);
 
 	Clock clock = {
 		.console           = &console,

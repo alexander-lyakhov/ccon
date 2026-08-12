@@ -18,10 +18,12 @@ typedef struct _Console {
 	uint16_t size;
 
 } Console;
-/*
-Console Console_create();
 
-#define CONSOLE_IMPLEMENTATION
+Console Console_create();
+void Console_clear_buff(Console *console);
+void Console_free(Console *console);
+
+// #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
 // ================================================================================
 // @@@ + Console_create
@@ -40,12 +42,6 @@ Console Console_create()
 	char *buff = malloc(size);
 	WORD *attrs = malloc(sizeof(WORD) * size);
 
-	for (size_t i = 0; i < size; i++)
-	{
-		buff[i] = ' ';
-		attrs[i] = 0x07;
-	}
-
 	return (Console) {
 		.handle   = handle,
 		.width    = width,
@@ -56,6 +52,30 @@ Console Console_create()
 	};
 }
 
+// =============================================================================
+// @@@ + Console_clear_buff
+// =============================================================================
+void Console_clear_buff(Console *console)
+{
+	for (size_t i = 0; i < console->size; i++)
+	{
+		console->buff[i] = ' ';
+		console->attrs[i] = 0x07;
+	}
+}
+
+// =============================================================================
+// @@@ + Console_free
+// =============================================================================
+void Console_free(Console *console)
+{
+	free(console->buff);
+	free(console->attrs);
+
+	console->buff = NULL;
+	console->attrs = NULL;
+}
+
 #endif
-*/
+
 #endif
