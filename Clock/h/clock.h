@@ -14,6 +14,8 @@ typedef struct {
 	uint8_t padding_x;
 	uint8_t padding_y;
 
+	uint8_t has_frame;
+
 	struct tm time;
 	char timebuff[32];
 

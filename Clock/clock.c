@@ -155,7 +155,16 @@ uint16_t App_listen(Clock *clock)
 	if (_kbhit())
 	{
 		char key = _getch();
-		if (key == 27 || ((key | 32) == 'q')) return 0;
+
+		if (((key | 32) == 'q' || key == 27))
+			return 0;
+
+		if ((key | 32) == 'f')
+		{
+			clock->has_frame ^= 1;
+			Console_clear_buff(clock->console);
+			return 1;
+		}
 
 		if (key >= '1' && key <= '9')
 		{
@@ -192,12 +201,16 @@ int main()
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 		.padding_x         = 6,
 		.padding_y         = 3,
+		.has_frame         = 1,
 	};
 	
 	while (App_listen(&clock))
 	{
 		Clock_get_time(&clock);
-		Clock_draw_frame(&clock);
+		
+		if (clock.has_frame)
+			Clock_draw_frame(&clock);
+		
 		Clock_print(&clock);
 		Sleep(50);
 	}
