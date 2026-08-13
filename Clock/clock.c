@@ -218,6 +218,7 @@ uint16_t App_listen(Clock *clock)
 	if (Console_check_resize(clock->console))
 	{
 		Console_reset(clock->console);
+		Clock_trigger_update(clock);
 		return 1;
 	}
 
