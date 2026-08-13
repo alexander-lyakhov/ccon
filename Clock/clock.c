@@ -34,28 +34,6 @@
 #define  INC_LINE(addr) (addr) += console->width;
 
 // =============================================================================
-// @@@ + Clock_render
-// =============================================================================
-void Clock_render(Console *console)
-{
-	WriteConsoleOutputCharacter(
-		console->handle,
-		console->buff,
-		console->size,
-		(COORD){0, 0},
-		&console->written
-	);
-
-	WriteConsoleOutputAttribute(
-		console->handle,
-		console->attrs,
-		console->size,
-		(COORD){0, 0},
-		&console->written
-	);
-}
-
-// =============================================================================
 // @@@ + Clock_draw_frame
 // =============================================================================
 void Clock_draw_frame(Clock *clock)
@@ -97,6 +75,39 @@ void Clock_draw_frame(Clock *clock)
 		POP_ADDR(dest);
 		INC_LINE(dest);
 	}
+
+	clock->draw_frame = NULL;
+}
+
+// =============================================================================
+// @@@ + Clock_refresh
+// =============================================================================
+void Clock_refresh(Clock *clock)
+{
+	Console_clear_buff(clock->console);
+	clock->draw_frame = Clock_draw_frame;
+}
+
+// =============================================================================
+// @@@ + Clock_render
+// =============================================================================
+void Clock_render(Console *console)
+{
+	WriteConsoleOutputCharacter(
+		console->handle,
+		console->buff,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
+
+	WriteConsoleOutputAttribute(
+		console->handle,
+		console->attrs,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
 }
 
 // =============================================================================
@@ -168,7 +179,7 @@ uint16_t App_listen(Clock *clock)
 
 		if (key >= '1' && key <= '9')
 		{
-			Console_clear_buff(clock->console);
+			Clock_refresh(clock);
 
 			int index = (key - 49) % clock->charset_list_size;
 			clock->charset = &clock->charset_list[index];
@@ -202,14 +213,15 @@ int main()
 		.padding_x         = 6,
 		.padding_y         = 3,
 		.has_frame         = 1,
+		.draw_frame        = Clock_draw_frame,
 	};
 	
 	while (App_listen(&clock))
 	{
 		Clock_get_time(&clock);
 		
-		if (clock.has_frame)
-			Clock_draw_frame(&clock);
+		if (clock.draw_frame && clock.has_frame)
+			clock.draw_frame(&clock);
 		
 		Clock_print(&clock);
 		Sleep(50);

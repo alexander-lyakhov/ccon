@@ -5,7 +5,7 @@
 #include "console.h"
 #include "charset.h"
 
-typedef struct {
+typedef struct _Clock {
 	Console *console;
 	Charset *charset;
 	Charset *charset_list;
@@ -15,6 +15,7 @@ typedef struct {
 	uint8_t padding_y;
 
 	uint8_t has_frame;
+	void (*draw_frame)(struct _Clock *clock);
 
 	struct tm time;
 	char timebuff[32];
