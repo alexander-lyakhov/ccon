@@ -16,6 +16,9 @@ typedef struct _Clock {
 
 	uint8_t has_frame;
 	void (*draw_frame)(struct _Clock *clock);
+	
+	WORD clock_color;
+	WORD frame_color;
 
 	struct tm time;
 	char timebuff[32];

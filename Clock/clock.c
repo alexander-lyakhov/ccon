@@ -89,7 +89,7 @@ void Clock_refresh(Clock *clock)
 }
 
 // =============================================================================
-// @@@ + Clock_render
+// @Y@@ + Clock_render
 // =============================================================================
 void Clock_render(Console *console)
 {
@@ -221,6 +221,8 @@ int main()
 		.padding_y         = 3,
 		.has_frame         = 1,
 		.draw_frame        = Clock_draw_frame,
+		.clock_color       = 0x0A,
+		.frame_color       = 0x03,
 	};
 	
 	while (App_listen(&clock))
