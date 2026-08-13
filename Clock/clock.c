@@ -191,6 +191,7 @@ uint16_t App_listen(Clock *clock)
 		if ((key | 32) == 'f')
 		{
 			clock->has_frame ^= 1;
+			Clock_refresh(clock);
 			Console_clear_buff(clock->console);
 			return 1;
 		}
@@ -209,6 +210,8 @@ uint16_t App_listen(Clock *clock)
 
 int main()
 {
+    system("cls"); // required to be able to work in Conemu
+
 	Charset charset_list[] = {
 		charset01,
 		charset02,
