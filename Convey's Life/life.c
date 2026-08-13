@@ -244,6 +244,8 @@ void app_render(Console *console)
 
 int main()
 {
+    system("cls");
+
 	Console console = Console_create();
 
 	CURSOR_INIT;

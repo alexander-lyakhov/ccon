@@ -119,5 +119,4 @@ void Console_free(Console *console)
 }
 
 #endif
-
 #endif
