@@ -81,11 +81,11 @@ Console Console_create()
 	uint16_t size   = width * height;
 
 	Buff buff = Buff_create(size);
-
+	/*
 	printf("0x%p\n", buff.curr);
 	printf("0x%p\n", buff.next);
 	printf("0x%p\n", buff.attrs);
-
+	*/
 	return (Console) {
 		.handle = handle,
 		.csbi   = csbi,
