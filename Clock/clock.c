@@ -84,7 +84,7 @@ void Clock_draw_frame(Clock *clock)
 // =============================================================================
 void Clock_refresh(Clock *clock)
 {
-	Console_clear_buff(clock->console);
+	Console_fill_buffs(clock->console);
 	clock->draw_frame = Clock_draw_frame;
 }
 
@@ -159,25 +159,13 @@ void Clock_get_time(Clock *clock)
 }
 
 // =============================================================================
-// @@@ + Clock_reset
-// =============================================================================
-void Clock_reset(Clock * clock)
-{
-	Console_free(clock->console);
-
-	clock->console->buff  = malloc(clock->console->size);
-	clock->console->attrs = malloc(clock->console->size * sizeof(WORD));
-
-	Console_clear_buff(clock->console);
-}
-
-// =============================================================================
 // @@@ + app_listen
 // =============================================================================
 uint16_t App_listen(Clock *clock)
 {
-	if (Console_check_resize(clock->console)) {
-		Clock_reset(clock);
+	if (Console_check_resize(clock->console))
+	{
+		Console_reset(clock->console);
 		return 1;
 	}
 
@@ -192,7 +180,7 @@ uint16_t App_listen(Clock *clock)
 		{
 			clock->has_frame ^= 1;
 			Clock_refresh(clock);
-			Console_clear_buff(clock->console);
+			Console_fill_buffs(clock->console);
 			return 1;
 		}
 
@@ -221,10 +209,8 @@ int main()
 		charset_electronika,
 	};
 
-	const char *time_format = "##:##:##";
-
 	Console console = Console_create();
-	Console_clear_buff(&console);
+	Console_fill_buffs(&console);
 
 	Clock clock = {
 		.console           = &console,

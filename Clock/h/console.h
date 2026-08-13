@@ -20,12 +20,15 @@ typedef struct _Console {
 } Console;
 
 Console Console_create();
+void    Console_alloc_buffs (Console *console);
 uint8_t Console_check_resize(Console *console);
-void    Console_clear_buff(Console *console);
-void    Console_free(Console *console);
+void    Console_fill_buffs  (Console *console);
+void    Console_reset       (Console *console);
+void    Console_free        (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
+
 // ================================================================================
 // @@@ + Console_create
 // ================================================================================
@@ -40,23 +43,29 @@ Console Console_create()
 	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 	uint16_t size   = width * height;
 
-	char *buff = malloc(size);
-	WORD *attrs = malloc(sizeof(WORD) * size);
-
 	return (Console) {
 		.handle   = handle,
 		.width    = width,
 		.height   = height,
 		.size     = size,
-		.buff     = buff,
-		.attrs    = attrs,
+		.buff     = malloc(size * sizeof(char)),
+		.attrs    = malloc(size * sizeof(WORD)),
 	};
 }
 
 // =============================================================================
-// @@@ + Console_clear_buff
+// @@@ + Console_alloc_buffs
 // =============================================================================
-void Console_clear_buff(Console *console)
+void Console_alloc_buffs(Console *console)
+{
+	console->buff  = malloc(console->size * sizeof(char));
+	console->attrs = malloc(console->size * sizeof(WORD));
+}
+
+// =============================================================================
+// @@@ + Console_fill_buffs
+// =============================================================================
+void Console_fill_buffs(Console *console)
 {
 	for (size_t i = 0; i < console->size; i++)
 	{
@@ -70,10 +79,7 @@ void Console_clear_buff(Console *console)
 // =============================================================================
 uint8_t Console_check_resize(Console *console)
 {
-	GetConsoleScreenBufferInfo(
-		console->handle,
-		&(console->csbi)
-	);
+	GetConsoleScreenBufferInfo(console->handle, &(console->csbi));
 
 	uint16_t width  = console->csbi.srWindow.Right  + 1;
 	uint16_t height = console->csbi.srWindow.Bottom - console->csbi.srWindow.Top + 1;
@@ -88,6 +94,16 @@ uint8_t Console_check_resize(Console *console)
 	}
 
 	return 0; // Console size stays the same
+}
+
+// =============================================================================
+// @@@ + Console_reset
+// =============================================================================
+void Console_reset(Console *console)
+{
+	Console_free(console);
+	Console_alloc_buffs(console);
+	Console_fill_buffs(console);
 }
 
 // =============================================================================
