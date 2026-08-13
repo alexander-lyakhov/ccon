@@ -49,47 +49,84 @@ void Clock_draw_frame(Clock *clock)
 	int first_row = 0;
 	int final_row = frame_height - 1;
 
-	char *dest = console->buff + frame_screen_x + frame_screen_y * console->width;
+	char *dest_chars = console->buff  + frame_screen_x + frame_screen_y * console->width;
+	WORD *dest_attrs = console->attrs + frame_screen_x + frame_screen_y * console->width;
 	
 	for (int line = 0; line < frame_height; line++)
 	{
-		PUSH_ADDR(dest);
+		PUSH_ADDR(dest_chars);
 
 		if (line == first_row) {
-			dest[0]               = 'Ú';
-			dest[frame_width - 1] = '¿';
+			dest_chars[0]               = 'Ú';
+			dest_chars[frame_width - 1] = '¿';
 		}
 		else if (line == final_row) {
-			dest[0]               = 'À';
-			dest[frame_width - 1] = 'Ù';
+			dest_chars[0]               = 'À';
+			dest_chars[frame_width - 1] = 'Ù';
 		}
 		else {
-			dest[0]               = '³';
-			dest[frame_width - 1] = '³';
+			dest_chars[0]               = '³';
+			dest_chars[frame_width - 1] = '³';
 		}
 
 		for (int x = 0; x < frame_width - 2; x++) {
-			dest[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
+			dest_chars[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
 		}
 
-		POP_ADDR(dest);
-		INC_LINE(dest);
+		POP_ADDR(dest_chars);
+		INC_LINE(dest_chars);
+
+		// Colorize border with border color
+		//----------------------------------
+		void *tmp_attrs = dest_attrs;
+
+		for (int i = 0; i < frame_width; i++) {
+			dest_attrs[i] = clock->frame_color;
+		}
+
+		dest_attrs = tmp_attrs;
+		dest_attrs += console->width;
 	}
 
 	clock->draw_frame = NULL;
 }
 
 // =============================================================================
-// @@@ + Clock_refresh
+// @@@ + Clock_set_digits_color
+//
+// !!! This function will be called when the program starts,
+// !!! or after charset is changed
+//
 // =============================================================================
-void Clock_refresh(Clock *clock)
+void Clock_set_digits_color(Clock *clock)
 {
-	Console_fill_buffs(clock->console);
-	clock->draw_frame = Clock_draw_frame;
+	Console *console = clock->console;
+	Charset *charset = clock->charset;
+
+	const char *str_time = clock->timebuff;
+
+	int screenx = (console->width  - charset->cell_w * strlen(str_time)) >> 1;
+	int screeny = (console->height - charset->cell_h) >> 1;
+
+	WORD *dest = console->attrs + screeny * console->width + screenx;
+
+	for (int line = 0; line < charset->cell_h; line++)
+	{
+		PUSH_ADDR(dest);
+
+		int length = strlen(str_time) * charset->cell_w;
+
+		for (int i = 0; i < length; i++) {
+			dest[i] = clock->clock_color;
+		}
+
+		POP_ADDR(dest);
+		INC_LINE(dest);
+	}
 }
 
 // =============================================================================
-// @Y@@ + Clock_render
+// @@@ + Clock_render
 // =============================================================================
 void Clock_render(Console *console)
 {
@@ -123,21 +160,21 @@ void Clock_print(Clock *clock)
 	int screenx = (console->width  - charset->cell_w * strlen(str_time)) >> 1;
 	int screeny = (console->height - charset->cell_h) >> 1;
 
-	char *dest = console->buff + screeny * console->width + screenx;
+	char *dest_chars = console->buff  + screeny * console->width + screenx;
 
 	for (int line = 0; line < charset->cell_h; line++)
 	{
-		PUSH_ADDR(dest);
+		PUSH_ADDR(dest_chars);
 
 		for (const char *p = str_time; *p; p++)
 		{
 			int index = *p - 47;
-			memcpy(dest, charset->data[index][line], charset->cell_w);
-			dest += charset->cell_w;
+			memcpy(dest_chars, charset->data[index][line], charset->cell_w);
+			dest_chars += charset->cell_w;
 		}
 
-		POP_ADDR(dest);
-		INC_LINE(dest);
+		POP_ADDR(dest_chars);
+		INC_LINE(dest_chars);
 	}
 
 	Clock_render(console);
@@ -156,6 +193,21 @@ void Clock_get_time(Clock *clock)
 		clock->time.tm_min,
 		clock->time.tm_sec
 	);
+}
+
+// =============================================================================
+// @@@ + Clock_trigger_update
+// =============================================================================
+void Clock_trigger_update(Clock *clock)
+{
+	Console_fill_buffs(clock->console);
+
+	if (clock->has_frame)
+		Clock_draw_frame(clock);
+	
+	Clock_set_digits_color(clock);
+
+	clock->trigger_update = NULL;
 }
 
 // =============================================================================
@@ -179,17 +231,17 @@ uint16_t App_listen(Clock *clock)
 		if ((key | 32) == 'f')
 		{
 			clock->has_frame ^= 1;
-			Clock_refresh(clock);
-			Console_fill_buffs(clock->console);
+			Clock_trigger_update(clock);
+
 			return 1;
 		}
 
 		if (key >= '1' && key <= '9')
 		{
-			Clock_refresh(clock);
-
 			int index = (key - 49) % clock->charset_list_size;
 			clock->charset = &clock->charset_list[index];
+
+			Clock_trigger_update(clock);
 		}
 	}
 
@@ -198,7 +250,7 @@ uint16_t App_listen(Clock *clock)
 
 int main()
 {
-    system("cls"); // required to be able to work in Conemu
+	system("cls"); // required to be able to work in Conemu
 
 	Charset charset_list[] = {
 		charset01,
@@ -220,18 +272,18 @@ int main()
 		.padding_x         = 6,
 		.padding_y         = 3,
 		.has_frame         = 1,
-		.draw_frame        = Clock_draw_frame,
-		.clock_color       = 0x0A,
-		.frame_color       = 0x03,
+		.clock_color       = 0x07,
+		.frame_color       = 0x08,
+		.trigger_update    = Clock_trigger_update,
 	};
-	
+
 	while (App_listen(&clock))
 	{
 		Clock_get_time(&clock);
-		
-		if (clock.draw_frame && clock.has_frame)
-			clock.draw_frame(&clock);
-		
+
+		if (clock.trigger_update)
+			clock.trigger_update(&clock);
+
 		Clock_print(&clock);
 		Sleep(50);
 	}

@@ -15,7 +15,9 @@ typedef struct _Clock {
 	uint8_t padding_y;
 
 	uint8_t has_frame;
-	void (*draw_frame)(struct _Clock *clock);
+
+	void (*draw_frame)    (struct _Clock *clock);
+	void (*trigger_update)(struct _Clock *clock);
 	
 	WORD clock_color;
 	WORD frame_color;
