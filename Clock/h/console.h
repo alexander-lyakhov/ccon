@@ -20,8 +20,9 @@ typedef struct _Console {
 } Console;
 
 Console Console_create();
-void Console_clear_buff(Console *console);
-void Console_free(Console *console);
+uint8_t Console_check_resize(Console *console);
+void    Console_clear_buff(Console *console);
+void    Console_free(Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
@@ -62,6 +63,31 @@ void Console_clear_buff(Console *console)
 		console->buff[i] = ' ';
 		console->attrs[i] = 0x07;
 	}
+}
+
+// =============================================================================
+// @@@ + Console_check_resize
+// =============================================================================
+uint8_t Console_check_resize(Console *console)
+{
+	GetConsoleScreenBufferInfo(
+		console->handle,
+		&(console->csbi)
+	);
+
+	uint16_t width  = console->csbi.srWindow.Right  + 1;
+	uint16_t height = console->csbi.srWindow.Bottom - console->csbi.srWindow.Top + 1;
+
+	if (console->width != width || console->height != height)
+	{
+		console->width = width;
+		console->height = height;
+		console->size = width * height;
+
+		return 1; // Console size has been changed
+	}
+
+	return 0; // Console size stays the same
 }
 
 // =============================================================================

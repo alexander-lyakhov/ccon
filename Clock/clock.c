@@ -159,10 +159,28 @@ void Clock_get_time(Clock *clock)
 }
 
 // =============================================================================
+// @@@ + Clock_reset
+// =============================================================================
+void Clock_reset(Clock * clock)
+{
+	Console_free(clock->console);
+
+	clock->console->buff  = malloc(clock->console->size);
+	clock->console->attrs = malloc(clock->console->size * sizeof(WORD));
+
+	Console_clear_buff(clock->console);
+}
+
+// =============================================================================
 // @@@ + app_listen
 // =============================================================================
 uint16_t App_listen(Clock *clock)
 {
+	if (Console_check_resize(clock->console)) {
+		Clock_reset(clock);
+		return 1;
+	}
+
 	if (_kbhit())
 	{
 		char key = _getch();
