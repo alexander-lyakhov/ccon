@@ -203,7 +203,7 @@ void Clock_get_time_short(Clock *clock)
 // =============================================================================
 // @@@ + Clock_get_bounds
 // =============================================================================
-void Clock_get_bounds(Clock *clock)
+uint8_t Clock_get_bounds(Clock *clock)
 {
 	clock->get_time(clock);
 
@@ -213,6 +213,7 @@ void Clock_get_bounds(Clock *clock)
 	Bounds *framebox = &clock->framebox;
 
 	// FRAME
+
 	framebox->width  = fmin(clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w, console->width);
 	framebox->height = fmin(clock->padding_y * 2 + clock->charset->cell_h, console->height);
 
@@ -226,6 +227,7 @@ void Clock_get_bounds(Clock *clock)
 		clock->has_frame = 0;
 
 	// DIGITS
+
 	dialbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
 	dialbox->height = clock->charset->cell_h;
 	
@@ -234,6 +236,8 @@ void Clock_get_bounds(Clock *clock)
 
 	dialbox->target_chars = console->buff  + dialbox->y * console->width + dialbox->x;
 	dialbox->target_attrs = console->attrs + dialbox->y * console->width + dialbox->x;
+
+	return (dialbox->width >= console->width) ? 0 : 1;
 }
 
 // =============================================================================
@@ -243,7 +247,13 @@ void Clock_trigger_update(Clock *clock)
 {
 	Console_fill_buffs(clock->console);
 
-	Clock_get_bounds(clock);
+	// If time takes more space then console width has
+	if (!Clock_get_bounds(clock))
+	{
+		clock->get_time = Clock_get_time_short;
+		Clock_get_bounds(clock);
+	}
+
 	Clock_apply_colors(clock);
 
 	if (clock->has_frame)
