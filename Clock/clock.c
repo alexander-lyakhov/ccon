@@ -72,48 +72,46 @@ void Clock_draw_frame(Clock *clock)
 
 		POP_ADDR(target_chars);
 		INC_LINE(target_chars);
-
-		// Colorize border with border color
-		//----------------------------------
-		void *tmp_attrs = target_attrs;
-
-		for (int i = 0; i < frame_width; i++) {
-			target_attrs[i] = clock->frame_color;
-		}
-
-		target_attrs = tmp_attrs;
-		target_attrs += console->width;
 	}
-
-	clock->draw_frame = NULL;
 }
 
 // =============================================================================
-// @@@ + Clock_set_digits_color
-//
-// !!! This function will be called when the program starts,
-// !!! or after charset is changed
-//
+// @@@ + Clock_apply_colors
 // =============================================================================
-void Clock_set_digits_color(Clock *clock)
+void Clock_apply_colors(Clock *clock)
 {
 	Console *console = clock->console;
-	Charset *charset = clock->charset;
 
-	WORD *target_attrs = clock->dialbox.target_attrs;
+	// FRAME COLOR
 
-	for (int line = 0; line < charset->cell_h; line++)
+	WORD *frame_target_attrs = clock->framebox.target_attrs;
+
+	for (int line = 0; line < clock->framebox.height; line++)
 	{
-		PUSH_ADDR(target_attrs);
+		PUSH_ADDR(frame_target_attrs);
 
-		int length = strlen(clock->timebuff) * charset->cell_w;
-
-		for (int i = 0; i < length; i++) {
-			target_attrs[i] = clock->clock_color;
+		for (int i = 0; i < clock->framebox.width; i++) {
+			frame_target_attrs[i] = clock->frame_color;
 		}
 
-		POP_ADDR(target_attrs);
-		INC_LINE(target_attrs);
+		POP_ADDR(frame_target_attrs);
+		INC_LINE(frame_target_attrs);
+	}
+
+	// DIGIT COLOR
+
+	WORD *dial_target_attrs = clock->dialbox.target_attrs;
+
+	for (int line = 0; line < clock->dialbox.height; line++)
+	{
+		PUSH_ADDR(dial_target_attrs);
+
+		for (int i = 0; i < clock->dialbox.width; i++) {
+			dial_target_attrs[i] = clock->clock_color;
+		}
+
+		POP_ADDR(dial_target_attrs);
+		INC_LINE(dial_target_attrs);
 	}
 }
 
@@ -209,8 +207,10 @@ void Clock_get_bounds(Clock *clock)
 	framebox->target_attrs = console->attrs + framebox->x + framebox->y * console->width;
 
 	// DIGITS
-	dialbox->x = (console->width  - clock->charset->cell_w * strlen(clock->timebuff)) >> 1;
-	dialbox->y = (console->height - clock->charset->cell_h) >> 1;
+	dialbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
+	dialbox->height = clock->charset->cell_h;
+	dialbox->x      = (console->width  - dialbox->width)  >> 1;
+	dialbox->y      = (console->height - dialbox->height) >> 1;
 
 	dialbox->target_chars = console->buff  + dialbox->y * console->width + dialbox->x;
 	dialbox->target_attrs = console->attrs + dialbox->y * console->width + dialbox->x;
@@ -222,14 +222,12 @@ void Clock_get_bounds(Clock *clock)
 void Clock_trigger_update(Clock *clock)
 {
 	Console_fill_buffs(clock->console);
+
 	Clock_get_bounds(clock);
+	Clock_apply_colors(clock);
 
 	if (clock->has_frame)
 		Clock_draw_frame(clock);
-	
-	Clock_set_digits_color(clock);
-
-	clock->trigger_update = NULL;
 }
 
 // =============================================================================
@@ -297,21 +295,18 @@ int main()
 		.has_frame         = 1,
 		.clock_color       = 0x07,
 		.frame_color       = 0x08,
-		.trigger_update    = Clock_trigger_update,
+		.start             = Clock_trigger_update,
 		.dialbox           = { 0 },
 		.framebox          = { 0 },
 	};
 
-	Clock_get_bounds(&clock);
+	clock.start(&clock); // refers to Clock_trigger_update
 
 	while (App_listen(&clock))
 	{
 		Clock_get_time(&clock);
-
-		if (clock.trigger_update)
-			clock.trigger_update(&clock);
-
 		Clock_print(&clock);
+
 		Sleep(50);
 	}
 	
