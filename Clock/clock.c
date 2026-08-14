@@ -40,52 +40,49 @@ void Clock_draw_frame(Clock *clock)
 {
 	Console *console = clock->console;
 
-	uint16_t frame_width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
-	uint16_t frame_height = clock->padding_y * 2 + clock->charset->cell_h;
+	uint16_t frame_width  = clock->framebox.width;
+	uint16_t frame_height = clock->framebox.height;
 
-	uint16_t frame_screen_x = (console->width  - frame_width)  >> 1;
-	uint16_t frame_screen_y = (console->height - frame_height) >> 1;
+	uint16_t first_row = 0;
+	uint16_t final_row = frame_height - 1;
 
-	int first_row = 0;
-	int final_row = frame_height - 1;
+	char *target_chars = clock->framebox.target_chars;
+	WORD *target_attrs = clock->framebox.target_attrs;
 
-	char *dest_chars = console->buff  + frame_screen_x + frame_screen_y * console->width;
-	WORD *dest_attrs = console->attrs + frame_screen_x + frame_screen_y * console->width;
-	
 	for (int line = 0; line < frame_height; line++)
 	{
-		PUSH_ADDR(dest_chars);
+		PUSH_ADDR(target_chars);
 
 		if (line == first_row) {
-			dest_chars[0]               = 'Ú';
-			dest_chars[frame_width - 1] = '¿';
+			target_chars[0]               = 'Ú';
+			target_chars[frame_width - 1] = '¿';
 		}
 		else if (line == final_row) {
-			dest_chars[0]               = 'À';
-			dest_chars[frame_width - 1] = 'Ù';
+			target_chars[0]               = 'À';
+			target_chars[frame_width - 1] = 'Ù';
 		}
 		else {
-			dest_chars[0]               = '³';
-			dest_chars[frame_width - 1] = '³';
+			target_chars[0]               = '³';
+			target_chars[frame_width - 1] = '³';
 		}
 
 		for (int x = 0; x < frame_width - 2; x++) {
-			dest_chars[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
+			target_chars[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
 		}
 
-		POP_ADDR(dest_chars);
-		INC_LINE(dest_chars);
+		POP_ADDR(target_chars);
+		INC_LINE(target_chars);
 
 		// Colorize border with border color
 		//----------------------------------
-		void *tmp_attrs = dest_attrs;
+		void *tmp_attrs = target_attrs;
 
 		for (int i = 0; i < frame_width; i++) {
-			dest_attrs[i] = clock->frame_color;
+			target_attrs[i] = clock->frame_color;
 		}
 
-		dest_attrs = tmp_attrs;
-		dest_attrs += console->width;
+		target_attrs = tmp_attrs;
+		target_attrs += console->width;
 	}
 
 	clock->draw_frame = NULL;
@@ -103,25 +100,20 @@ void Clock_set_digits_color(Clock *clock)
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
 
-	const char *str_time = clock->timebuff;
-
-	int screenx = (console->width  - charset->cell_w * strlen(str_time)) >> 1;
-	int screeny = (console->height - charset->cell_h) >> 1;
-
-	WORD *dest = console->attrs + screeny * console->width + screenx;
+	WORD *target_attrs = clock->dialbox.target_attrs;
 
 	for (int line = 0; line < charset->cell_h; line++)
 	{
-		PUSH_ADDR(dest);
+		PUSH_ADDR(target_attrs);
 
-		int length = strlen(str_time) * charset->cell_w;
+		int length = strlen(clock->timebuff) * charset->cell_w;
 
 		for (int i = 0; i < length; i++) {
-			dest[i] = clock->clock_color;
+			target_attrs[i] = clock->clock_color;
 		}
 
-		POP_ADDR(dest);
-		INC_LINE(dest);
+		POP_ADDR(target_attrs);
+		INC_LINE(target_attrs);
 	}
 }
 
