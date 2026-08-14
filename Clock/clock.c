@@ -249,6 +249,35 @@ uint16_t App_listen(Clock *clock)
 	return 1;
 }
 
+// =============================================================================
+// @@@ + get_bounds
+// =============================================================================
+void get_bounds(Clock *clock)
+{
+	Clock_get_time(clock);
+
+	Console *console = clock->console;
+
+	Bounds dialbox  = clock->dialbox;
+	Bounds framebox = clock->framebox;
+
+	// FRAME
+	framebox.width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
+	framebox.height = clock->padding_y * 2 + clock->charset->cell_h;
+	framebox.x      = (console->width  - framebox.width)  >> 1;
+	framebox.y      = (console->height - framebox.height) >> 1;
+
+	framebox.target_chars = console->buff  + framebox.x + framebox.y * console->width;
+	framebox.target_attrs = console->attrs + framebox.x + framebox.y * console->width;
+
+	// DIGITS
+	dialbox.x = (console->width  - clock->charset->cell_w * strlen(clock->timebuff)) >> 1;
+	dialbox.y = (console->height - clock->charset->cell_h) >> 1;
+
+	dialbox.target_chars = console->buff  + dialbox.y * console->width + dialbox.x;
+	dialbox.target_attrs = console->attrs + dialbox.y * console->width + dialbox.x;
+}
+
 int main()
 {
 	system("cls"); // required to be able to work in Conemu
@@ -276,6 +305,8 @@ int main()
 		.clock_color       = 0x07,
 		.frame_color       = 0x08,
 		.trigger_update    = Clock_trigger_update,
+		.dialbox           = {},
+		.framebox          = {},
 	};
 
 	while (App_listen(&clock))

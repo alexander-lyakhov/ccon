@@ -5,6 +5,17 @@
 #include "console.h"
 #include "charset.h"
 
+typedef struct _Bounds {
+	uint16_t x;
+	uint16_t y;
+	uint16_t width;
+	uint16_t height;
+
+	void *target_chars;
+	void *target_attrs;
+
+} Bounds;
+
 typedef struct _Clock {
 	Console *console;
 	Charset *charset;
@@ -21,6 +32,9 @@ typedef struct _Clock {
 	
 	WORD clock_color;
 	WORD frame_color;
+
+	Bounds dialbox;
+	Bounds framebox;
 
 	struct tm time;
 	char timebuff[32];
