@@ -146,6 +146,9 @@ void Clock_print(Clock *clock)
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
 
+	if (clock->dialbox.width > console->width || clock->dialbox.height > console->height)
+		return;
+
 	void *target_chars = clock->dialbox.target_chars;
 	
 	for (int line = 0; line < charset->cell_h; line++)
@@ -237,7 +240,7 @@ uint8_t Clock_get_bounds(Clock *clock)
 	dialbox->target_chars = console->buff  + dialbox->y * console->width + dialbox->x;
 	dialbox->target_attrs = console->attrs + dialbox->y * console->width + dialbox->x;
 
-	return (dialbox->width >= console->width) ? 0 : 1;
+	return dialbox->width >= console->width ? 0 : 1;
 }
 
 // =============================================================================
