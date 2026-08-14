@@ -154,27 +154,27 @@ void Clock_print(Clock *clock)
 {
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
+
+	void *target_chars = clock->dialbox.target_chars;
 	
-	const char *str_time = clock->timebuff;
-
-	int screenx = (console->width  - charset->cell_w * strlen(str_time)) >> 1;
-	int screeny = (console->height - charset->cell_h) >> 1;
-
-	char *dest_chars = console->buff  + screeny * console->width + screenx;
-
 	for (int line = 0; line < charset->cell_h; line++)
 	{
-		PUSH_ADDR(dest_chars);
+		PUSH_ADDR(target_chars);
 
-		for (const char *p = str_time; *p; p++)
+		for (const char *p = clock->timebuff; *p; p++)
 		{
 			int index = *p - 47;
-			memcpy(dest_chars, charset->data[index][line], charset->cell_w);
-			dest_chars += charset->cell_w;
+
+			memcpy(
+				target_chars,
+				charset->data[index][line],
+				charset->cell_w
+			);
+			target_chars += charset->cell_w;
 		}
 
-		POP_ADDR(dest_chars);
-		INC_LINE(dest_chars);
+		POP_ADDR(target_chars);
+		INC_LINE(target_chars);
 	}
 
 	Clock_render(console);
@@ -196,11 +196,41 @@ void Clock_get_time(Clock *clock)
 }
 
 // =============================================================================
+// @@@ + Clock_get_bounds
+// =============================================================================
+void Clock_get_bounds(Clock *clock)
+{
+	Clock_get_time(clock);
+
+	Console *console = clock->console;
+
+	Bounds *dialbox  = &clock->dialbox;
+	Bounds *framebox = &clock->framebox;
+
+	// FRAME
+	framebox->width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
+	framebox->height = clock->padding_y * 2 + clock->charset->cell_h;
+	framebox->x      = (console->width  - framebox->width)  >> 1;
+	framebox->y      = (console->height - framebox->height) >> 1;
+
+	framebox->target_chars = console->buff  + framebox->x + framebox->y * console->width;
+	framebox->target_attrs = console->attrs + framebox->x + framebox->y * console->width;
+
+	// DIGITS
+	dialbox->x = (console->width  - clock->charset->cell_w * strlen(clock->timebuff)) >> 1;
+	dialbox->y = (console->height - clock->charset->cell_h) >> 1;
+
+	dialbox->target_chars = console->buff  + dialbox->y * console->width + dialbox->x;
+	dialbox->target_attrs = console->attrs + dialbox->y * console->width + dialbox->x;
+}
+
+// =============================================================================
 // @@@ + Clock_trigger_update
 // =============================================================================
 void Clock_trigger_update(Clock *clock)
 {
 	Console_fill_buffs(clock->console);
+	Clock_get_bounds(clock);
 
 	if (clock->has_frame)
 		Clock_draw_frame(clock);
@@ -249,35 +279,6 @@ uint16_t App_listen(Clock *clock)
 	return 1;
 }
 
-// =============================================================================
-// @@@ + get_bounds
-// =============================================================================
-void get_bounds(Clock *clock)
-{
-	Clock_get_time(clock);
-
-	Console *console = clock->console;
-
-	Bounds dialbox  = clock->dialbox;
-	Bounds framebox = clock->framebox;
-
-	// FRAME
-	framebox.width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
-	framebox.height = clock->padding_y * 2 + clock->charset->cell_h;
-	framebox.x      = (console->width  - framebox.width)  >> 1;
-	framebox.y      = (console->height - framebox.height) >> 1;
-
-	framebox.target_chars = console->buff  + framebox.x + framebox.y * console->width;
-	framebox.target_attrs = console->attrs + framebox.x + framebox.y * console->width;
-
-	// DIGITS
-	dialbox.x = (console->width  - clock->charset->cell_w * strlen(clock->timebuff)) >> 1;
-	dialbox.y = (console->height - clock->charset->cell_h) >> 1;
-
-	dialbox.target_chars = console->buff  + dialbox.y * console->width + dialbox.x;
-	dialbox.target_attrs = console->attrs + dialbox.y * console->width + dialbox.x;
-}
-
 int main()
 {
 	system("cls"); // required to be able to work in Conemu
@@ -305,9 +306,11 @@ int main()
 		.clock_color       = 0x07,
 		.frame_color       = 0x08,
 		.trigger_update    = Clock_trigger_update,
-		.dialbox           = {},
-		.framebox          = {},
+		.dialbox           = { 0 },
+		.framebox          = { 0 },
 	};
+
+	Clock_get_bounds(&clock);
 
 	while (App_listen(&clock))
 	{
