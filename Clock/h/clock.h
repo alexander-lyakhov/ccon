@@ -27,7 +27,8 @@ typedef struct _Clock {
 
 	uint8_t has_frame;
 
-	void (*start)(struct _Clock *clock);
+	void (*start)   (struct _Clock *clock);
+	void (*get_time)(struct _Clock *clock);
 	
 	WORD clock_color;
 	WORD frame_color;

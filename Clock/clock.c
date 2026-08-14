@@ -4,6 +4,7 @@
 #include <string.h>
 #include <windows.h>
 #include <time.h>
+#include <math.h>
 
 #define CONSOLE_IMPLEMENTATION
 	#include "h/console.h"
@@ -171,9 +172,9 @@ void Clock_print(Clock *clock)
 }
 
 // =============================================================================
-// @@@ + Clock_get_time
+// @@@ + Clock_get_time_full
 // =============================================================================
-void Clock_get_time(Clock *clock)
+void Clock_get_time_full(Clock *clock)
 {
 	time_t now = time(NULL);
 	localtime_s(&clock->time, &now);
@@ -186,11 +187,25 @@ void Clock_get_time(Clock *clock)
 }
 
 // =============================================================================
+// @@@ + Clock_get_time_short
+// =============================================================================
+void Clock_get_time_short(Clock *clock)
+{
+	time_t now = time(NULL);
+	localtime_s(&clock->time, &now);
+
+	sprintf(clock->timebuff, "%02d:%02d",
+		clock->time.tm_hour,
+		clock->time.tm_min
+	);
+}
+
+// =============================================================================
 // @@@ + Clock_get_bounds
 // =============================================================================
 void Clock_get_bounds(Clock *clock)
 {
-	Clock_get_time(clock);
+	clock->get_time(clock);
 
 	Console *console = clock->console;
 
@@ -198,17 +213,22 @@ void Clock_get_bounds(Clock *clock)
 	Bounds *framebox = &clock->framebox;
 
 	// FRAME
-	framebox->width  = clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w;
-	framebox->height = clock->padding_y * 2 + clock->charset->cell_h;
-	framebox->x      = (console->width  - framebox->width)  >> 1;
-	framebox->y      = (console->height - framebox->height) >> 1;
+	framebox->width  = fmin(clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w, console->width);
+	framebox->height = fmin(clock->padding_y * 2 + clock->charset->cell_h, console->height);
+
+	framebox->x = (console->width  - framebox->width)  >> 1;
+	framebox->y = (console->height - framebox->height) >> 1;
 
 	framebox->target_chars = console->buff  + framebox->x + framebox->y * console->width;
 	framebox->target_attrs = console->attrs + framebox->x + framebox->y * console->width;
 
+	if (framebox->width >= console->width || framebox->height >= console->height)
+		clock->has_frame = 0;
+
 	// DIGITS
 	dialbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
 	dialbox->height = clock->charset->cell_h;
+	
 	dialbox->x      = (console->width  - dialbox->width)  >> 1;
 	dialbox->y      = (console->height - dialbox->height) >> 1;
 
@@ -296,6 +316,7 @@ int main()
 		.clock_color       = 0x07,
 		.frame_color       = 0x08,
 		.start             = Clock_trigger_update,
+		.get_time          = Clock_get_time_full,
 		.dialbox           = { 0 },
 		.framebox          = { 0 },
 	};
@@ -304,7 +325,7 @@ int main()
 
 	while (App_listen(&clock))
 	{
-		Clock_get_time(&clock);
+		clock.get_time(&clock);
 		Clock_print(&clock);
 
 		Sleep(50);
