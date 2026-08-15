@@ -35,6 +35,10 @@
 #define  INC_LINE(addr)  (addr) += clock->console->width;
 #define   LOOP_TO(value) for (size_t i = 0; i < (value); i++)
 
+#define CURSOR_INFO(clock) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
+#define CURSOR_HIDE(clock) cursorInfo.bVisible = 0; SetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
+#define CURSOR_SHOW(clock) cursorInfo.bVisible = 1; SetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
+
 // =============================================================================
 // @@@ + Clock_draw_frame
 // =============================================================================
@@ -240,6 +244,9 @@ uint8_t Clock_get_bounds(Clock *clock)
 // =============================================================================
 void Clock_trigger_update(Clock *clock)
 {
+	CURSOR_INFO(clock);
+	CURSOR_HIDE(clock);
+
 	Console_fill_buffs(clock->console);
 
 	// If time format takes more space then console width has
@@ -327,6 +334,9 @@ int main()
 		.framebox          = { 0 },
 	};
 
+	CURSOR_INFO(&clock);
+	CURSOR_HIDE(&clock);
+
 	clock.start(&clock); // refers to Clock_trigger_update
 
 	while (App_listen(&clock))
@@ -338,6 +348,7 @@ int main()
 	}
 	
 	Console_free(&console);
+	CURSOR_SHOW(&clock);
 
 	return 0;
 }
