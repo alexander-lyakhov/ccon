@@ -320,7 +320,7 @@ int main()
 		.padding_y         = 3,
 		.has_frame         = 1,
 		.clock_color       = 0x07,
-		.frame_color       = 0x03,
+		.frame_color       = 0x08,
 		.start             = Clock_trigger_update,
 		.get_time          = Clock_get_time_full,
 		.digitbox          = { 0 },
