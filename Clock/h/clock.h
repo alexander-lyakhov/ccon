@@ -34,7 +34,7 @@ typedef struct _Clock {
 	WORD clock_color;
 	WORD frame_color;
 
-	Bounds dialbox;
+	Bounds digitbox;
 	Bounds framebox;
 
 	struct tm time;

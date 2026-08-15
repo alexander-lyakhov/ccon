@@ -101,13 +101,13 @@ void Clock_apply_colors(Clock *clock)
 
 	// DIGIT COLOR
 
-	WORD *dial_target_attrs = clock->dialbox.target_attrs;
+	WORD *dial_target_attrs = clock->digitbox.target_attrs;
 
-	for (int line = 0; line < clock->dialbox.height; line++)
+	for (int line = 0; line < clock->digitbox.height; line++)
 	{
 		PUSH_ADDR(dial_target_attrs);
 
-		for (int i = 0; i < clock->dialbox.width; i++) {
+		for (int i = 0; i < clock->digitbox.width; i++) {
 			dial_target_attrs[i] = clock->clock_color;
 		}
 
@@ -146,10 +146,10 @@ void Clock_print(Clock *clock)
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
 
-	if (clock->dialbox.width > console->width || clock->dialbox.height > console->height)
+	if (clock->digitbox.width > console->width || clock->digitbox.height > console->height)
 		return;
 
-	void *target_chars = clock->dialbox.target_chars;
+	void *target_chars = clock->digitbox.target_chars;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -212,7 +212,7 @@ uint8_t Clock_get_bounds(Clock *clock)
 
 	Console *console = clock->console;
 
-	Bounds *dialbox  = &clock->dialbox;
+	Bounds *digitbox  = &clock->digitbox;
 	Bounds *framebox = &clock->framebox;
 
 	// FRAME
@@ -231,16 +231,16 @@ uint8_t Clock_get_bounds(Clock *clock)
 
 	// DIGITS
 
-	dialbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
-	dialbox->height = clock->charset->cell_h;
+	digitbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
+	digitbox->height = clock->charset->cell_h;
 	
-	dialbox->x      = (console->width  - dialbox->width)  >> 1;
-	dialbox->y      = (console->height - dialbox->height) >> 1;
+	digitbox->x      = (console->width  - digitbox->width)  >> 1;
+	digitbox->y      = (console->height - digitbox->height) >> 1;
 
-	dialbox->target_chars = console->buff  + dialbox->y * console->width + dialbox->x;
-	dialbox->target_attrs = console->attrs + dialbox->y * console->width + dialbox->x;
+	digitbox->target_chars = console->buff  + digitbox->y * console->width + digitbox->x;
+	digitbox->target_attrs = console->attrs + digitbox->y * console->width + digitbox->x;
 
-	return dialbox->width >= console->width ? 0 : 1;
+	return digitbox->width >= console->width ? 0 : 1;
 }
 
 // =============================================================================
@@ -283,22 +283,23 @@ uint16_t App_listen(Clock *clock)
 			return 0;
 
 		if ((key | 32) == 'f')
-		{
 			clock->has_frame ^= 1;
-			Clock_trigger_update(clock);
 
-			return 1;
+		if ((key | 32) == 's')
+		{
+			clock->get_time = clock->get_time == Clock_get_time_full
+				? Clock_get_time_short
+				: Clock_get_time_full;
 		}
 
 		if (key >= '1' && key <= '9')
 		{
 			int index = (key - 49) % clock->charset_list_size;
 			clock->charset = &clock->charset_list[index];
-
-			Clock_trigger_update(clock);
 		}
 	}
 
+	Clock_trigger_update(clock);
 	return 1;
 }
 
@@ -330,7 +331,7 @@ int main()
 		.frame_color       = 0x08,
 		.start             = Clock_trigger_update,
 		.get_time          = Clock_get_time_full,
-		.dialbox           = { 0 },
+		.digitbox          = { 0 },
 		.framebox          = { 0 },
 	};
 
