@@ -30,45 +30,41 @@
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
 	#include "h/charset-electronika-01.h"
 
-#define PUSH_ADDR(addr) void *tmp = (addr);
-#define  POP_ADDR(addr) (addr) = tmp;
-#define  INC_LINE(addr) (addr) += console->width;
+#define PUSH_ADDR(addr)  void *tmp = (addr);
+#define  POP_ADDR(addr)  (addr) = tmp;
+#define  INC_LINE(addr)  (addr) += clock->console->width;
+#define   LOOP_TO(value) for (size_t i = 0; i < (value); i++)
 
 // =============================================================================
 // @@@ + Clock_draw_frame
 // =============================================================================
 void Clock_draw_frame(Clock *clock)
 {
-	Console *console = clock->console;
-
-	uint16_t frame_width  = clock->framebox.width;
-	uint16_t frame_height = clock->framebox.height;
-
 	uint16_t first_row = 0;
-	uint16_t final_row = frame_height - 1;
+	uint16_t final_row = FRAME_HEIGHT - 1;
 
-	char *target_chars = clock->framebox.target_chars;
-	WORD *target_attrs = clock->framebox.target_attrs;
+	char *target_chars = FRAME_CHARS;
+	WORD *target_attrs = FRAME_ATTRS;
 
-	for (int line = 0; line < frame_height; line++)
+	for (int line = 0; line < FRAME_HEIGHT; line++)
 	{
 		PUSH_ADDR(target_chars);
 
 		if (line == first_row) {
 			target_chars[0]               = 'Ú';
-			target_chars[frame_width - 1] = '¿';
+			target_chars[FRAME_WIDTH - 1] = '¿';
 		}
 		else if (line == final_row) {
 			target_chars[0]               = 'À';
-			target_chars[frame_width - 1] = 'Ù';
+			target_chars[FRAME_WIDTH - 1] = 'Ù';
 		}
 		else {
 			target_chars[0]               = '³';
-			target_chars[frame_width - 1] = '³';
+			target_chars[FRAME_WIDTH - 1] = '³';
 		}
 
-		for (int x = 0; x < frame_width - 2; x++) {
-			target_chars[x + 1] = (!line || line == frame_height - 1) ? 'Ä' : ' ';
+		for (int x = 0; x < FRAME_WIDTH - 2; x++) {
+			target_chars[x + 1] = (!line || line == FRAME_HEIGHT - 1) ? 'Ä' : ' ';
 		}
 
 		POP_ADDR(target_chars);
@@ -81,19 +77,16 @@ void Clock_draw_frame(Clock *clock)
 // =============================================================================
 void Clock_apply_colors(Clock *clock)
 {
-	Console *console = clock->console;
-
 	// FRAME COLOR
 
-	WORD *frame_target_attrs = clock->framebox.target_attrs;
+	WORD *frame_target_attrs = FRAME_ATTRS;
 
-	for (int line = 0; line < clock->framebox.height; line++)
+	LOOP_TO(FRAME_HEIGHT)
 	{
 		PUSH_ADDR(frame_target_attrs);
-
-		for (int i = 0; i < clock->framebox.width; i++) {
-			frame_target_attrs[i] = clock->frame_color;
-		}
+		
+		LOOP_TO(FRAME_WIDTH)
+			*frame_target_attrs++ = clock->frame_color;
 
 		POP_ADDR(frame_target_attrs);
 		INC_LINE(frame_target_attrs);
@@ -101,18 +94,17 @@ void Clock_apply_colors(Clock *clock)
 
 	// DIGIT COLOR
 
-	WORD *dial_target_attrs = clock->digitbox.target_attrs;
+	WORD *digit_target_attrs = DIGITS_ATTRS;
 
-	for (int line = 0; line < clock->digitbox.height; line++)
+	LOOP_TO(DIGITS_HEIGHT)
 	{
-		PUSH_ADDR(dial_target_attrs);
+		PUSH_ADDR(digit_target_attrs);
 
-		for (int i = 0; i < clock->digitbox.width; i++) {
-			dial_target_attrs[i] = clock->clock_color;
-		}
+		LOOP_TO(DIGITS_WIDTH)
+			*digit_target_attrs++ = clock->clock_color;
 
-		POP_ADDR(dial_target_attrs);
-		INC_LINE(dial_target_attrs);
+		POP_ADDR(digit_target_attrs);
+		INC_LINE(digit_target_attrs);
 	}
 }
 
@@ -146,10 +138,10 @@ void Clock_print(Clock *clock)
 	Console *console = clock->console;
 	Charset *charset = clock->charset;
 
-	if (clock->digitbox.width > console->width || clock->digitbox.height > console->height)
+	if (DIGITS_WIDTH > CONSOLE_WIDTH || DIGITS_HEIGHT > CONSOLE_HEIGHT)
 		return;
 
-	void *target_chars = clock->digitbox.target_chars;
+	void *target_chars = DIGITS_CHARS;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -217,30 +209,30 @@ uint8_t Clock_get_bounds(Clock *clock)
 
 	// FRAME
 
-	framebox->width  = fmin(clock->padding_x * 2 + strlen(clock->timebuff) * clock->charset->cell_w, console->width);
-	framebox->height = fmin(clock->padding_y * 2 + clock->charset->cell_h, console->height);
+	framebox->width  = fmin(clock->padding_x * 2 + TIME_LEN * clock->charset->cell_w, CONSOLE_WIDTH);
+	framebox->height = fmin(clock->padding_y * 2 + clock->charset->cell_h, CONSOLE_HEIGHT);
 
-	framebox->x = (console->width  - framebox->width)  >> 1;
-	framebox->y = (console->height - framebox->height) >> 1;
+	framebox->x = (CONSOLE_WIDTH  - framebox->width)  >> 1;
+	framebox->y = (CONSOLE_HEIGHT - framebox->height) >> 1;
 
-	framebox->target_chars = console->buff  + framebox->x + framebox->y * console->width;
-	framebox->target_attrs = console->attrs + framebox->x + framebox->y * console->width;
+	framebox->target_chars = console->buff  + framebox->x + framebox->y * CONSOLE_WIDTH;
+	framebox->target_attrs = console->attrs + framebox->x + framebox->y * CONSOLE_WIDTH;
 
-	if (framebox->width >= console->width || framebox->height >= console->height)
+	if (FRAME_WIDTH >= CONSOLE_WIDTH || FRAME_HEIGHT >= CONSOLE_HEIGHT)
 		clock->has_frame = 0;
 
 	// DIGITS
 
-	digitbox->width  = clock->charset->cell_w * strlen(clock->timebuff);
+	digitbox->width  = clock->charset->cell_w * TIME_LEN;
 	digitbox->height = clock->charset->cell_h;
 	
-	digitbox->x      = (console->width  - digitbox->width)  >> 1;
-	digitbox->y      = (console->height - digitbox->height) >> 1;
+	digitbox->x      = (CONSOLE_WIDTH  - digitbox->width)  >> 1;
+	digitbox->y      = (CONSOLE_HEIGHT - digitbox->height) >> 1;
 
-	digitbox->target_chars = console->buff  + digitbox->y * console->width + digitbox->x;
-	digitbox->target_attrs = console->attrs + digitbox->y * console->width + digitbox->x;
+	DIGITS_CHARS     = console->buff  + digitbox->y * CONSOLE_WIDTH + digitbox->x;
+	DIGITS_ATTRS     = console->attrs + digitbox->y * CONSOLE_WIDTH + digitbox->x;
 
-	return digitbox->width >= console->width ? 0 : 1;
+	return DIGITS_WIDTH >= CONSOLE_WIDTH ? 0 : 1;
 }
 
 // =============================================================================
@@ -250,7 +242,7 @@ void Clock_trigger_update(Clock *clock)
 {
 	Console_fill_buffs(clock->console);
 
-	// If time takes more space then console width has
+	// If time format takes more space then console width has
 	if (!Clock_get_bounds(clock))
 	{
 		clock->get_time = Clock_get_time_short;
@@ -328,7 +320,7 @@ int main()
 		.padding_y         = 3,
 		.has_frame         = 1,
 		.clock_color       = 0x07,
-		.frame_color       = 0x08,
+		.frame_color       = 0x03,
 		.start             = Clock_trigger_update,
 		.get_time          = Clock_get_time_full,
 		.digitbox          = { 0 },

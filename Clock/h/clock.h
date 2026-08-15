@@ -5,6 +5,21 @@
 #include "console.h"
 #include "charset.h"
 
+#define FRAME_WIDTH  clock->framebox.width
+#define FRAME_HEIGHT clock->framebox.height
+#define FRAME_CHARS  clock->framebox.target_chars
+#define FRAME_ATTRS  clock->framebox.target_attrs
+
+#define DIGITS_WIDTH  clock->digitbox.width
+#define DIGITS_HEIGHT clock->digitbox.height
+#define DIGITS_CHARS  clock->digitbox.target_chars
+#define DIGITS_ATTRS  clock->digitbox.target_attrs
+
+#define TIME_LEN strlen(clock->timebuff)
+
+#define CONSOLE_WIDTH  clock->console->width
+#define CONSOLE_HEIGHT clock->console->height
+
 typedef struct _Bounds {
 	// !!! should be signed !!!
 	int16_t x;
