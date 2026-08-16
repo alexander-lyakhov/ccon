@@ -324,7 +324,7 @@ int main()
 
 	Clock clock = {
 		.console           = &console,
-		.charset           = &charset_list[2],
+		.charset           = &charset_list[1],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 		.padding_x         = 6,
