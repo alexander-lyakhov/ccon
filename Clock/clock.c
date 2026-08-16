@@ -181,7 +181,9 @@ void Clock_get_time_full(Clock *clock)
 	time_t now = time(NULL);
 	localtime_s(&clock->time, &now);
 
-	sprintf(clock->timebuff, "%02d:%02d:%02d",
+	sprintf(
+		clock->timebuff,
+		clock->time.tm_sec & 1 ? "%02d:%02d:%02d": "%02d;%02d;%02d",
 		clock->time.tm_hour,
 		clock->time.tm_min,
 		clock->time.tm_sec
@@ -196,7 +198,9 @@ void Clock_get_time_short(Clock *clock)
 	time_t now = time(NULL);
 	localtime_s(&clock->time, &now);
 
-	sprintf(clock->timebuff, "%02d:%02d",
+	sprintf(
+		clock->timebuff,
+		clock->time.tm_sec & 1 ? "%02d:%02d": "%02d;%02d",
 		clock->time.tm_hour,
 		clock->time.tm_min
 	);
