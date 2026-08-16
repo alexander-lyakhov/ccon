@@ -21,8 +21,8 @@
 #define CHARSET_03_IMPLEMENTATION
 	#include "h/charset03.h"
 
-#define CHARSET_05_IMPLEMENTATION
-	#include "h/charset05.h"
+#define CHARSET_04_IMPLEMENTATION
+	#include "h/charset04.h"
 
 #define CHARSET_LINES_IMPLEMENTATION
 	#include "h/charset-lines.h"
@@ -33,7 +33,7 @@
 #define PUSH_ADDR(addr)  void *tmp = (addr);
 #define  POP_ADDR(addr)  (addr) = tmp;
 #define  INC_LINE(addr)  (addr) += clock->console->width;
-#define   LOOP_TO(value) for (size_t i = 0; i < (value); i++)
+#define   LOOP_TO(value) for (size_t index = 0; index < (value); index++)
 
 #define CURSOR_INFO(clock) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
 #define CURSOR_HIDE(clock) cursorInfo.bVisible = 0; SetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
@@ -310,7 +310,7 @@ int main()
 		charset01,
 		charset02,
 		charset03,
-		charset05,
+		charset04,
 		charset_lines,
 		charset_electronika,
 	};
