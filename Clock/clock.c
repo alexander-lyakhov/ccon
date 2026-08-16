@@ -24,6 +24,9 @@
 #define CHARSET_04_IMPLEMENTATION
 	#include "h/charset04.h"
 
+#define CHARSET_05_IMPLEMENTATION
+	#include "h/charset05.h"
+
 #define CHARSET_LINES_IMPLEMENTATION
 	#include "h/charset-lines.h"
 
@@ -311,6 +314,7 @@ int main()
 		charset02,
 		charset03,
 		charset04,
+		charset05,
 		charset_lines,
 		charset_electronika,
 	};
