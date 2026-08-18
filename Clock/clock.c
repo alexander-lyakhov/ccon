@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <string.h>
 #include <windows.h>
+#include <locale.h>
 #include <time.h>
 #include <math.h>
 
@@ -12,9 +13,12 @@
 #include "h/clock.h"
 #include "h/charset.h"
 
+#define WCHAR_FIX_IMPLEMENTATION
+#include "h/wcharfix.h"
+
 #define CHARSET_01_IMPLEMENTATION
 	#include "h/charset01.h"
-
+/*
 #define CHARSET_02_IMPLEMENTATION
 	#include "h/charset02.h"
 
@@ -32,7 +36,7 @@
 
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
 	#include "h/charset-electronika-01.h"
-
+*/
 #define PUSH_ADDR(addr)  void *tmp = (addr);
 #define  POP_ADDR(addr)  (addr) = tmp;
 #define  INC_LINE(addr)  (addr) += clock->console->width;
@@ -50,28 +54,28 @@ void Clock_draw_frame(Clock *clock)
 	uint16_t first_row = 0;
 	uint16_t final_row = FRAME_HEIGHT - 1;
 
-	char *target_chars = FRAME_CHARS;
-	WORD *target_attrs = FRAME_ATTRS;
+	wchar_t *target_chars = FRAME_CHARS;
+	WORD *target_attrs    = FRAME_ATTRS;
 
 	for (int line = 0; line < FRAME_HEIGHT; line++)
 	{
 		PUSH_ADDR(target_chars);
 
 		if (line == first_row) {
-			target_chars[0]               = 'Ú';
-			target_chars[FRAME_WIDTH - 1] = '¿';
+			target_chars[0]               = L'â”Œ';
+			target_chars[FRAME_WIDTH - 1] = L'â”';
 		}
 		else if (line == final_row) {
-			target_chars[0]               = 'À';
-			target_chars[FRAME_WIDTH - 1] = 'Ù';
+			target_chars[0]               = L'â””';
+			target_chars[FRAME_WIDTH - 1] = L'â”˜';
 		}
 		else {
-			target_chars[0]               = '³';
-			target_chars[FRAME_WIDTH - 1] = '³';
+			target_chars[0]               = L'â”‚';
+			target_chars[FRAME_WIDTH - 1] = L'â”‚';
 		}
 
 		for (int x = 0; x < FRAME_WIDTH - 2; x++) {
-			target_chars[x + 1] = (!line || line == FRAME_HEIGHT - 1) ? 'Ä' : ' ';
+			target_chars[x + 1] = (!line || line == FRAME_HEIGHT - 1) ? L'â”€' : L' ';
 		}
 
 		POP_ADDR(target_chars);
@@ -120,10 +124,10 @@ void Clock_apply_colors(Clock *clock)
 // =============================================================================
 void Clock_render(Console *console)
 {
-	WriteConsoleOutputCharacter(
+	WriteConsoleOutputCharacterW(
 		console->handle,
 		console->buff,
-		console->size,
+		console->size * sizeof(wchar_t),
 		(COORD){0, 0},
 		&console->written
 	);
@@ -148,7 +152,7 @@ void Clock_print(Clock *clock)
 	if (DIGITS_WIDTH > CONSOLE_WIDTH || DIGITS_HEIGHT > CONSOLE_HEIGHT)
 		return;
 
-	void *target_chars = DIGITS_CHARS;
+	wchar_t *target_chars = DIGITS_CHARS;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -161,8 +165,11 @@ void Clock_print(Clock *clock)
 			memcpy(
 				target_chars,
 				charset->data[index][line],
-				charset->cell_w
+				charset->cell_w * sizeof(wchar_t)
 			);
+			/*for (int i = 0; i < charset->cell_w; i++)
+				target_chars[i] = charset->data[index][line][i],*/
+
 			target_chars += charset->cell_w;
 		}
 
@@ -313,14 +320,17 @@ int main()
 {
 	system("cls"); // required to be able to work in Conemu
 
+	// setlocale(LC_ALL, "");
+	WCHAR_FIX;
+
 	Charset charset_list[] = {
 		charset01,
-		charset02,
+		/*charset02,
 		charset03,
 		charset04,
 		charset05,
 		charset_lines,
-		charset_electronika,
+		charset_electronika,*/
 	};
 
 	Console console = Console_create();
@@ -328,7 +338,7 @@ int main()
 
 	Clock clock = {
 		.console           = &console,
-		.charset           = &charset_list[1],
+		.charset           = &charset_list[0],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 		.padding_x         = 6,

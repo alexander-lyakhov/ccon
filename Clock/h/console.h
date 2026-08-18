@@ -10,7 +10,7 @@ typedef struct _Console {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	DWORD written;
 
-	char* buff;
+	wchar_t* buff;
 	WORD* attrs;
 
 	uint16_t width;
@@ -48,8 +48,8 @@ Console Console_create()
 		.width    = width,
 		.height   = height,
 		.size     = size,
-		.buff     = malloc(size * sizeof(char)),
-		.attrs    = malloc(size * sizeof(WORD)),
+		.buff     = (wchar_t*)malloc(size * sizeof(wchar_t)),
+		.attrs    = (WORD*)malloc(size * sizeof(WORD)),
 	};
 }
 
@@ -58,8 +58,8 @@ Console Console_create()
 // =============================================================================
 void Console_alloc_buffs(Console *console)
 {
-	console->buff  = malloc(console->size * sizeof(char));
-	console->attrs = malloc(console->size * sizeof(WORD));
+	console->buff  = (wchar_t*)malloc(console->size * sizeof(wchar_t));
+	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
 }
 
 // =============================================================================
@@ -69,8 +69,8 @@ void Console_fill_buffs(Console *console)
 {
 	for (size_t i = 0; i < console->size; i++)
 	{
-		console->buff[i] = ' ';
-		console->attrs[i] = 0x07;
+		console->buff[i] = L'%';
+		console->attrs[i] = 0x03;
 	}
 }
 
