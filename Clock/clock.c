@@ -3,7 +3,6 @@
 #include <conio.h>
 #include <string.h>
 #include <windows.h>
-#include <locale.h>
 #include <time.h>
 #include <math.h>
 
@@ -12,9 +11,6 @@
 
 #include "h/clock.h"
 #include "h/charset.h"
-
-#define WCHAR_FIX_IMPLEMENTATION
-#include "h/wcharfix.h"
 
 #define CHARSET_01_IMPLEMENTATION
 	#include "h/charset01.h"
@@ -319,9 +315,6 @@ uint16_t App_listen(Clock *clock)
 int main()
 {
 	system("cls"); // required to be able to work in Conemu
-
-	// setlocale(LC_ALL, "");
-	WCHAR_FIX;
 
 	Charset charset_list[] = {
 		charset01,
