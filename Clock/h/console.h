@@ -5,12 +5,14 @@
 #include <minwindef.h>
 #include <windows.h>
 
+typedef wchar_t WCHR;
+
 typedef struct _Console {
 	HANDLE handle;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	DWORD written;
 
-	wchar_t* buff;
+	WCHR* buff;
 	WORD* attrs;
 
 	uint16_t width;
@@ -48,7 +50,7 @@ Console Console_create()
 		.width    = width,
 		.height   = height,
 		.size     = size,
-		.buff     = (wchar_t*)malloc(size * sizeof(wchar_t)),
+		.buff     = (WCHR*)malloc(size * sizeof(WCHR)),
 		.attrs    = (WORD*)malloc(size * sizeof(WORD)),
 	};
 }
@@ -58,7 +60,7 @@ Console Console_create()
 // =============================================================================
 void Console_alloc_buffs(Console *console)
 {
-	console->buff  = (wchar_t*)malloc(console->size * sizeof(wchar_t));
+	console->buff  = (WCHR*)malloc(console->size * sizeof(WCHR));
 	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
 }
 

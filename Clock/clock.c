@@ -50,8 +50,8 @@ void Clock_draw_frame(Clock *clock)
 	uint16_t first_row = 0;
 	uint16_t final_row = FRAME_HEIGHT - 1;
 
-	wchar_t *target_chars = FRAME_CHARS;
-	WORD *target_attrs    = FRAME_ATTRS;
+	WCHR *target_chars = FRAME_CHARS;
+	WORD *target_attrs = FRAME_ATTRS;
 
 	for (int line = 0; line < FRAME_HEIGHT; line++)
 	{
@@ -123,7 +123,7 @@ void Clock_render(Console *console)
 	WriteConsoleOutputCharacterW(
 		console->handle,
 		console->buff,
-		console->size * sizeof(wchar_t),
+		console->size/* * sizeof(WCHR)*/,
 		(COORD){0, 0},
 		&console->written
 	);
@@ -148,7 +148,7 @@ void Clock_print(Clock *clock)
 	if (DIGITS_WIDTH > CONSOLE_WIDTH || DIGITS_HEIGHT > CONSOLE_HEIGHT)
 		return;
 
-	wchar_t *target_chars = DIGITS_CHARS;
+	WCHR *target_chars = DIGITS_CHARS;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -161,11 +161,8 @@ void Clock_print(Clock *clock)
 			memcpy(
 				target_chars,
 				charset->data[index][line],
-				charset->cell_w * sizeof(wchar_t)
+				charset->cell_w * sizeof(WCHR)
 			);
-			/*for (int i = 0; i < charset->cell_w; i++)
-				target_chars[i] = charset->data[index][line][i],*/
-
 			target_chars += charset->cell_w;
 		}
 
