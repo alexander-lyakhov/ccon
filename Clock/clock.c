@@ -14,7 +14,7 @@
 
 #define CHARSET_01_IMPLEMENTATION
 	#include "h/charset01.h"
-/*
+
 #define CHARSET_02_IMPLEMENTATION
 	#include "h/charset02.h"
 
@@ -32,7 +32,7 @@
 
 #define CHARSET_ELECTRONOCA_IMPLEMENTATION
 	#include "h/charset-electronika-01.h"
-*/
+
 #define PUSH_ADDR(addr)  void *tmp = (addr);
 #define  POP_ADDR(addr)  (addr) = tmp;
 #define  INC_LINE(addr)  (addr) += clock->console->width;
@@ -315,12 +315,12 @@ int main()
 
 	Charset charset_list[] = {
 		charset01,
-		/*charset02,
+		charset02,
 		charset03,
 		charset04,
 		charset05,
 		charset_lines,
-		charset_electronika,*/
+		charset_electronika,
 	};
 
 	Console console = Console_create();
@@ -328,7 +328,7 @@ int main()
 
 	Clock clock = {
 		.console           = &console,
-		.charset           = &charset_list[0],
+		.charset           = &charset_list[1],
 		.charset_list      = charset_list,
 		.charset_list_size = sizeof(charset_list) / sizeof(*charset_list),
 		.padding_x         = 6,
