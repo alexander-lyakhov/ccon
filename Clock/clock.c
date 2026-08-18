@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define CONSOLE_IMPLEMENTATION
-	#include "h/console.h"
+	#include "h/console-utf8.h"
 
 #include "h/clock.h"
 #include "h/charset.h"
