@@ -123,7 +123,7 @@ void Clock_render(Console *console)
 	WriteConsoleOutputCharacterW(
 		console->handle,
 		console->buff,
-		console->size/* * sizeof(WCHR)*/,
+		console->size,
 		(COORD){0, 0},
 		&console->written
 	);

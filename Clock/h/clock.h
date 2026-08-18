@@ -2,6 +2,7 @@
 #define CLOCK_H__
 
 #include <stdint.h>
+#include <time.h>
 #include "console.h"
 #include "charset.h"
 
@@ -16,7 +17,6 @@
 #define DIGITS_ATTRS  clock->digitbox.target_attrs
 
 #define TIME_LEN strlen(clock->timebuff)
-// #define TIME_LEN lstrlenW(clock->timebuff)
 
 #define CONSOLE_WIDTH  clock->console->width
 #define CONSOLE_HEIGHT clock->console->height
