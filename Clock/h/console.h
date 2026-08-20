@@ -5,21 +5,30 @@
 #include <minwindef.h>
 #include <windows.h>
 
+typedef wchar_t WCHR;
+
+#ifndef LOOP_TO
+#define LOOP_TO(limit) for (size_t index = 0; index < (limit); ++index)
+#endif
+
 typedef struct _Console {
 	HANDLE handle;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	DWORD written;
 
-	char* buff;
+	void* buff;
 	WORD* attrs;
 
 	uint16_t width;
 	uint16_t height;
 	uint16_t size;
 
+	void (*Console_alloc_buffs)(struct _Console *console);
+	void (*Console_fill_buffs) (struct _Console *console);
+
 } Console;
 
-Console Console_create();
+Console Console_createW();
 void    Console_alloc_buffs (Console *console);
 uint8_t Console_check_resize(Console *console);
 void    Console_fill_buffs  (Console *console);
@@ -29,10 +38,16 @@ void    Console_free        (Console *console);
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
 
+static void _Console_alloc_buffs (Console *console);
+static void _Console_alloc_buffsW(Console *console);
+
+static void _Console_fill_buffs (Console *console);
+static void _Console_fill_buffsW(Console *console);
+
 // ================================================================================
 // @@@ + Console_create
 // ================================================================================
-Console Console_create()
+static Console* _Console_create()
 {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -43,36 +58,87 @@ Console Console_create()
 	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 	uint16_t size   = width * height;
 
-	Console console = {
-		.handle   = handle,
-		.width    = width,
-		.height   = height,
-		.size     = size,
-	};
-	Console_alloc_buffs(&console);
+	Console *console = malloc(sizeof(Console));
+	console->handle  = handle;
+	console->width   = width;
+	console->height  = height;
+	console->size    = size;
 
 	return console;
+}
+
+Console Console_create()
+{
+	Console *console = _Console_create();
+
+	console->Console_alloc_buffs = _Console_alloc_buffs;
+	console->Console_fill_buffs  = _Console_fill_buffs;
+
+	console->Console_alloc_buffs(console);
+	
+	return *console;
+}
+
+Console Console_createW()
+{
+	Console *console = _Console_create();
+
+	console->Console_alloc_buffs = _Console_alloc_buffsW;
+	console->Console_fill_buffs  = _Console_fill_buffsW;
+
+	console->Console_alloc_buffs(console);
+	
+	return *console;
 }
 
 // =============================================================================
 // @@@ + Console_alloc_buffs
 // =============================================================================
-void Console_alloc_buffs(Console *console)
+static void _Console_alloc_buffs(Console *console)
 {
-	console->buff  = (char*)malloc(console->size * sizeof(char));
+	console->buff  = (WCHR*)malloc(console->size * sizeof(char));
 	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
+}
+
+static void _Console_alloc_buffsW(Console *console)
+{
+	console->buff  = (WCHR*)malloc(console->size * sizeof(WCHR));
+	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
+}
+
+void Console_alloc_buffs(Console *console) {
+	console->Console_alloc_buffs(console);
 }
 
 // =============================================================================
 // @@@ + Console_fill_buffs
 // =============================================================================
-void Console_fill_buffs(Console *console)
+static void _Console_fill_buffs(Console *console)
 {
-	for (size_t i = 0; i < console->size; i++)
+	char *b = console->buff;
+	WORD *a = console->attrs;
+
+	LOOP_TO(console->size)
 	{
-		console->buff[i] = L'%';
-		console->attrs[i] = 0x03;
+		*b++ = '%';
+		*a++ = 0x03;
 	}
+}
+
+static void _Console_fill_buffsW(Console *console)
+{
+	WCHR *b = console->buff;
+	WORD *a = console->attrs;
+
+	LOOP_TO(console->size)
+	{
+		*b++ = L'%';
+		*a++ = 0x03;
+	}
+}
+
+void Console_fill_buffs(Console *console) {
+	console->Console_fill_buffs(console);
 }
 
 // =============================================================================

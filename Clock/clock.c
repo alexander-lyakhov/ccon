@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define CONSOLE_IMPLEMENTATION
-	#include "h/console-utf8.h"
+	#include "h/console.h"
 
 #include "h/clock.h"
 #include "h/charset.h"
@@ -36,7 +36,10 @@
 #define PUSH_ADDR(addr)  void *tmp = (addr);
 #define  POP_ADDR(addr)  (addr) = tmp;
 #define  INC_LINE(addr)  (addr) += clock->console->width;
-#define   LOOP_TO(value) for (size_t index = 0; index < (value); index++)
+
+#ifndef LOOP_TO
+#define LOOP_TO(value) for (size_t index = 0; index < (value); index++)
+#endif
 
 #define CURSOR_INFO(clock) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
 #define CURSOR_HIDE(clock) cursorInfo.bVisible = 0; SetConsoleCursorInfo((clock)->console->handle, &cursorInfo);
@@ -226,7 +229,7 @@ uint8_t Clock_get_bounds(Clock *clock)
 	framebox->x = (CONSOLE_WIDTH  - framebox->width)  >> 1;
 	framebox->y = (CONSOLE_HEIGHT - framebox->height) >> 1;
 
-	framebox->target_chars = console->buff  + framebox->x + framebox->y * CONSOLE_WIDTH;
+	framebox->target_chars = (WCHR*)console->buff  + framebox->x + framebox->y * CONSOLE_WIDTH;
 	framebox->target_attrs = console->attrs + framebox->x + framebox->y * CONSOLE_WIDTH;
 
 	if (FRAME_WIDTH >= CONSOLE_WIDTH || FRAME_HEIGHT >= CONSOLE_HEIGHT)
@@ -240,7 +243,7 @@ uint8_t Clock_get_bounds(Clock *clock)
 	digitbox->x      = (CONSOLE_WIDTH  - digitbox->width)  >> 1;
 	digitbox->y      = (CONSOLE_HEIGHT - digitbox->height) >> 1;
 
-	DIGITS_CHARS     = console->buff  + digitbox->y * CONSOLE_WIDTH + digitbox->x;
+	DIGITS_CHARS     = (WCHR*)console->buff  + digitbox->y * CONSOLE_WIDTH + digitbox->x;
 	DIGITS_ATTRS     = console->attrs + digitbox->y * CONSOLE_WIDTH + digitbox->x;
 
 	return DIGITS_WIDTH >= CONSOLE_WIDTH ? 0 : 1;
@@ -323,7 +326,7 @@ int main()
 		charset_electronika,
 	};
 
-	Console console = Console_create();
+	Console console = Console_createW();
 	Console_fill_buffs(&console);
 
 	Clock clock = {

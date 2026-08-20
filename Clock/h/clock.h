@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <time.h>
-#include "console-utf8.h"
+#include "console.h"
 #include "charset.h"
 
 #define FRAME_WIDTH  clock->framebox.width
