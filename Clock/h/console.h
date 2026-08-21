@@ -178,8 +178,11 @@ void Console_reset(Console *console)
 // =============================================================================
 void Console_free(Console *console)
 {
-	free(console->buff);
-	free(console->attrs);
+	if (console->buff)
+		free(console->buff);
+
+	if (console->attrs)
+		free(console->attrs);
 
 	console->buff = NULL;
 	console->attrs = NULL;
