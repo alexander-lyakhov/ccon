@@ -4,12 +4,9 @@
 #include <stdint.h>
 #include <minwindef.h>
 #include <windows.h>
+#include "defs.h"
 
 typedef wchar_t WCHR;
-
-#ifndef LOOP_TO
-#define LOOP_TO(limit) for (size_t index = 0; index < (limit); ++index)
-#endif
 
 typedef struct _Console {
 	HANDLE handle;
