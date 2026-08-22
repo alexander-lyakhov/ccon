@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <windows.h>
 #include <math.h>
 #include <time.h>
-#include <windows.h>
+
 #include "defs.h"
 #include "charset.h"
-
 #include "console.h"
 
 #define FRAME_WIDTH  clock->framebox.width
