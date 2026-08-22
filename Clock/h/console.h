@@ -24,14 +24,14 @@ typedef struct _Console {
 	uint16_t size;
 
 	void (*Console_alloc_buffs)(struct _Console *console);
-	void (*Console_fill_buffs) (struct _Console *console);
+	void (*Console_fill_buffs) (struct _Console *console, void *fillchar, WORD attr);
 
 } Console;
 
 Console Console_createW();
 void    Console_alloc_buffs (Console *console);
 uint8_t Console_check_resize(Console *console);
-void    Console_fill_buffs  (Console *console);
+void    Console_fill_buffs  (Console *console, void *fillchar, WORD attr);
 void    Console_reset       (Console *console);
 void    Console_free        (Console *console);
 
@@ -41,8 +41,8 @@ void    Console_free        (Console *console);
 static void _Console_alloc_buffs (Console *console);
 static void _Console_alloc_buffsW(Console *console);
 
-static void _Console_fill_buffs (Console *console);
-static void _Console_fill_buffsW(Console *console);
+static void _Console_fill_buffs (Console *console, void *fillchar, WORD attr);
+static void _Console_fill_buffsW(Console *console, void *fillchar, WORD attr);
 
 // ================================================================================
 // @@@ + Console_create
@@ -113,32 +113,32 @@ void Console_alloc_buffs(Console *console) {
 // =============================================================================
 // @@@ + Console_fill_buffs
 // =============================================================================
-static void _Console_fill_buffs(Console *console)
+static void _Console_fill_buffs(Console *console, void *fillchar, WORD attr)
 {
 	char *b = console->buff;
 	WORD *a = console->attrs;
 
 	LOOP_TO(console->size)
 	{
-		*b++ = '%';
-		*a++ = 0x03;
+		*b++ = *(char*)fillchar;
+		*a++ = attr;
 	}
 }
 
-static void _Console_fill_buffsW(Console *console)
+static void _Console_fill_buffsW(Console *console, void *fillchar, WORD attr)
 {
 	WCHR *b = console->buff;
 	WORD *a = console->attrs;
 
 	LOOP_TO(console->size)
 	{
-		*b++ = L'%';
-		*a++ = 0x03;
+		*b++ = *(WCHR*)fillchar;
+		*a++ = attr;
 	}
 }
 
-void Console_fill_buffs(Console *console) {
-	console->Console_fill_buffs(console);
+void Console_fill_buffs(Console *console, void *fillchar, WORD attr) {
+	console->Console_fill_buffs(console, fillchar, attr);
 }
 
 // =============================================================================
@@ -170,7 +170,6 @@ void Console_reset(Console *console)
 {
 	Console_free(console);
 	Console_alloc_buffs(console);
-	Console_fill_buffs(console);
 }
 
 // =============================================================================
