@@ -121,6 +121,8 @@ uint8_t Clock_get_bounds(Clock *clock)
 // =============================================================================
 void Clock_apply_colors(Clock *clock)
 {
+	Console *console = clock->console;
+
 	// FRAME COLOR
 
 	WORD *frame_target_attrs = FRAME_ATTRS;
@@ -157,6 +159,8 @@ void Clock_apply_colors(Clock *clock)
 // =============================================================================
 void Clock_draw_frame(Clock *clock)
 {
+	Console *console = clock->console;
+
 	uint16_t first_row = 0;
 	uint16_t final_row = FRAME_HEIGHT - 1;
 

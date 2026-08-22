@@ -9,6 +9,6 @@
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
-#define  INC_LINE(addr) (addr) += clock->console->width;
+#define  INC_LINE(addr) (addr) += console->width;
 
 #endif
