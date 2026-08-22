@@ -1,10 +1,6 @@
-#include <stdio.h>
 #include <stdint.h>
 #include <conio.h>
-#include <string.h>
 #include <windows.h>
-#include <time.h>
-#include <math.h>
 #include "h/defs.h"
 
 #define CONSOLE_IMPLEMENTATION

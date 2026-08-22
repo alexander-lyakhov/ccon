@@ -1,11 +1,16 @@
 #ifndef CLOCK_H__
 #define CLOCK_H__
 
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <math.h>
 #include <time.h>
+#include <windows.h>
 #include "defs.h"
-#include "console.h"
 #include "charset.h"
+
+#include "console.h"
 
 #define FRAME_WIDTH  clock->framebox.width
 #define FRAME_HEIGHT clock->framebox.height
@@ -68,7 +73,7 @@ void    Clock_trigger_update (Clock *clock);
 void    Clock_print          (Clock *clock);
 void    Clock_render         (Console *console);
 
-// #define CLOCK_IMPLEMENTATION
+#define CLOCK_IMPLEMENTATION
 #ifdef CLOCK_IMPLEMENTATION
 
 // =============================================================================
@@ -118,7 +123,7 @@ void Clock_apply_colors(Clock *clock)
 {
 	// FRAME COLOR
 
-	WORD *frame_target_attrs = FRAME_ATTRS;
+	WORD *frame_target_attrs = (WORD*)FRAME_ATTRS;
 
 	LOOP_TO(FRAME_HEIGHT)
 	{
@@ -133,7 +138,7 @@ void Clock_apply_colors(Clock *clock)
 
 	// DIGIT COLOR
 
-	WORD *digit_target_attrs = DIGITS_ATTRS;
+	WORD *digit_target_attrs = (WORD*)DIGITS_ATTRS;
 
 	LOOP_TO(DIGITS_HEIGHT)
 	{
@@ -155,8 +160,8 @@ void Clock_draw_frame(Clock *clock)
 	uint16_t first_row = 0;
 	uint16_t final_row = FRAME_HEIGHT - 1;
 
-	WCHR *target_chars = FRAME_CHARS;
-	WORD *target_attrs = FRAME_ATTRS;
+	WCHR *target_chars = (WCHR*)FRAME_CHARS;
+	WORD *target_attrs = (WORD*)FRAME_ATTRS;
 
 	for (int line = 0; line < FRAME_HEIGHT; line++)
 	{
@@ -228,7 +233,7 @@ void Clock_print(Clock *clock)
 	if (DIGITS_WIDTH > CONSOLE_WIDTH || DIGITS_HEIGHT > CONSOLE_HEIGHT)
 		return;
 
-	WCHR *target_chars = DIGITS_CHARS;
+	WCHR *target_chars = (WCHR*)DIGITS_CHARS;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -260,7 +265,7 @@ void Clock_render(Console *console)
 {
 	WriteConsoleOutputCharacterW(
 		console->handle,
-		console->buff,
+		(WCHR*)console->buff,
 		console->size,
 		(COORD){0, 0},
 		&console->written
@@ -283,7 +288,7 @@ void Clock_trigger_update(Clock *clock)
 	CURSOR_INFO(clock);
 	CURSOR_HIDE(clock);
 
-	Console_fill(clock->console, L"%", 0x03);
+	clock->console->Console_fill(clock->console, L"%", 0x03);
 
 	// If time format takes more space then console width has
 	if (!Clock_get_bounds(clock))

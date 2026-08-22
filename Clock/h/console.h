@@ -21,13 +21,13 @@ typedef struct _Console {
 	uint16_t size;
 
 	void (*Console_alloc)(struct _Console *console);
-	void (*Console_fill) (struct _Console *console, void *fillchar, WORD attr);
+	void (*Console_fill) (struct _Console *console, const void *fillchar, WORD attr);
 
 } Console;
 
 Console Console_createW();
 void    Console_alloc       (Console *console);
-void    Console_fill        (Console *console, void *fillchar, WORD attr);
+void    Console_fill        (Console *console, const void *fillchar, WORD attr);
 void    Console_free        (Console *console);
 uint8_t Console_check_resize(Console *console);
 void    Console_reset       (Console *console);
@@ -38,8 +38,8 @@ void    Console_reset       (Console *console);
 static void _Console_alloc (Console *console);
 static void _Console_allocW(Console *console);
 
-static void _Console_fill (Console *console, void *fillchar, WORD attr);
-static void _Console_fillW(Console *console, void *fillchar, WORD attr);
+static void _Console_fill (Console *console, const void *fillchar, WORD attr);
+static void _Console_fillW(Console *console, const void *fillchar, WORD attr);
 
 // ================================================================================
 // @@@ + Console_create
@@ -110,7 +110,7 @@ void Console_alloc(Console *console) {
 // =============================================================================
 // @@@ + _Console_fill
 // =============================================================================
-static void _Console_fill(Console *console, void *fillchar, WORD attr)
+static void _Console_fill(Console *console, const void *fillchar, WORD attr)
 {
 	char *b = console->buff;
 	WORD *a = console->attrs;
@@ -122,7 +122,7 @@ static void _Console_fill(Console *console, void *fillchar, WORD attr)
 	}
 }
 
-static void _Console_fillW(Console *console, void *fillchar, WORD attr)
+static void _Console_fillW(Console *console, const void *fillchar, WORD attr)
 {
 	WCHR *b = console->buff;
 	WORD *a = console->attrs;
@@ -134,7 +134,7 @@ static void _Console_fillW(Console *console, void *fillchar, WORD attr)
 	}
 }
 
-void Console_fill(Console *console, void *fillchar, WORD attr) {
+void Console_fill(Console *console, const void *fillchar, WORD attr) {
 	console->Console_fill(console, fillchar, attr);
 }
 
