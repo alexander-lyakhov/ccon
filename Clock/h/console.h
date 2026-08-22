@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <minwindef.h>
 #include <windows.h>
-#include "defs.h"
 
 typedef wchar_t WCHR;
 
@@ -34,6 +33,8 @@ void    Console_reset       (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
+
+#include "defs.h"
 
 static void _Console_alloc (Console *console);
 static void _Console_allocW(Console *console);
@@ -93,14 +94,14 @@ Console Console_createW()
 // =============================================================================
 static void _Console_alloc(Console *console)
 {
-	console->buff  = (WCHR*)malloc(console->size * sizeof(char));
-	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
+	console->buff  = malloc(console->size * sizeof(char));
+	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
 static void _Console_allocW(Console *console)
 {
-	console->buff  = (WCHR*)malloc(console->size * sizeof(WCHR));
-	console->attrs = (WORD*)malloc(console->size * sizeof(WORD));
+	console->buff  = malloc(console->size * sizeof(WCHR));
+	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
 void Console_alloc(Console *console) {
@@ -150,9 +151,9 @@ uint8_t Console_check_resize(Console *console)
 
 	if (console->width != width || console->height != height)
 	{
-		console->width = width;
+		console->width  = width;
 		console->height = height;
-		console->size = width * height;
+		console->size   = width * height;
 
 		return 1; // Console size has been changed
 	}
@@ -177,7 +178,7 @@ void Console_free(Console *console)
 	free(console->buff);
 	free(console->attrs);
 
-	console->buff = NULL;
+	console->buff  = NULL;
 	console->attrs = NULL;
 }
 

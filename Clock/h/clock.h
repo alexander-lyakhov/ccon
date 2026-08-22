@@ -73,7 +73,7 @@ void    Clock_trigger_update (Clock *clock);
 void    Clock_print          (Clock *clock);
 void    Clock_render         (Console *console);
 
-#define CLOCK_IMPLEMENTATION
+// #define CLOCK_IMPLEMENTATION
 #ifdef CLOCK_IMPLEMENTATION
 
 // =============================================================================
@@ -123,7 +123,7 @@ void Clock_apply_colors(Clock *clock)
 {
 	// FRAME COLOR
 
-	WORD *frame_target_attrs = (WORD*)FRAME_ATTRS;
+	WORD *frame_target_attrs = FRAME_ATTRS;
 
 	LOOP_TO(FRAME_HEIGHT)
 	{
@@ -138,7 +138,7 @@ void Clock_apply_colors(Clock *clock)
 
 	// DIGIT COLOR
 
-	WORD *digit_target_attrs = (WORD*)DIGITS_ATTRS;
+	WORD *digit_target_attrs = DIGITS_ATTRS;
 
 	LOOP_TO(DIGITS_HEIGHT)
 	{
@@ -160,8 +160,8 @@ void Clock_draw_frame(Clock *clock)
 	uint16_t first_row = 0;
 	uint16_t final_row = FRAME_HEIGHT - 1;
 
-	WCHR *target_chars = (WCHR*)FRAME_CHARS;
-	WORD *target_attrs = (WORD*)FRAME_ATTRS;
+	WCHR *target_chars = FRAME_CHARS;
+	WORD *target_attrs = FRAME_ATTRS;
 
 	for (int line = 0; line < FRAME_HEIGHT; line++)
 	{
