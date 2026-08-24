@@ -64,14 +64,15 @@ typedef struct _Clock {
 
 } Clock;
 
-uint8_t Clock_get_bounds     (Clock *clock);
-void    Clock_apply_colors   (Clock *clock);
-void    Clock_draw_frame     (Clock *clock);
-void    Clock_get_time_full  (Clock *clock);
-void    Clock_get_time_short (Clock *clock);
-void    Clock_trigger_update (Clock *clock);
-void    Clock_print          (Clock *clock);
-void    Clock_render         (Console *console);
+static uint8_t Clock_get_bounds      (Clock *clock);
+static    void Clock_clear_frame_rect(Clock *clock);
+static    void Clock_apply_colors    (Clock *clock);
+static    void Clock_draw_frame      (Clock *clock);
+          void Clock_get_time_full   (Clock *clock);
+          void Clock_get_time_short  (Clock *clock);
+          void Clock_print           (Clock *clock);
+          void Clock_render          (Console *console);
+          void Clock_trigger_update  (Clock *clock);
 
 // #define CLOCK_IMPLEMENTATION
 #ifdef CLOCK_IMPLEMENTATION
@@ -79,7 +80,7 @@ void    Clock_render         (Console *console);
 // =============================================================================
 // @@@ + Clock_get_bounds
 // =============================================================================
-uint8_t Clock_get_bounds(Clock *clock)
+static uint8_t Clock_get_bounds(Clock *clock)
 {
 	clock->get_time(clock);
 
@@ -117,9 +118,31 @@ uint8_t Clock_get_bounds(Clock *clock)
 }
 
 // =============================================================================
+// @@@ + Clock_clear_frame_rect
+// =============================================================================
+static void Clock_clear_frame_rect(Clock *clock)
+{
+	Console *console = clock->console;
+
+	WCHR *target_chars = FRAME_CHARS;
+
+	for (int line = 0; line < FRAME_HEIGHT; line++)
+	{
+		PUSH_ADDR(target_chars);
+
+		for (int x = 0; x < FRAME_WIDTH; x++) {
+			target_chars[x] = L' ';
+		}
+
+		POP_ADDR(target_chars);
+		INC_LINE(target_chars);
+	}
+}
+
+// =============================================================================
 // @@@ + Clock_apply_colors
 // =============================================================================
-void Clock_apply_colors(Clock *clock)
+static void Clock_apply_colors(Clock *clock)
 {
 	Console *console = clock->console;
 
@@ -157,7 +180,7 @@ void Clock_apply_colors(Clock *clock)
 // =============================================================================
 // @@@ + Clock_draw_frame
 // =============================================================================
-void Clock_draw_frame(Clock *clock)
+static void Clock_draw_frame(Clock *clock)
 {
 	Console *console = clock->console;
 
@@ -237,7 +260,7 @@ void Clock_print(Clock *clock)
 	if (DIGITS_WIDTH > CONSOLE_WIDTH || DIGITS_HEIGHT > CONSOLE_HEIGHT)
 		return;
 
-	WCHR *target_chars = (WCHR*)DIGITS_CHARS;
+	WCHR *target_chars = DIGITS_CHARS;
 	
 	for (int line = 0; line < charset->cell_h; line++)
 	{
@@ -301,6 +324,7 @@ void Clock_trigger_update(Clock *clock)
 		Clock_get_bounds(clock);
 	}
 
+	Clock_clear_frame_rect(clock);
 	Clock_apply_colors(clock);
 
 	if (clock->has_frame)
