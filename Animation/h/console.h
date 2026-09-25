@@ -58,7 +58,7 @@ static Console* _Console_create()
 		handle, &csbi
 	);
 	GetCurrentConsoleFont(
-		handle, 0, &cfi
+		handle, 1, &cfi
 	);
 
 	uint16_t width  = csbi.srWindow.Right + 1;
