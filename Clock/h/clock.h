@@ -315,7 +315,7 @@ void Clock_trigger_update(Clock *clock)
 	CURSOR_INFO(clock);
 	CURSOR_HIDE(clock);
 
-	clock->console->fill(clock->console, L"%", 0x03);
+	clock->console->mem_fill(clock->console, L"%", 0x03);
 
 	// If time format takes more space then console width has
 	if (!Clock_get_bounds(clock))

@@ -39,7 +39,7 @@ uint16_t App_listen(Clock *clock)
 {
 	if (Console_check_resize(clock->console))
 	{
-		Console_reset(clock->console);
+		Console_mem_reset(clock->console);
 		Clock_trigger_update(clock);
 		return 1;
 	}
@@ -117,7 +117,7 @@ int main()
 		Sleep(50);
 	}
 	
-	Console_free(&console);
+	Console_mem_free(&console);
 	CURSOR_SHOW(&clock);
 
 	return 0;
