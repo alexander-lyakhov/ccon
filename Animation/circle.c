@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <conio.h>
+#include <math.h>
 #include <windows.h>
 
 #define CONSOLE_IMPLEMENTATION
@@ -29,23 +30,32 @@ int main()
 	system("cls");
 
 	Console console = Console_create();
-	Console_mem_fill(&console, "%", 0x03);
+	Console_mem_fill(&console, " ", 0x03);
 
 	int cx = console.width  >> 1;
 	int cy = console.height >> 1;
 
-	/*for (int x = 0; x < console.width; x++)
+	size_t index = 0;
+
+	for (int row = 0; row < console.height; row++)
 	{
-		for (int y = 0; y < console.width; y++)
+		for (int col = 0; col < console.width; col++)
 		{
+			float x = col - cx;
+			float y = (row - cy) / console.font_ar;
+
+			int r = round(sqrt(x * x + y * y));
+
+			((char*)console.buff)[index++] = r > 24 ? ' ' : '$';
 		}
-	}*/
+	}
 
 	app_render(&console);
 
-	_getch();
-
 	Console_mem_free(&console);
+
+	// _getch();
+
 
 	return 0;
 }
