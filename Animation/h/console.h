@@ -19,26 +19,27 @@ typedef struct _Console {
 	uint16_t height;
 	uint16_t size;
 
-	void (*alloc)(struct _Console *console);
-	void (*fill) (struct _Console *console, const void *fillchar, WORD attr);
+	void (*mem_alloc)(struct _Console *console);
+	void (*mem_fill) (struct _Console *console, const void *fillchar, WORD attr);
 
 } Console;
 
+Console Console_create();
 Console Console_createW();
-void    Console_alloc       (Console *console);
-void    Console_fill        (Console *console, const void *fillchar, WORD attr);
+void    Console_mem_alloc   (Console *console);
+void    Console_mem_fill    (Console *console, const void *fillchar, WORD attr);
+void    Console_mem_free    (Console *console);
+void    Console_mem_reset   (Console *console);
 uint8_t Console_check_resize(Console *console);
-void    Console_reset       (Console *console);
-void    Console_free        (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
 
-static void _Console_alloc (Console *console);
-static void _Console_allocW(Console *console);
+static void _Console_mem_alloc (Console *console);
+static void _Console_mem_allocW(Console *console);
 
-static void _Console_fill (Console *console, const void *fillchar, WORD attr);
-static void _Console_fillW(Console *console, const void *fillchar, WORD attr);
+static void _Console_mem_fill (Console *console, const void *fillchar, WORD attr);
+static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr);
 
 // ================================================================================
 // @@@ + Console_create
@@ -67,10 +68,10 @@ Console Console_create()
 {
 	Console *console = _Console_create();
 
-	console->alloc = _Console_alloc;
-	console->fill  = _Console_fill;
+	console->mem_alloc = _Console_mem_alloc;
+	console->mem_fill  = _Console_mem_fill;
 
-	console->alloc(console);
+	console->mem_alloc(console);
 	
 	return *console;
 }
@@ -79,40 +80,37 @@ Console Console_createW()
 {
 	Console *console = _Console_create();
 
-	console->alloc = _Console_allocW;
-	console->fill  = _Console_fillW;
+	console->mem_alloc = _Console_mem_allocW;
+	console->mem_fill  = _Console_mem_fillW;
 
-	console->alloc(console);
+	console->mem_alloc(console);
 	
 	return *console;
 }
 
 // =============================================================================
-// @@@ + _Console_alloc
+// @@@ + Console_mem_alloc
 // =============================================================================
-static void _Console_alloc(Console *console)
+static void _Console_mem_alloc(Console *console)
 {
 	console->buff  = malloc(console->size * sizeof(char));
 	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
-static void _Console_allocW(Console *console)
+static void _Console_mem_allocW(Console *console)
 {
 	console->buff  = malloc(console->size * sizeof(WCHR));
 	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
-// =============================================================================
-// @@@ + Console_alloc
-// =============================================================================
-void Console_alloc(Console *console) {
-	console->alloc(console);
+void Console_mem_alloc(Console *console) {
+	console->mem_alloc(console);
 }
 
 // =============================================================================
-// @@@ + _Console_fill
+// @@@ + Console_mem_fill
 // =============================================================================
-static void _Console_fill(Console *console, const void *fillchar, WORD attr)
+static void _Console_mem_fill(Console *console, const void *fillchar, WORD attr)
 {
 	char *b = console->buff;
 	WORD *a = console->attrs;
@@ -124,7 +122,7 @@ static void _Console_fill(Console *console, const void *fillchar, WORD attr)
 	}
 }
 
-static void _Console_fillW(Console *console, const void *fillchar, WORD attr)
+static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr)
 {
 	WCHR *b = console->buff;
 	WORD *a = console->attrs;
@@ -136,11 +134,29 @@ static void _Console_fillW(Console *console, const void *fillchar, WORD attr)
 	}
 }
 
+void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
+	console->mem_fill(console, fillchar, attr);
+}
+
 // =============================================================================
-// @@@ + Console_fill
+// @@@ + Console_mem_free
 // =============================================================================
-void Console_fill(Console *console, const void *fillchar, WORD attr) {
-	console->fill(console, fillchar, attr);
+void Console_mem_free(Console *console)
+{
+	free(console->buff);
+	free(console->attrs);
+
+	console->buff  = NULL;
+	console->attrs = NULL;
+}
+
+// =============================================================================
+// @@@ + Console_mem_reset
+// =============================================================================
+void Console_mem_reset(Console *console)
+{
+	Console_mem_free(console);
+	Console_mem_alloc(console);
 }
 
 // =============================================================================
@@ -163,27 +179,6 @@ uint8_t Console_check_resize(Console *console)
 	}
 
 	return 0; // Console size stays the same
-}
-
-// =============================================================================
-// @@@ + Console_reset
-// =============================================================================
-void Console_reset(Console *console)
-{
-	Console_free(console);
-	Console_alloc(console);
-}
-
-// =============================================================================
-// @@@ + Console_free
-// =============================================================================
-void Console_free(Console *console)
-{
-	free(console->buff);
-	free(console->attrs);
-
-	console->buff  = NULL;
-	console->attrs = NULL;
 }
 
 #endif
