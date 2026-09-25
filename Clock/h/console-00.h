@@ -19,20 +19,22 @@ typedef struct _Console {
 	uint16_t height;
 	uint16_t size;
 
-	void (*alloc)(struct _Console *console);
-	void (*fill) (struct _Console *console, const void *fillchar, WORD attr);
+	void (*Console_alloc)(struct _Console *console);
+	void (*Console_fill) (struct _Console *console, const void *fillchar, WORD attr);
 
 } Console;
 
 Console Console_createW();
 void    Console_alloc       (Console *console);
 void    Console_fill        (Console *console, const void *fillchar, WORD attr);
+void    Console_free        (Console *console);
 uint8_t Console_check_resize(Console *console);
 void    Console_reset       (Console *console);
-void    Console_free        (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
+
+#include "defs.h"
 
 static void _Console_alloc (Console *console);
 static void _Console_allocW(Console *console);
@@ -67,10 +69,10 @@ Console Console_create()
 {
 	Console *console = _Console_create();
 
-	console->alloc = _Console_alloc;
-	console->fill  = _Console_fill;
+	console->Console_alloc = _Console_alloc;
+	console->Console_fill  = _Console_fill;
 
-	console->alloc(console);
+	console->Console_alloc(console);
 	
 	return *console;
 }
@@ -79,10 +81,10 @@ Console Console_createW()
 {
 	Console *console = _Console_create();
 
-	console->alloc = _Console_allocW;
-	console->fill  = _Console_fillW;
+	console->Console_alloc = _Console_allocW;
+	console->Console_fill  = _Console_fillW;
 
-	console->alloc(console);
+	console->Console_alloc(console);
 	
 	return *console;
 }
@@ -102,11 +104,8 @@ static void _Console_allocW(Console *console)
 	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
-// =============================================================================
-// @@@ + Console_alloc
-// =============================================================================
 void Console_alloc(Console *console) {
-	console->alloc(console);
+	console->Console_alloc(console);
 }
 
 // =============================================================================
@@ -117,7 +116,7 @@ static void _Console_fill(Console *console, const void *fillchar, WORD attr)
 	char *b = console->buff;
 	WORD *a = console->attrs;
 
-	for (size_t i = 0; i < console->size; i++)
+	LOOP_TO(console->size)
 	{
 		*b++ = *(char*)fillchar;
 		*a++ = attr;
@@ -129,18 +128,15 @@ static void _Console_fillW(Console *console, const void *fillchar, WORD attr)
 	WCHR *b = console->buff;
 	WORD *a = console->attrs;
 
-	for (size_t i = 0; i < console->size; i++)
+	LOOP_TO(console->size)
 	{
 		*b++ = *(WCHR*)fillchar;
 		*a++ = attr;
 	}
 }
 
-// =============================================================================
-// @@@ + Console_fill
-// =============================================================================
 void Console_fill(Console *console, const void *fillchar, WORD attr) {
-	console->fill(console, fillchar, attr);
+	console->Console_fill(console, fillchar, attr);
 }
 
 // =============================================================================
