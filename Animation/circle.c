@@ -72,8 +72,13 @@ int main()
 	{
 		for (int col = 0; col < console.width; col++)
 		{
-			float x = ((col - cx) << 1) / (float)vpx_factor;
-			float y = ((row - cy) << 1) / (float)vpy_factor;
+			/*float x = ((col - cx) << 1) / vpx_factor;
+			float y = ((row - cy) << 1) / vpy_factor;*/
+
+			float x = col * 2.0 / console.width - 1;
+			float y = row * 2.0 / console.height - 1;
+
+			x *= (float)console.width / console.height * console.font_ar;
 
 			float r = sqrt(x * x + y * y);
 
