@@ -60,6 +60,9 @@ static Console* _Console_create()
 	GetCurrentConsoleFont(
 		handle, 1, &cfi
 	);
+	COORD FONT = GetConsoleFontSize(
+		handle, cfi.nFont
+	);
 
 	uint16_t width  = csbi.srWindow.Right + 1;
 	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
@@ -72,7 +75,7 @@ static Console* _Console_create()
 	console->width   = width;
 	console->height  = height;
 	console->size    = size;
-	console->font_ar = (float)cfi.dwFontSize.X / cfi.dwFontSize.Y;
+	console->font_ar = (float)FONT.X / FONT.Y;
 
 	return console;
 }
