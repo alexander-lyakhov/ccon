@@ -88,8 +88,8 @@ int main()
 			/*float x = ((col - cx) << 1) / vpx_factor;
 			float y = ((row - cy) << 1) / vpy_factor;*/
 
-			float x = (col * 2.0 / console.width - 1) * kx + 1;
-			float y = row * 2.0 / console.height - 1;
+			float x = (col * 2.0 / console.width - 1) * kx + 0.5;
+			float y = (console.height - row) * 2.0 / console.height - 1;
 
 			// x *= kx;
 
