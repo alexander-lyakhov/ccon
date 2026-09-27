@@ -6,7 +6,7 @@
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 
-void app_render(Console *console)
+void app_render_buff(Console *console)
 {
 	WriteConsoleOutputCharacter(
 		console->handle,
@@ -15,7 +15,10 @@ void app_render(Console *console)
 		(COORD){0, 0},
 		&console->written
 	);
-	
+}
+
+void app_render_attrs(Console *console)
+{
 	WriteConsoleOutputAttribute(
 		console->handle,
 		console->attrs,
@@ -23,6 +26,12 @@ void app_render(Console *console)
 		(COORD){0, 0},
 		&console->written
 	);
+}
+
+void app_render(Console *console)
+{
+	app_render_buff(console);
+	app_render_attrs(console);
 }
 
 int main()
@@ -35,6 +44,10 @@ int main()
 	int cx = console.width  >> 1;
 	int cy = console.height >> 1;
 
+	float font_ar = console.font_ar;
+	float screen_ar = (float)console.width / console.height;
+	float kx = screen_ar * font_ar;
+
 	// int vp_size = fmin(console.width, console.height);
 	int vp_size = fmin(floor(console.width * console.font_ar), console.height);
 	// int vp_size = 63;
@@ -46,7 +59,7 @@ int main()
 		console.font_ar
 	);
 
-	_getch();
+	// _getch();
 
 	size_t index = 0;
 	
@@ -75,14 +88,14 @@ int main()
 			/*float x = ((col - cx) << 1) / vpx_factor;
 			float y = ((row - cy) << 1) / vpy_factor;*/
 
-			float x = col * 2.0 / console.width - 1;
+			float x = (col * 2.0 / console.width - 1) * kx + 1;
 			float y = row * 2.0 / console.height - 1;
 
-			x *= (float)console.width / console.height * console.font_ar;
+			// x *= kx;
 
 			float r = sqrt(x * x + y * y);
 
-			((char*)console.buff)[index++] = r >= 1 ? ' ' : '$';
+			((char*)console.buff)[index++] = r >= .75 ? ' ' : '$';
 		}
 	}
 	
