@@ -18,6 +18,7 @@ typedef struct Vec2D {
 
 typedef struct App {
 	Console *console;
+	float ks;
 	float kx;
 	float angle;
 } App;
@@ -74,6 +75,18 @@ uint8_t app_listen(Console *console)
 {
 }
 */
+
+// =============================================================================
+// @@@ + pointToScreen
+// =============================================================================
+COORD pointToScreen(App *app, Vec2D *pos)
+{
+	return (COORD) {
+		round(app->console->width  * (1 + pos->x * app->kx)) / 2,
+		round(app->console->height * (1 + pos->y * app->ks)) / 2,
+	};
+}
+
 int main()
 {
 	system("cls");
@@ -83,7 +96,7 @@ int main()
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 0.5;                        // general screen scalse
+	float ks = 0.75;                        // general screen scalse
 	float kx = ks / (screen_ar * font_ar); // screen x scale
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);
@@ -93,6 +106,7 @@ int main()
 
 	App app = {
 		.console = &console,
+		.ks = ks,
 		.kx = kx,
 	};
 
@@ -114,10 +128,9 @@ int main()
 
 	for (size_t i = 0; i < buff_size; i++)
 	{
-		int x = round(console.width  * (1 + buff[i].x * kx)) / 2;
-		int y = round(console.height * (1 + buff[i].y * ks)) / 2;
+		COORD screen_pos = pointToScreen(&app, &buff[i]);
 
-		int index = y * console.width + x;
+		int index = screen_pos.Y * console.width + screen_pos.X;
 
 		if (index < console.size)
 			((char*)console.buff)[index] = '$';
