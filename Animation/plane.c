@@ -8,6 +8,13 @@
 #include "h/console.h"
 #include "h/macros.h"
 
+#define SIZE 20
+
+typedev struct Vec2D {
+	float x;
+	float y;
+} Vec2D;
+
 typedef struct App {
 	Console *console;
 	float kx;
@@ -77,6 +84,11 @@ int main()
 	float screen_ar = (float)console.width / console.height;
 	float kx = screen_ar * font_ar;
 
+	float kx_distribution = (float)SIZE / (SIZE - 1);
+	float ky_distribution = (float)SIZE / (SIZE - 1);
+
+	Vec2D *buff = malloc(SIZE * SIZE * sizeof(Vec2D));
+
 	App app = {
 		.console = &console,
 		.kx = kx,
@@ -95,6 +107,7 @@ int main()
 	*/
 	
 	Console_mem_free(&console);
+	free(buff);
 
 	CURSOR_SHOW(&app);
 
