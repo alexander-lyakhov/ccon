@@ -9,7 +9,7 @@
 #include "h/console.h"
 #include "h/macros.h"
 
-#define SIZE 20
+#define SIZE 80
 
 typedef struct Vec2D {
 	float x;
@@ -83,7 +83,8 @@ int main()
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float kx = screen_ar * font_ar;
+	float ks = 0.5;                        // general screen scalse
+	float kx = ks / (screen_ar * font_ar); // screen x scale
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);
 	float ky_distribution = (float)SIZE / (SIZE - 1);
@@ -98,18 +99,33 @@ int main()
 	CURSOR_INFO(&app);
 	CURSOR_HIDE(&app);
 
-	size_t index = 0;
-
-	for (size_t row = 0; row < SIZE; row++)
+	for (size_t row = 0, index = 0; row < SIZE; row++)
 	{
 		for (size_t col = 0; col < SIZE; col++)
 		{
-			buff[index] = (Vec2D) {
-				.x = col / SIZE * kx_distribution * 2 - 1,
-				.y = col / SIZE * ky_distribution * 2 - 1,
+			buff[index++] = (Vec2D) {
+				.x = (float)col / SIZE * kx_distribution * 2 - 1,
+				.y = (float)row / SIZE * ky_distribution * 2 - 1,
 			};
 		}
 	}
+
+	size_t buff_size = SIZE * SIZE;
+
+	for (size_t i = 0; i < buff_size; i++)
+	{
+		int x = round(console.width  * (1 + buff[i].x * kx)) / 2;
+		int y = round(console.height * (1 + buff[i].y * ks)) / 2;
+
+		int index = y * console.width + x;
+
+		if (index < console.size)
+			((char*)console.buff)[index] = '$';
+	}
+
+	app_render(&console);
+
+	// printf("%f", kx);
 
 	/*
 	while (app_listen(&console))
