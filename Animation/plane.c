@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <conio.h>
 #include <math.h>
 #include <windows.h>
@@ -10,7 +11,7 @@
 
 #define SIZE 20
 
-typedev struct Vec2D {
+typedef struct Vec2D {
 	float x;
 	float y;
 } Vec2D;
@@ -69,10 +70,10 @@ uint8_t app_listen(Console *console)
 // =============================================================================
 // @@@ + app_update
 // =============================================================================
-void app_update(App *app)
+/*void app_update(App *app)
 {
 }
-
+*/
 int main()
 {
 	system("cls");
@@ -96,6 +97,19 @@ int main()
 
 	CURSOR_INFO(&app);
 	CURSOR_HIDE(&app);
+
+	size_t index = 0;
+
+	for (size_t row = 0; row < SIZE; row++)
+	{
+		for (size_t col = 0; col < SIZE; col++)
+		{
+			buff[index] = (Vec2D) {
+				.x = col / SIZE * kx_distribution * 2 - 1,
+				.y = col / SIZE * ky_distribution * 2 - 1,
+			};
+		}
+	}
 
 	/*
 	while (app_listen(&console))
