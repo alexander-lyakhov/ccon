@@ -16,8 +16,15 @@ typedef struct Vec2D {
 	float y;
 } Vec2D;
 
+typedef struct Vec3D {
+	float x;
+	float y;
+	float z;
+} Vec3D;
+
 typedef struct App {
 	Console *console;
+	Vec3D *buff;
 	float ks;
 	float kx;
 	float angle;
@@ -55,14 +62,59 @@ void app_render(Console *console)
 }
 
 // =============================================================================
+// @@@ + translateZ
+// =============================================================================
+uint8_t translateZ(App *app, float dz)
+{
+	size_t buff_size = SIZE * SIZE;
+
+	for (size_t i = 0; i < buff_size; i++)
+	{
+		app->buff[i].z += dz;
+	}
+
+	return 1;
+}
+
+// =============================================================================
+// @@@ + pointToScreen
+// =============================================================================
+COORD pointToScreen(App *app, Vec2D *p)
+{
+	return (COORD) {
+		round(app->console->width  * (1 + p->x * app->kx)) / 2,
+		round(app->console->height * (1 + p->y * app->ks)) / 2,
+	};
+}
+
+// =============================================================================
+// @@@ + project2D
+// =============================================================================
+Vec2D project2D(Vec3D *p)
+{
+	return (Vec2D) {
+		.x = p->x / p->z,
+		.y = p->y / p->z,
+	};
+}
+
+// =============================================================================
 // @@@ + app_listen
 // =============================================================================
-uint8_t app_listen(Console *console)
+uint8_t app_listen(App *app)
 {
 	if (_kbhit())
 	{
 		char key = _getch();
 		if (key == 27 || ((key | 32) == 'q')) return 0;
+
+		if ((key | 32) == 'w') {
+			translateZ(app, 0.05);
+		}
+
+		if ((key | 32) == 's') {
+			translateZ(app, -0.05);
+		}
 	}
 
 	return 1;
@@ -71,20 +123,22 @@ uint8_t app_listen(Console *console)
 // =============================================================================
 // @@@ + app_update
 // =============================================================================
-/*void app_update(App *app)
+void app_update(App *app)
 {
-}
-*/
+	Console_mem_fill(app->console, " ", 0x03);
 
-// =============================================================================
-// @@@ + pointToScreen
-// =============================================================================
-COORD pointToScreen(App *app, Vec2D *pos)
-{
-	return (COORD) {
-		round(app->console->width  * (1 + pos->x * app->kx)) / 2,
-		round(app->console->height * (1 + pos->y * app->ks)) / 2,
-	};
+	size_t buff_size = SIZE * SIZE;
+
+	for (size_t i = 0; i < buff_size; i++)
+	{
+		Vec2D point = project2D(&app->buff[i]);
+		COORD screen_pos = pointToScreen(app, &point);
+
+		int index = screen_pos.Y * app->console->width + screen_pos.X;
+
+		if (index < app->console->size)
+			((char*)app->console->buff)[index] = '$';
+	}
 }
 
 int main()
@@ -102,12 +156,13 @@ int main()
 	float kx_distribution = (float)SIZE / (SIZE - 1);
 	float ky_distribution = (float)SIZE / (SIZE - 1);
 
-	Vec2D *buff = malloc(SIZE * SIZE * sizeof(Vec2D));
+	Vec3D *buff = malloc(SIZE * SIZE * sizeof(Vec3D));
 
 	App app = {
 		.console = &console,
-		.ks = ks,
-		.kx = kx,
+		.buff    = buff,
+		.ks      = ks,
+		.kx      = kx,
 	};
 
 	CURSOR_INFO(&app);
@@ -117,37 +172,38 @@ int main()
 	{
 		for (size_t col = 0; col < SIZE; col++)
 		{
-			buff[index++] = (Vec2D) {
+			buff[index++] = (Vec3D) {
 				.x = (float)col / SIZE * kx_distribution * 2 - 1,
 				.y = (float)row / SIZE * ky_distribution * 2 - 1,
+				.z = 1,
 			};
 		}
 	}
-
+	/*
 	size_t buff_size = SIZE * SIZE;
 
 	for (size_t i = 0; i < buff_size; i++)
 	{
-		COORD screen_pos = pointToScreen(&app, &buff[i]);
+		Vec2D point = project2D(&buff[i]);
+		COORD screen_pos = pointToScreen(&app, &point);
 
 		int index = screen_pos.Y * console.width + screen_pos.X;
 
 		if (index < console.size)
 			((char*)console.buff)[index] = '$';
 	}
+	*/
 
-	app_render(&console);
+	// app_render(&console);
 
 	// printf("%f", kx);
-
-	/*
-	while (app_listen(&console))
+	
+	while (app_listen(&app))
 	{
 		app_render(&console);
 		app_update(&app);
-		usleep(20000);
+		usleep(10000);
 	}
-	*/
 	
 	Console_mem_free(&console);
 	free(buff);
