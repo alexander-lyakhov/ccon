@@ -11,6 +11,21 @@
 
 #define SIZE 80
 
+typedef struct Transform {
+	float x;
+	float y;
+	float z;
+
+	float tx;
+	float ty;
+	float tz;
+
+	float rx;
+	float ry;
+	float rz;
+
+} Transform;
+
 typedef struct Vec2D {
 	float x;
 	float y;
@@ -22,9 +37,16 @@ typedef struct Vec3D {
 	float z;
 } Vec3D;
 
+typedef struct Plane {
+	Transform origin;
+	Vec3D *buff;
+} Plane;
+
 typedef struct App {
 	Console *console;
-	Vec3D *buff;
+	Plane *plane;
+	// Vec3D *buff;
+
 	float ks;
 	float kx;
 	float angle;
@@ -70,7 +92,10 @@ uint8_t translateZ(App *app, float dz)
 
 	for (size_t i = 0; i < buff_size; i++)
 	{
-		app->buff[i].z += dz;
+		app->plane->buff[i].z += dz;
+
+		if (app->plane->buff[i].z < -1)
+			app->plane->buff[i].z = -1;
 	}
 
 	return 1;
@@ -99,6 +124,40 @@ Vec2D project2D(Vec3D *p)
 }
 
 // =============================================================================
+// @@@ + rotate_y
+// =============================================================================
+Vec3D rotate_y(Vec3D *p)
+{
+	return (Vec3D) {
+		p->x, p->y, p->z
+	};
+}
+
+// =============================================================================
+// @@@ + app_update
+// =============================================================================
+void app_update(App *app)
+{
+	Console_mem_fill(app->console, " ", 0x03);
+	
+	app->plane->origin.ry += 0.05;
+
+	size_t buff_size = SIZE * SIZE;
+
+	for (size_t i = 0; i < buff_size; i++)
+	{
+	    Vec3D p = rotate_y(&app->plane->buff[i]);
+		Vec2D point = project2D(&p);
+		COORD screen_pos = pointToScreen(app, &point);
+
+		int index = screen_pos.Y * app->console->width + screen_pos.X;
+
+		if (index < app->console->size)
+			((char*)app->console->buff)[index] = '$';
+	}
+}
+
+// =============================================================================
 // @@@ + app_listen
 // =============================================================================
 uint8_t app_listen(App *app)
@@ -120,27 +179,6 @@ uint8_t app_listen(App *app)
 	return 1;
 }
 
-// =============================================================================
-// @@@ + app_update
-// =============================================================================
-void app_update(App *app)
-{
-	Console_mem_fill(app->console, " ", 0x03);
-
-	size_t buff_size = SIZE * SIZE;
-
-	for (size_t i = 0; i < buff_size; i++)
-	{
-		Vec2D point = project2D(&app->buff[i]);
-		COORD screen_pos = pointToScreen(app, &point);
-
-		int index = screen_pos.Y * app->console->width + screen_pos.X;
-
-		if (index < app->console->size)
-			((char*)app->console->buff)[index] = '$';
-	}
-}
-
 int main()
 {
 	system("cls");
@@ -150,17 +188,21 @@ int main()
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 0.75;                        // general screen scalse
-	float kx = ks / (screen_ar * font_ar); // screen x scale
+	float ks = 0.75;                        // general screen scale
+	float kx = ks / (screen_ar * font_ar);  // screen x scale (actual for console)
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);
 	float ky_distribution = (float)SIZE / (SIZE - 1);
 
-	Vec3D *buff = malloc(SIZE * SIZE * sizeof(Vec3D));
+	Plane plane = {
+		.buff = malloc(SIZE * SIZE * sizeof(Vec3D))
+	};
+
+	plane.origin.z = -1;
 
 	App app = {
 		.console = &console,
-		.buff    = buff,
+		.plane   = &plane,
 		.ks      = ks,
 		.kx      = kx,
 	};
@@ -172,7 +214,7 @@ int main()
 	{
 		for (size_t col = 0; col < SIZE; col++)
 		{
-			buff[index++] = (Vec3D) {
+			plane.buff[index++] = (Vec3D) {
 				.x = (float)col / SIZE * kx_distribution * 2 - 1,
 				.y = (float)row / SIZE * ky_distribution * 2 - 1,
 				.z = 1,
@@ -206,7 +248,7 @@ int main()
 	}
 	
 	Console_mem_free(&console);
-	free(buff);
+	free(plane.buff);
 
 	CURSOR_SHOW(&app);
 
