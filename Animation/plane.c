@@ -96,8 +96,8 @@ void app_update(App *app)
 		COORD screen_pos = pointToScreen(app,
 			project2D(
 				&app->plane->origin,
-				// rotate_z(app->plane, rotate_y(app->plane, rotate_x(app->plane, p)))
-				rotate_x(app->plane, p)
+				// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
+				plane_rotate_y(app->plane, p)
 			)
 		);
 
