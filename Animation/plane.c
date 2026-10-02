@@ -9,43 +9,14 @@
 #include "h/console.h"
 #include "h/macros.h"
 
+#define PLANE_IMPLEMENTATION
+#include "h/plane.h"
+
 #define SIZE 80
-
-typedef struct Transform {
-	float x;
-	float y;
-	float z;
-
-	float tx;
-	float ty;
-	float tz;
-
-	float rx;
-	float ry;
-	float rz;
-
-} Transform;
-
-typedef struct Vec2D {
-	float x;
-	float y;
-} Vec2D;
-
-typedef struct Vec3D {
-	float x;
-	float y;
-	float z;
-} Vec3D;
-
-typedef struct Plane {
-	Transform origin;
-	Vec3D *buff;
-} Plane;
 
 typedef struct App {
 	Console *console;
 	Plane *plane;
-	// Vec3D *buff;
 
 	float ks;
 	float kx;
@@ -84,14 +55,6 @@ void app_render(Console *console)
 }
 
 // =============================================================================
-// @@@ + translateZ
-// =============================================================================
-void translateZ(Plane *plane, float dz)
-{
-	plane->origin.z += dz;
-}
-
-// =============================================================================
 // @@@ + pointToScreen
 // =============================================================================
 COORD pointToScreen(App *app, Vec2D p)
@@ -114,27 +77,15 @@ Vec2D project2D(Transform *origin, Vec3D p)
 }
 
 // =============================================================================
-// @@@ + rotateY
-// =============================================================================
-Vec3D rotateY(Transform *origin, Vec3D p)
-{
-	float angle = origin->ry;
-
-	return (Vec3D) {
-		p.x * cos(angle) - p.z * sin(angle),
-		p.y,
-		p.x * sin(angle) + p.z * cos(angle)
-	};
-}
-
-// =============================================================================
 // @@@ + app_update
 // =============================================================================
 void app_update(App *app)
 {
 	Console_mem_fill(app->console, " ", 0x03);
 	
+	app->plane->origin.rx += 0.05;
 	app->plane->origin.ry += 0.05;
+	app->plane->origin.rz += 0.05;
 
 	size_t buff_size = SIZE * SIZE;
 
@@ -145,7 +96,8 @@ void app_update(App *app)
 		COORD screen_pos = pointToScreen(app,
 			project2D(
 				&app->plane->origin,
-				rotateY(&app->plane->origin, p)
+				// rotate_z(app->plane, rotate_y(app->plane, rotate_x(app->plane, p)))
+				rotate_y(app->plane, p)
 			)
 		);
 
@@ -170,11 +122,11 @@ uint8_t app_listen(App *app)
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
 		if ((key | 32) == 'w') {
-			translateZ(app->plane, -0.1);
+			plane_translate_z(app->plane, -0.1);
 		}
 
 		if ((key | 32) == 's') {
-			translateZ(app->plane, 0.1);
+			plane_translate_z(app->plane, 0.1);
 		}
 	}
 
