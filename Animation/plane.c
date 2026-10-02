@@ -55,24 +55,24 @@ void app_render(Console *console)
 }
 
 // =============================================================================
-// @@@ + pointToScreen
-// =============================================================================
-COORD pointToScreen(App *app, Vec2D p)
-{
-	return (COORD) {
-		round(app->console->width  * (1 + p.x * app->kx)) / 2,
-		round(app->console->height * (1 + p.y * app->ks)) / 2,
-	};
-}
-
-// =============================================================================
 // @@@ + project2D
 // =============================================================================
 Vec2D project2D(Transform *origin, Vec3D p)
 {
 	return (Vec2D) {
-		.x = p.x / (p.z + origin->z),
-		.y = p.y / (p.z + origin->z),
+		.x = (p.x + origin->x) / (p.z + origin->z),
+		.y = (p.y + origin->y) / (p.z + origin->z),
+	};
+}
+
+// =============================================================================
+// @@@ + pointToScreen
+// =============================================================================
+COORD pointToScreen(App *app, Vec2D p)
+{
+	return (COORD) {
+		round(app->console->width  * (1 + p.x * app->kx) / 2),
+		round(app->console->height * (1 - p.y * app->ks) / 2),
 	};
 }
 
@@ -97,7 +97,7 @@ void app_update(App *app)
 			project2D(
 				&app->plane->origin,
 				// rotate_z(app->plane, rotate_y(app->plane, rotate_x(app->plane, p)))
-				rotate_y(app->plane, p)
+				rotate_x(app->plane, p)
 			)
 		);
 
@@ -119,14 +119,31 @@ uint8_t app_listen(App *app)
 	if (_kbhit())
 	{
 		char key = _getch();
+
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-		if ((key | 32) == 'w') {
+		if ((key | 32) == 'z') {
+			plane_translate_z(app->plane, 0.1);
+		}
+
+		if ((key | 32) == 'x') {
 			plane_translate_z(app->plane, -0.1);
 		}
 
+		if ((key | 32) == 'a') {
+			plane_translate_x(app->plane, -0.1);
+		}
+
+		if ((key | 32) == 'd') {
+			plane_translate_x(app->plane, 0.1);
+		}
+
+		if ((key | 32) == 'w') {
+			plane_translate_y(app->plane, 0.1);
+		}
+
 		if ((key | 32) == 's') {
-			plane_translate_z(app->plane, 0.1);
+			plane_translate_y(app->plane, -0.1);
 		}
 	}
 
@@ -175,20 +192,6 @@ int main()
 			};
 		}
 	}
-	/*
-	size_t buff_size = SIZE * SIZE;
-
-	for (size_t i = 0; i < buff_size; i++)
-	{
-		Vec2D point = project2D(&buff[i]);
-		COORD screen_pos = pointToScreen(&app, &point);
-
-		int index = screen_pos.Y * console.width + screen_pos.X;
-
-		if (index < console.size)
-			((char*)console.buff)[index] = '$';
-	}
-	*/
 
 	// app_render(&console);
 
@@ -198,7 +201,7 @@ int main()
 	{
 		app_render(&console);
 		app_update(&app);
-		usleep(10000);
+		usleep(5000);
 	}
 	
 	Console_mem_free(&console);
