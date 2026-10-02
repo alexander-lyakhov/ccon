@@ -86,50 +86,44 @@ void app_render(Console *console)
 // =============================================================================
 // @@@ + translateZ
 // =============================================================================
-uint8_t translateZ(App *app, float dz)
+void translateZ(Plane *plane, float dz)
 {
-	size_t buff_size = SIZE * SIZE;
-
-	for (size_t i = 0; i < buff_size; i++)
-	{
-		app->plane->buff[i].z += dz;
-
-		if (app->plane->buff[i].z < -1)
-			app->plane->buff[i].z = -1;
-	}
-
-	return 1;
+	plane->origin.z += dz;
 }
 
 // =============================================================================
 // @@@ + pointToScreen
 // =============================================================================
-COORD pointToScreen(App *app, Vec2D *p)
+COORD pointToScreen(App *app, Vec2D p)
 {
 	return (COORD) {
-		round(app->console->width  * (1 + p->x * app->kx)) / 2,
-		round(app->console->height * (1 + p->y * app->ks)) / 2,
+		round(app->console->width  * (1 + p.x * app->kx)) / 2,
+		round(app->console->height * (1 + p.y * app->ks)) / 2,
 	};
 }
 
 // =============================================================================
 // @@@ + project2D
 // =============================================================================
-Vec2D project2D(Vec3D *p)
+Vec2D project2D(Transform *origin, Vec3D p)
 {
 	return (Vec2D) {
-		.x = p->x / p->z,
-		.y = p->y / p->z,
+		.x = p.x / (p.z + origin->z),
+		.y = p.y / (p.z + origin->z),
 	};
 }
 
 // =============================================================================
-// @@@ + rotate_y
+// @@@ + rotateY
 // =============================================================================
-Vec3D rotate_y(Vec3D *p)
+Vec3D rotateY(Transform *origin, Vec3D p)
 {
+	float angle = origin->ry;
+
 	return (Vec3D) {
-		p->x, p->y, p->z
+		p.x * cos(angle) - p.z * sin(angle),
+		p.y,
+		p.x * sin(angle) + p.z * cos(angle)
 	};
 }
 
@@ -146,9 +140,17 @@ void app_update(App *app)
 
 	for (size_t i = 0; i < buff_size; i++)
 	{
-	    Vec3D p = rotate_y(&app->plane->buff[i]);
-		Vec2D point = project2D(&p);
-		COORD screen_pos = pointToScreen(app, &point);
+		Vec3D p = app->plane->buff[i];
+
+		COORD screen_pos = pointToScreen(app,
+			project2D(
+				&app->plane->origin,
+				rotateY(&app->plane->origin, p)
+			)
+		);
+
+		if (screen_pos.X < 0 || screen_pos.X >= app->console->width || screen_pos.Y < 0 || screen_pos.Y >= app->console->height)
+			continue;
 
 		int index = screen_pos.Y * app->console->width + screen_pos.X;
 
@@ -168,11 +170,11 @@ uint8_t app_listen(App *app)
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
 		if ((key | 32) == 'w') {
-			translateZ(app, 0.05);
+			translateZ(app->plane, -0.1);
 		}
 
 		if ((key | 32) == 's') {
-			translateZ(app, -0.05);
+			translateZ(app->plane, 0.1);
 		}
 	}
 
@@ -198,7 +200,7 @@ int main()
 		.buff = malloc(SIZE * SIZE * sizeof(Vec3D))
 	};
 
-	plane.origin.z = -1;
+	plane.origin.z = 3;
 
 	App app = {
 		.console = &console,
@@ -217,7 +219,7 @@ int main()
 			plane.buff[index++] = (Vec3D) {
 				.x = (float)col / SIZE * kx_distribution * 2 - 1,
 				.y = (float)row / SIZE * ky_distribution * 2 - 1,
-				.z = 1,
+				.z = 0,
 			};
 		}
 	}
