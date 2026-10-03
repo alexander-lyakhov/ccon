@@ -1,9 +1,9 @@
-#ifndef TRANSFORM_H__
-#define TRANSFORM_H__
+#ifndef ORIGIN_H__
+#define ORIGIN_H__
 
 #include "./vec.h"
 
-typedef struct Transform {
+typedef struct Origin {
 	float x;
 	float y;
 	float z;
@@ -16,13 +16,13 @@ typedef struct Transform {
 	float ry;
 	float rz;
 
-} Transform;
+} Origin;
 
 Vec3D origin_rotate_x(const Vec3D *p, float angle);
 Vec3D origin_rotate_y(const Vec3D *p, float angle);
 Vec3D origin_rotate_z(const Vec3D *p, float angle);
 
-#ifdef TRANSFORM_IMPLEMENTATION
+#ifdef ORIGIN_IMPLEMENTATION
 
 // =============================================================================
 // @@@ + origin_rotate_x

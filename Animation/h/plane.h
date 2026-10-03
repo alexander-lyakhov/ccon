@@ -1,11 +1,11 @@
 #ifndef PLANE_H__
 #define PLANE_H__
 
-#define TRANSFORM_IMPLEMENTATION
-#include "./transform.h"
+#define ORIGIN_IMPLEMENTATION
+#include "./origin.h"
 
 typedef struct Plane {
-	Transform origin;
+	Origin origin;
 	Vec3D *buff;
 } Plane;
 

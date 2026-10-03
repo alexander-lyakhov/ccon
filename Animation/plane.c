@@ -57,7 +57,7 @@ void app_render(Console *console)
 // =============================================================================
 // @@@ + project2D
 // =============================================================================
-Vec2D project2D(Transform *origin, Vec3D p)
+Vec2D project2D(Origin *origin, Vec3D p)
 {
 	return (Vec2D) {
 		.x = (p.x + origin->x) / (p.z + origin->z),
@@ -122,11 +122,11 @@ uint8_t app_listen(App *app)
 
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-		if ((key | 32) == 'z') {
+		if ((key | 32) == '-') {
 			plane_translate_z(app->plane, 0.1);
 		}
 
-		if ((key | 32) == 'x') {
+		if ((key | 32) == '+') {
 			plane_translate_z(app->plane, -0.1);
 		}
 
