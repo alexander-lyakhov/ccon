@@ -8,6 +8,7 @@
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 #include "h/macros.h"
+#include "h/camera.h"
 
 #define PLANE_IMPLEMENTATION
 #include "h/plane.h"
@@ -16,10 +17,11 @@
 
 typedef struct App {
 	Console *console;
+	Camera *camera;
 	Plane *plane;
 
-	float ks;
-	float kx;
+	float ks; // general screen scale
+	float kx; // screen x scale (actual for console)
 	float angle;
 } App;
 
@@ -57,11 +59,14 @@ void app_render(Console *console)
 // =============================================================================
 // @@@ + project2D
 // =============================================================================
-Vec2D project2D(Origin *origin, Vec3D p)
+Vec2D project2D(App *app, Vec3D p)
 {
+	Origin *plane_origin  = &app->plane->origin;
+	Origin *camera_origin = &app->camera->origin;
+
 	return (Vec2D) {
-		.x = (p.x + origin->x) / (p.z + origin->z),
-		.y = (p.y + origin->y) / (p.z + origin->z),
+		.x = (p.x + plane_origin->x) / (p.z + plane_origin->z),
+		.y = (p.y + plane_origin->y) / (p.z + plane_origin->z),
 	};
 }
 
@@ -95,13 +100,17 @@ void app_update(App *app)
 
 		COORD screen_pos = pointToScreen(app,
 			project2D(
-				&app->plane->origin,
+				app,
 				// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 				plane_rotate_y(app->plane, p)
 			)
 		);
 
-		if (screen_pos.X < 0 || screen_pos.X >= app->console->width || screen_pos.Y < 0 || screen_pos.Y >= app->console->height)
+		if (screen_pos.X < 0 ||
+			screen_pos.X >= app->console->width ||
+			screen_pos.Y < 0 ||
+			screen_pos.Y >= app->console->height
+		)
 			continue;
 
 		int index = screen_pos.Y * app->console->width + screen_pos.X;
@@ -157,10 +166,13 @@ int main()
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x03);
 
+	Camera camera;
+	Camera_init(&camera, (Vec3D){0, 0, -4});
+
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 0.75;                        // general screen scale
-	float kx = ks / (screen_ar * font_ar);  // screen x scale (actual for console)
+	float ks = 0.75;
+	float kx = ks / (screen_ar * font_ar);
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);
 	float ky_distribution = (float)SIZE / (SIZE - 1);
@@ -168,11 +180,11 @@ int main()
 	Plane plane = {
 		.buff = malloc(SIZE * SIZE * sizeof(Vec3D))
 	};
-
 	plane.origin.z = 3;
 
 	App app = {
 		.console = &console,
+		.camera  = &camera,
 		.plane   = &plane,
 		.ks      = ks,
 		.kx      = kx,
