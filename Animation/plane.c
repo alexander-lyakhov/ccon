@@ -8,6 +8,8 @@
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 #include "h/macros.h"
+
+#define CAMERA_IMPLEMENTATION
 #include "h/camera.h"
 
 #define PLANE_IMPLEMENTATION
@@ -65,8 +67,8 @@ Vec2D project2D(App *app, Vec3D p)
 	Origin *camera_origin = &app->camera->origin;
 
 	return (Vec2D) {
-		.x = (p.x + plane_origin->x) / (p.z + plane_origin->z),
-		.y = (p.y + plane_origin->y) / (p.z + plane_origin->z),
+		.x = (camera_origin->x + plane_origin->x + p.x) / (-camera_origin->z + plane_origin->z + p.z),
+		.y = (camera_origin->y + plane_origin->y + p.y) / (-camera_origin->z + plane_origin->z + p.z),
 	};
 }
 
@@ -102,7 +104,7 @@ void app_update(App *app)
 			project2D(
 				app,
 				// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
-				plane_rotate_y(app->plane, p)
+				Plane_rotate_y(app->plane, p)
 			)
 		);
 
@@ -132,27 +134,29 @@ uint8_t app_listen(App *app)
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
 		if ((key | 32) == '-') {
-			plane_translate_z(app->plane, 0.1);
+			Camera_translate_z(app->camera, -0.1);
 		}
 
 		if ((key | 32) == '+') {
-			plane_translate_z(app->plane, -0.1);
+			Camera_translate_z(app->camera, 0.1);
 		}
 
 		if ((key | 32) == 'a') {
-			plane_translate_x(app->plane, -0.1);
+			Plane_translate_x(app->plane, -0.1);
+			// Camera_translate_x(app->camera, -0.1);
 		}
 
 		if ((key | 32) == 'd') {
-			plane_translate_x(app->plane, 0.1);
+			Plane_translate_x(app->plane, 0.1);
+			// Camera_translate_x(app->camera, 0.1);
 		}
 
 		if ((key | 32) == 'w') {
-			plane_translate_y(app->plane, 0.1);
+			Plane_translate_y(app->plane, 0.1);
 		}
 
 		if ((key | 32) == 's') {
-			plane_translate_y(app->plane, -0.1);
+			Plane_translate_y(app->plane, -0.1);
 		}
 	}
 
@@ -166,8 +170,7 @@ int main()
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x03);
 
-	Camera camera;
-	Camera_init(&camera, (Vec3D){0, 0, -4});
+	Camera camera = Camera_create((Vec3D){0, 0, -3});
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
@@ -180,7 +183,6 @@ int main()
 	Plane plane = {
 		.buff = malloc(SIZE * SIZE * sizeof(Vec3D))
 	};
-	plane.origin.z = 3;
 
 	App app = {
 		.console = &console,
