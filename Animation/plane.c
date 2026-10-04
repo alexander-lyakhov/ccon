@@ -63,21 +63,12 @@ void app_render(Console *console)
 // =============================================================================
 Vec2D project2D(App *app, Vec3D p)
 {
-	Origin *plane_origin  = &app->plane->origin;
-	Origin *camera_origin = &app->camera->origin;
-
-	p.x +=  camera_origin->x + plane_origin->x;
-	p.y +=  camera_origin->y + plane_origin->y;
-	p.z += -camera_origin->z + plane_origin->z;
-
-	Vec3D p1 = Camera_rotate_y(app->camera, p);
-
-	if (p1.z <= 0)
-    	return (Vec2D){ .x = 1000, .y = 1000 }; // Return values that are too big so that the point isnt't drawn on the screen
+	if (p.z <= 0)
+		return (Vec2D){ .x = 1000, .y = 1000 }; // Return values that are too big so that the point isnt't drawn on the screen
 
 	return (Vec2D) {
-		.x = p1.x / p1.z,
-		.y = p1.y / p1.z,
+		.x = p.x / p.z,
+		.y = p.y / p.z,
 	};
 }
 
@@ -108,21 +99,22 @@ void app_update(App *app)
 	for (size_t i = 0; i < buff_size; i++)
 	{
 		Vec3D p = app->plane->buff[i];
+		Vec3D p1 = Plane_rotate_y(app->plane, p);
 
-		COORD screen_pos = pointToScreen(app,
-			project2D(
-				app,
-				// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
-				Plane_rotate_y(app->plane, p)
-			)
-		);
+		p1.x +=  app->camera->origin.x + app->plane->origin.x;
+		p1.y +=  app->camera->origin.y + app->plane->origin.y;
+		p1.z += -app->camera->origin.z + app->plane->origin.z;
+
+		Vec3D p2 = Camera_rotate_y(app->camera, p1);
+
+		COORD screen_pos = pointToScreen(app, project2D(app, p2));
+		// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
 		if (screen_pos.X < 0 ||
 			screen_pos.X >= app->console->width ||
 			screen_pos.Y < 0 ||
 			screen_pos.Y >= app->console->height
-		)
-			continue;
+		) continue;
 
 		int index = screen_pos.Y * app->console->width + screen_pos.X;
 
@@ -142,39 +134,45 @@ uint8_t app_listen(App *app)
 
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-		if ((key | 32) == '-') {
+		// Camera Zoom out
+		if ((key | 32) == 's') {
 			Camera_translate_z(app->camera, -0.1);
 		}
 
-		if ((key | 32) == '+') {
+		// Camera Zoom in
+		if ((key | 32) == 'w') {
 			Camera_translate_z(app->camera, 0.1);
 		}
 
+		// Camera Step left
 		if ((key | 32) == 'a') {
 			Plane_translate_x(app->plane, -0.1);
 			// Camera_translate_x(app->camera, -0.1);
 		}
 
+		// Camera Step right
 		if ((key | 32) == 'd') {
 			Plane_translate_x(app->plane, 0.1);
 			// Camera_translate_x(app->camera, 0.1);
 		}
 
-		if ((key | 32) == 'w') {
+		// Camera rotate left
+		if ((key | 32) == 'o') {
+			app->camera->origin.ry -= 0.05;
+		}
+
+		// Camera rotate right
+		if ((key | 32) == 'p') {
+			app->camera->origin.ry += 0.05;
+		}
+
+		/*if ((key | 32) == 'w') {
 			Plane_translate_y(app->plane, 0.1);
 		}
 
 		if ((key | 32) == 's') {
 			Plane_translate_y(app->plane, -0.1);
-		}
-
-		if ((key | 32) == 'o') {
-			app->camera->origin.ry -= 0.05;
-		}
-
-		if ((key | 32) == 'p') {
-			app->camera->origin.ry += 0.05;
-		}
+		}*/
 	}
 
 	return 1;
