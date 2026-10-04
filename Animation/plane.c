@@ -66,9 +66,18 @@ Vec2D project2D(App *app, Vec3D p)
 	Origin *plane_origin  = &app->plane->origin;
 	Origin *camera_origin = &app->camera->origin;
 
+	p.x +=  camera_origin->x + plane_origin->x;
+	p.y +=  camera_origin->y + plane_origin->y;
+	p.z += -camera_origin->z + plane_origin->z;
+
+	Vec3D p1 = Camera_rotate_y(app->camera, p);
+
+	if (p1.z <= 0)
+    	return (Vec2D){ .x = 1000, .y = 1000 }; // Return values that are too big so that the point isnt't drawn on the screen
+
 	return (Vec2D) {
-		.x = (camera_origin->x + plane_origin->x + p.x) / (-camera_origin->z + plane_origin->z + p.z),
-		.y = (camera_origin->y + plane_origin->y + p.y) / (-camera_origin->z + plane_origin->z + p.z),
+		.x = p1.x / p1.z,
+		.y = p1.y / p1.z,
 	};
 }
 
@@ -158,6 +167,14 @@ uint8_t app_listen(App *app)
 		if ((key | 32) == 's') {
 			Plane_translate_y(app->plane, -0.1);
 		}
+
+		if ((key | 32) == 'o') {
+			app->camera->origin.ry -= 0.05;
+		}
+
+		if ((key | 32) == 'p') {
+			app->camera->origin.ry += 0.05;
+		}
 	}
 
 	return 1;
@@ -170,11 +187,11 @@ int main()
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x03);
 
-	Camera camera = Camera_create((Vec3D){0, 0, -3});
+	Camera camera = Camera_create((Vec3D){0, 0, -4});
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 0.75;
+	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);

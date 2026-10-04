@@ -58,7 +58,16 @@ void Camera_translate_y(Camera *camera, float dy)
 // =============================================================================
 void Camera_translate_z(Camera *camera, float dz)
 {
-	camera->origin.z += dz;
+	camera->origin.x -= dz * sin(camera->origin.ry);
+	camera->origin.z += dz * cos(camera->origin.ry);
+}
+
+// =============================================================================
+// @@@ + Camera_rotate_y
+// =============================================================================
+Vec3D Camera_rotate_y(Camera *camera, Vec3D p)
+{
+	return origin_rotate_y(&p, camera->origin.ry);
 }
 
 #endif
