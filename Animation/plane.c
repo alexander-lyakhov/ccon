@@ -195,9 +195,8 @@ int main()
 	float kx_distribution = (float)SIZE / (SIZE - 1);
 	float ky_distribution = (float)SIZE / (SIZE - 1);
 
-	Plane plane = {
-		.buff = malloc(SIZE * SIZE * sizeof(Vec3D))
-	};
+	Plane plane = Plane_create((Vec3D){0, 0, 0});
+	plane.buff = malloc(SIZE * SIZE * sizeof(Vec3D));
 
 	App app = {
 		.console = &console,

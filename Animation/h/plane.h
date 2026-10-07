@@ -9,6 +9,9 @@ typedef struct Plane {
 	Vec3D *buff;
 } Plane;
 
+Plane Plane_create(Vec3D v);
+void  Plane_init(Plane *plane, Vec3D v);
+
 void Plane_translate_x(Plane *plane, float dx);
 void Plane_translate_y(Plane *plane, float dy);
 void Plane_translate_z(Plane *plane, float dz);
@@ -18,6 +21,27 @@ Vec3D Plane_rotate_y(Plane *plane, Vec3D p);
 Vec3D Plane_rotate_z(Plane *plane, Vec3D p);
 
 #ifdef PLANE_IMPLEMENTATION
+
+// =============================================================================
+// @@@ + Plane_create
+// =============================================================================
+Plane Plane_create(Vec3D v)
+{
+	Plane plane;
+	Plane_init(&plane, v);
+
+	return plane;
+}
+
+// =============================================================================
+// @@@ + Plane_init
+// =============================================================================
+void Plane_init(Plane *plane, Vec3D v)
+{
+	plane->origin.x = v.x;
+	plane->origin.y = v.y;
+	plane->origin.z = v.z;
+}
 
 // =============================================================================
 // @@@ + Plane_translate_x
