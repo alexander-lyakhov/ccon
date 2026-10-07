@@ -192,7 +192,8 @@ int main()
 	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
-	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$', 1);
+	init_static_plane_buff();
+	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {
 		.console = &console,
