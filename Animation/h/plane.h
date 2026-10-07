@@ -7,10 +7,12 @@
 typedef struct Plane {
 	Origin origin;
 	Vec3D *buff;
+	char texture;
 } Plane;
 
-Plane Plane_create(Vec3D v);
-void  Plane_init(Plane *plane, Vec3D v);
+Plane Plane_create(Vec3D v, char texture, float offset_z);
+void  Plane_init(Plane *plane, Vec3D v, char texture, float offset_z);
+void  Plane_free(Plane *plane);
 
 void Plane_translate_x(Plane *plane, float dx);
 void Plane_translate_y(Plane *plane, float dy);
@@ -22,13 +24,16 @@ Vec3D Plane_rotate_z(Plane *plane, Vec3D p);
 
 #ifdef PLANE_IMPLEMENTATION
 
+#define SIZE 80
+static Vec3D *buff;
+
 // =============================================================================
 // @@@ + Plane_create
 // =============================================================================
-Plane Plane_create(Vec3D v)
+Plane Plane_create(Vec3D v, char texture, float offset_z)
 {
 	Plane plane;
-	Plane_init(&plane, v);
+	Plane_init(&plane, v, texture, offset_z);
 
 	return plane;
 }
@@ -36,11 +41,39 @@ Plane Plane_create(Vec3D v)
 // =============================================================================
 // @@@ + Plane_init
 // =============================================================================
-void Plane_init(Plane *plane, Vec3D v)
+void Plane_init(Plane *plane, Vec3D v, char texture, float offset_z)
 {
 	plane->origin.x = v.x;
 	plane->origin.y = v.y;
 	plane->origin.z = v.z;
+
+	plane->texture = texture;
+
+	plane->buff = malloc(SIZE * SIZE * sizeof(Vec3D));
+
+	float kx_distribution = (float)SIZE / (SIZE - 1);
+	float ky_distribution = (float)SIZE / (SIZE - 1);
+
+	for (size_t row = 0, index = 0; row < SIZE; row++)
+	{
+		for (size_t col = 0; col < SIZE; col++)
+		{
+			plane->buff[index++] = (Vec3D) {
+				.x = (float)col / SIZE * kx_distribution * 2 - 1,
+				.y = (float)row / SIZE * ky_distribution * 2 - 1,
+				.z = offset_z,
+			};
+		}
+	}
+}
+
+// =============================================================================
+// @@@ + Plane_free
+// =============================================================================
+void Plane_free(Plane *plane)
+{
+	free(plane->buff);
+	plane->buff = NULL;
 }
 
 // =============================================================================

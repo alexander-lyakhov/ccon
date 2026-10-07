@@ -15,7 +15,7 @@
 #define PLANE_IMPLEMENTATION
 #include "h/plane.h"
 
-#define SIZE 80
+// #define SIZE 80
 
 typedef struct App {
 	Console *console;
@@ -119,7 +119,7 @@ void app_update(App *app)
 		int index = screen_pos.Y * app->console->width + screen_pos.X;
 
 		if (index < app->console->size)
-			((char*)app->console->buff)[index] = '$';
+			((char*)app->console->buff)[index] = app->plane->texture;
 	}
 }
 
@@ -192,11 +192,7 @@ int main()
 	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
-	float kx_distribution = (float)SIZE / (SIZE - 1);
-	float ky_distribution = (float)SIZE / (SIZE - 1);
-
-	Plane plane = Plane_create((Vec3D){0, 0, 0});
-	plane.buff = malloc(SIZE * SIZE * sizeof(Vec3D));
+	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$', 1);
 
 	App app = {
 		.console = &console,
@@ -208,18 +204,6 @@ int main()
 
 	CURSOR_INFO(&app);
 	CURSOR_HIDE(&app);
-
-	for (size_t row = 0, index = 0; row < SIZE; row++)
-	{
-		for (size_t col = 0; col < SIZE; col++)
-		{
-			plane.buff[index++] = (Vec3D) {
-				.x = (float)col / SIZE * kx_distribution * 2 - 1,
-				.y = (float)row / SIZE * ky_distribution * 2 - 1,
-				.z = 0,
-			};
-		}
-	}
 
 	// app_render(&console);
 
@@ -233,7 +217,8 @@ int main()
 	}
 	
 	Console_mem_free(&console);
-	free(plane.buff);
+	// free(plane.buff);
+	Plane_free(&plane);
 
 	CURSOR_SHOW(&app);
 
