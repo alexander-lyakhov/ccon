@@ -16,6 +16,9 @@
 #define PLANE_IMPLEMENTATION
 #include "h/plane.h"
 
+#define CUBE_IMPLEMENTATION
+#include "h/cube.h"
+
 // #define SIZE 80
 
 typedef struct App {
