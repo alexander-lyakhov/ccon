@@ -95,36 +95,44 @@ void app_update(App *app)
 {
 	Console_mem_fill(app->console, " ", 0x03);
 	
-	app->plane->origin.rx += 0.05;
-	app->plane->origin.ry += 0.05;
-	app->plane->origin.rz += 0.05;
+	/*
+	plane->origin.rx += 0.05;
+	plane->origin.ry += 0.05;
+	plane->origin.rz += 0.05;
+	*/
+	app->cube->origin.ry += 0.05;
 
 	size_t buff_size = SIZE * SIZE;
 
-	for (size_t i = 0; i < buff_size; i++)
+	for (size_t face_index = 0; face_index < app->cube->size; face_index++)
 	{
-		Vec3D p = app->plane->buff[i];
-		Vec3D p1 = Plane_rotate_y(app->plane, p);
+		Plane *plane = &app->cube->face[face_index];
+	
+		for (size_t i = 0; i < buff_size; i++)
+		{
+			Vec3D p = plane->buff[i];
+			Vec3D p1 = Plane_rotate_y(plane, p);
 
-		p1.x +=  app->camera->origin.x + app->plane->origin.x;
-		p1.y +=  app->camera->origin.y + app->plane->origin.y;
-		p1.z += -app->camera->origin.z + app->plane->origin.z;
+			p1.x +=  app->camera->origin.x + plane->origin.x;
+			p1.y +=  app->camera->origin.y + plane->origin.y;
+			p1.z += -app->camera->origin.z + plane->origin.z;
 
-		Vec3D p2 = Camera_rotate_y(app->camera, p1);
+			Vec3D p2 = Camera_rotate_y(app->camera, p1);
 
-		COORD screen_pos = pointToScreen(app, project2D(app, p2));
-		// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
+			COORD screen_pos = pointToScreen(app, project2D(app, p2));
+			// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
-		if (screen_pos.X < 0 ||
-			screen_pos.X >= app->console->width ||
-			screen_pos.Y < 0 ||
-			screen_pos.Y >= app->console->height
-		) continue;
+			if (screen_pos.X < 0 ||
+				screen_pos.X >= app->console->width ||
+				screen_pos.Y < 0 ||
+				screen_pos.Y >= app->console->height
+			) continue;
 
-		int index = screen_pos.Y * app->console->width + screen_pos.X;
+			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
-		if (index < app->console->size)
-			((char*)app->console->buff)[index] = app->plane->texture;
+			if (index < app->console->size)
+				((char*)app->console->buff)[index] = plane->texture;
+		}
 	}
 }
 
@@ -199,12 +207,12 @@ int main()
 
 	// init_static_plane_buff();
 	Cube cube = Cube_create((Vec3D){0, 0, 0});
-	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
+	// Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {
 		.console = &console,
 		.camera  = &camera,
-		.plane   = &plane,
+		// .plane   = &plane,
 		.cube    = &cube,
 		.ks      = ks,
 		.kx      = kx,
@@ -228,7 +236,7 @@ int main()
 	
 	Console_mem_free(&console);
 	// free(plane.buff);
-	Plane_free(&plane);
+	Plane_free(&cube.face[0]);
 
 	CURSOR_SHOW(&app);
 
