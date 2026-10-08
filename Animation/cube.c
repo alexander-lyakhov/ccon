@@ -25,6 +25,7 @@ typedef struct App {
 	Console *console;
 	Camera *camera;
 	Plane *plane;
+	Cube *cube;
 
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
@@ -196,16 +197,20 @@ int main()
 	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
-	init_static_plane_buff();
+	// init_static_plane_buff();
+	Cube cube = Cube_create((Vec3D){0, 0, 0});
 	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {
 		.console = &console,
 		.camera  = &camera,
 		.plane   = &plane,
+		.cube    = &cube,
 		.ks      = ks,
 		.kx      = kx,
 	};
+
+	// return 0;
 
 	CURSOR_INFO(&app);
 	CURSOR_HIDE(&app);

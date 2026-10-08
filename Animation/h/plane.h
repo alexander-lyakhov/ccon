@@ -14,7 +14,7 @@ typedef struct Plane {
 // =============================================================================
 // @@@ Prototypes
 // =============================================================================
-void  init_plane_buff();
+void  Plane_init_static_buff();
 
 Plane Plane_create(Vec3D v, char texture);
 void  Plane_init(Plane *plane, Vec3D v, char texture);
@@ -34,10 +34,12 @@ Vec3D Plane_rotate_z(Plane *plane, Vec3D p);
 static Vec3D *buff;
 
 // =============================================================================
-// @@@ + init_static_plane_buff
+// @@@ + Plane_init_static_buff
 // =============================================================================
-void init_static_plane_buff()
+void Plane_init_static_buff()
 {
+	puts("Plane_init_static_buff");
+
 	buff = malloc(SIZE * SIZE * sizeof(Vec3D));
 
 	float kx_distribution = (float)SIZE / (SIZE - 1);
