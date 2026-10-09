@@ -100,7 +100,7 @@ void app_update(App *app)
 	plane->origin.ry += 0.05;
 	plane->origin.rz += 0.05;
 	*/
-	app->cube->origin.ry += 0.05;
+	Cube_rotate_y(app->cube, 0.05);
 
 	size_t buff_size = SIZE * SIZE;
 
@@ -111,15 +111,17 @@ void app_update(App *app)
 		for (size_t i = 0; i < buff_size; i++)
 		{
 			Vec3D p = plane->buff[i];
-			Vec3D p1 = Plane_rotate_y(plane, p);
 
-			p1.x +=  app->camera->origin.x + plane->origin.x;
-			p1.y +=  app->camera->origin.y + plane->origin.y;
-			p1.z += -app->camera->origin.z + plane->origin.z;
+			p = Plane_rotate_x(plane, p);
+			p = Plane_rotate_y(plane, p);
 
-			Vec3D p2 = Camera_rotate_y(app->camera, p1);
+			p.x +=  app->camera->origin.x + plane->origin.x;
+			p.y +=  app->camera->origin.y + plane->origin.y;
+			p.z += -app->camera->origin.z + plane->origin.z;
 
-			COORD screen_pos = pointToScreen(app, project2D(app, p2));
+			p = Camera_rotate_y(app->camera, p);
+
+			COORD screen_pos = pointToScreen(app, project2D(app, p));
 			// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
 			if (screen_pos.X < 0 ||

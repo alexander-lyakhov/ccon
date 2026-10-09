@@ -193,7 +193,7 @@ int main()
 	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
-	init_static_plane_buff();
+	Plane_init_static_buff();
 	Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {

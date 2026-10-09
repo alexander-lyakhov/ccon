@@ -4,7 +4,7 @@
 #define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 
-#define FACE_COUNT 2
+#define FACE_COUNT 4
 #define PI 3.14159
 
 typedef struct Cube {
@@ -20,6 +20,7 @@ typedef struct Cube {
 
 Cube Cube_create(Vec3D v);
 void Cube_init(Cube *cube, Vec3D v);
+void Cube_rotate_y(Cube *cube, float angle);
 
 // =============================================================================
 // @@@ + Cube_create
@@ -45,13 +46,44 @@ void Cube_init(Cube *cube, Vec3D v)
 
 	cube->size = FACE_COUNT;
 
+	cube->face[0].origin.rx = 0;
 	cube->face[0].origin.ry = PI / 2;
+	cube->face[0].origin.rz = 0;
+
+	cube->face[1].origin.rx = 0;
 	cube->face[1].origin.ry = -PI / 2;
-	// cube->face[2].origin.rx = PI / 2;
+	cube->face[1].origin.rz = 0;
+
+	cube->face[2].origin.rx = PI / 2;
+	cube->face[2].origin.ry = 0;
+	cube->face[2].origin.rz = 0;
+
+	cube->face[3].origin.rx = -PI / 2;
+	cube->face[3].origin.ry = 0;
+	cube->face[3].origin.rz = 0;
 	
 	Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '$');
 	Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, '#');
-	// Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, '@');
+	Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, '@');
+	Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '%');
+}
+
+// =============================================================================
+// @@@ + Cube_rotate_y
+// =============================================================================
+void Cube_rotate_x(Cube *cube, float angle)
+{
+	for (int i = 0; i < cube->size; i++)
+		cube->face[i].origin.rx += angle;
+}
+
+// =============================================================================
+// @@@ + Cube_rotate_y
+// =============================================================================
+void Cube_rotate_y(Cube *cube, float angle)
+{
+	for (int i = 0; i < cube->size; i++)
+		cube->face[i].origin.ry += angle;
 }
 
 #endif
