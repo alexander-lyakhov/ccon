@@ -27,9 +27,10 @@ typedef struct App {
 	Plane *plane;
 	Cube *cube;
 
+	float *z_buffer;
+
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
-	float angle;
 } App;
 
 void app_render_buff(Console *console)
@@ -94,7 +95,10 @@ COORD pointToScreen(App *app, Vec2D p)
 void app_update(App *app)
 {
 	Console_mem_fill(app->console, " ", 0x03);
-	
+
+	for (size_t i = 0; i < app->console->size; i++)
+		app->z_buffer[i] = 1000;
+
 	/*
 	plane->origin.rx += 0.05;
 	plane->origin.ry += 0.05;
@@ -132,8 +136,11 @@ void app_update(App *app)
 
 			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
-			if (index < app->console->size)
+			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
+			{
 				((char*)app->console->buff)[index] = plane->texture;
+				app->z_buffer[index] = p.z;
+			}
 		}
 	}
 }
@@ -212,14 +219,17 @@ int main()
 	// Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {
-		.console = &console,
-		.camera  = &camera,
-		// .plane   = &plane,
-		.cube    = &cube,
-		.ks      = ks,
-		.kx      = kx,
+		.console  = &console,
+		.camera   = &camera,
+		.cube     = &cube,
+		.z_buffer = malloc(sizeof(float) * console.size),
+		.ks       = ks,
+		.kx       = kx,
 	};
-
+	/*
+	for (size_t i = 0; i < console.size; i++)
+		app.z_buffer[i] = -1000;
+	*/
 	// return 0;
 
 	CURSOR_INFO(&app);
@@ -239,6 +249,7 @@ int main()
 	Console_mem_free(&console);
 	// free(plane.buff);
 	Plane_free(&cube.face[0]);
+	free(app.z_buffer);
 
 	CURSOR_SHOW(&app);
 

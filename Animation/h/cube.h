@@ -4,7 +4,7 @@
 #define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 
-#define FACE_COUNT 4
+#define FACE_COUNT 6
 #define PI 3.14159
 
 typedef struct Cube {
@@ -61,11 +61,21 @@ void Cube_init(Cube *cube, Vec3D v)
 	cube->face[3].origin.rx = -PI / 2;
 	cube->face[3].origin.ry = 0;
 	cube->face[3].origin.rz = 0;
+
+	cube->face[4].origin.rx = 0;
+	cube->face[4].origin.ry = 0;
+	cube->face[4].origin.rz = 0;
+
+	cube->face[5].origin.rx = 0;
+	cube->face[5].origin.ry = PI;
+	cube->face[5].origin.rz = 0;
 	
-	Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '$');
-	Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, '#');
+	Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '.');
+	Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, ':');
 	Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, '@');
 	Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '%');
+	Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, '1');
+	Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, '2');
 }
 
 // =============================================================================
