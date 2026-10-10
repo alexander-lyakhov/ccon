@@ -107,6 +107,7 @@ void app_update(App *app)
 	plane->origin.ry += 0.05;
 	plane->origin.rz += 0.05;
 	*/
+	Cube_rotate_x(app->cube, 0.025);
 	Cube_rotate_y(app->cube, 0.05);
 
 	size_t buff_size = SIZE * SIZE;
@@ -124,7 +125,11 @@ void app_update(App *app)
 			*/
 			p = Vec3D_rotate_x(&p, plane->origin.rx);
 			p = Vec3D_rotate_y(&p, plane->origin.ry);
+			p = Vec3D_rotate_z(&p, plane->origin.rz);
 
+			p = Vec3D_rotate_x(&p, app->cube->origin.rx);
+			p = Vec3D_rotate_y(&p, app->cube->origin.ry);
+	
 			p.x +=  app->camera->origin.x + plane->origin.x;
 			p.y +=  app->camera->origin.y + plane->origin.y;
 			p.z += -app->camera->origin.z + plane->origin.z;

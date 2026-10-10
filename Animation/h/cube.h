@@ -44,6 +44,10 @@ void Cube_init(Cube *cube, Vec3D v)
 	cube->origin.y = v.y;
 	cube->origin.z = v.z;
 
+	cube->origin.rx = 0;
+	cube->origin.ry = 0;
+	cube->origin.rz = 0;
+
 	cube->size = FACE_COUNT;
 
 	cube->face[0].origin.rx = 0;
@@ -83,8 +87,9 @@ void Cube_init(Cube *cube, Vec3D v)
 // =============================================================================
 void Cube_rotate_x(Cube *cube, float angle)
 {
-	for (int i = 0; i < cube->size; i++)
-		cube->face[i].origin.rx += angle;
+	/*for (int i = 0; i < cube->size; i++)
+		cube->face[i].origin.rx += angle;*/
+	cube->origin.rx += angle;
 }
 
 // =============================================================================
@@ -92,8 +97,9 @@ void Cube_rotate_x(Cube *cube, float angle)
 // =============================================================================
 void Cube_rotate_y(Cube *cube, float angle)
 {
-	for (int i = 0; i < cube->size; i++)
-		cube->face[i].origin.ry += angle;
+	/*for (int i = 0; i < cube->size; i++)
+		cube->face[i].origin.ry += angle;*/
+	cube->origin.ry += angle;
 }
 
 #endif
