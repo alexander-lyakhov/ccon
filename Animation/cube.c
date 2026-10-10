@@ -10,6 +10,9 @@
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 
+#define VEC3D_IMPLEMENTATION
+#include "h/vec.h"
+
 #define CAMERA_IMPLEMENTATION
 #include "h/camera.h"
 
@@ -115,9 +118,12 @@ void app_update(App *app)
 		for (size_t i = 0; i < buff_size; i++)
 		{
 			Vec3D p = plane->buff[i];
-
+			/*
 			p = Plane_rotate_x(plane, p);
 			p = Plane_rotate_y(plane, p);
+			*/
+			p = Vec3D_rotate_x(&p, plane->origin.rx);
+			p = Vec3D_rotate_y(&p, plane->origin.ry);
 
 			p.x +=  app->camera->origin.x + plane->origin.x;
 			p.y +=  app->camera->origin.y + plane->origin.y;
@@ -128,11 +134,7 @@ void app_update(App *app)
 			COORD screen_pos = pointToScreen(app, project2D(app, p));
 			// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
-			if (screen_pos.X < 0 ||
-				screen_pos.X >= app->console->width ||
-				screen_pos.Y < 0 ||
-				screen_pos.Y >= app->console->height
-			) continue;
+			if (screen_pos.X < 0 || screen_pos.X >= app->console->width || screen_pos.Y < 0 || screen_pos.Y >= app->console->height ) continue;
 
 			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
