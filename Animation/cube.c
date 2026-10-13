@@ -98,7 +98,8 @@ COORD pointToScreen(App *app, Vec2D p)
 // =============================================================================
 void app_update(App *app)
 {
-	Console_mem_fill(app->console, " ", 0x03);
+	// Console_mem_fill(app->console, " ", 0x03);
+	memset(app->console->buff, ' ', app->console->size);
 
 	for (size_t i = 0; i < app->console->size; i++)
 		app->z_buffer[i] = 1000;
@@ -123,7 +124,6 @@ void app_update(App *app)
 			COORD screen_pos = pointToScreen(
 				app, project2D(app, p)
 			);
-			// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
 			if (false
 				|| screen_pos.X < 0
@@ -166,14 +166,12 @@ uint8_t app_listen(App *app)
 
 		// Camera Step left
 		if ((key | 32) == 'a') {
-			Plane_translate_x(app->plane, -0.1);
-			// Camera_translate_x(app->camera, -0.1);
+			Cube_translate_x(app->cube, -0.1);
 		}
 
 		// Camera Step right
 		if ((key | 32) == 'd') {
-			Plane_translate_x(app->plane, 0.1);
-			// Camera_translate_x(app->camera, 0.1);
+			Cube_translate_x(app->cube, 0.1);
 		}
 
 		// Camera rotate left
@@ -185,14 +183,6 @@ uint8_t app_listen(App *app)
 		if ((key | 32) == 'p') {
 			app->camera->origin.ry += 0.05;
 		}
-
-		/*if ((key | 32) == 'w') {
-			Plane_translate_y(app->plane, 0.1);
-		}
-
-		if ((key | 32) == 's') {
-			Plane_translate_y(app->plane, -0.1);
-		}*/
 	}
 
 	return 1;
@@ -207,11 +197,11 @@ int main()
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 1;
+	float ks = 2;
 	float kx = ks / (screen_ar * font_ar);
 
 	Camera camera = Camera_create((Vec3D){0, 0, -4});
-	Cube cube = Cube_create((Vec3D){0, 0, 0});
+	Cube cube = Cube_create((Vec3D){0, 0, 4});
 
 	App app = {
 		.console  = &console,

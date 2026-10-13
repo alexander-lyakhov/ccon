@@ -12,16 +12,16 @@ typedef struct Vec3D {
 	float z;
 } Vec3D;
 
-Vec3D Vec3D_rotate_x(Vec3D *p, float angle);
-Vec3D Vec3D_rotate_y(Vec3D *p, float angle);
-Vec3D Vec3D_rotate_z(Vec3D *p, float angle);
+Vec3D Vec3D_rotate_x(const Vec3D *p, float angle);
+Vec3D Vec3D_rotate_y(const Vec3D *p, float angle);
+Vec3D Vec3D_rotate_z(const Vec3D *p, float angle);
 
 #ifdef VEC3D_IMPLEMENTATION
 
 	// =============================================================================
 	// @@@ + Vec3D_rotate_x
 	// =============================================================================
-	Vec3D Vec3D_rotate_x(Vec3D *p, float angle)
+	Vec3D Vec3D_rotate_x(const Vec3D *p, float angle)
 	{
 		float COS = cos(angle);
 		float SIN = sin(angle);
@@ -36,7 +36,7 @@ Vec3D Vec3D_rotate_z(Vec3D *p, float angle);
 	// =============================================================================
 	// @@@ + Vec3D_rotate_y
 	// =============================================================================
-	Vec3D Vec3D_rotate_y(Vec3D *p, float angle)
+	Vec3D Vec3D_rotate_y(const Vec3D *p, float angle)
 	{
 		float COS = cos(angle);
 		float SIN = sin(angle);
@@ -51,7 +51,7 @@ Vec3D Vec3D_rotate_z(Vec3D *p, float angle);
 	// =============================================================================
 	// @@@ + Vec3D_rotate_z
 	// =============================================================================
-	Vec3D Vec3D_rotate_z(Vec3D *p, float angle)
+	Vec3D Vec3D_rotate_z(const Vec3D *p, float angle)
 	{
 		float COS = cos(angle);
 		float SIN = sin(angle);
