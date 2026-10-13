@@ -39,23 +39,18 @@ void Camera_init(Camera *camera, Vec3D v)
 }
 
 // =============================================================================
-// @@@ + plane_translate_x
+// @@@ + plane_translate
 // =============================================================================
 void Camera_translate_x(Camera *camera, float dx)
 {
 	camera->origin.x += dx;
 }
-// =============================================================================
-// @@@ + plane_translate_y
-// =============================================================================
+
 void Camera_translate_y(Camera *camera, float dy)
 {
 	camera->origin.y += dy;
 }
 
-// =============================================================================
-// @@@ + plane_translate_z
-// =============================================================================
 void Camera_translate_z(Camera *camera, float dz)
 {
 	camera->origin.x -= dz * sin(camera->origin.ry);
@@ -63,11 +58,39 @@ void Camera_translate_z(Camera *camera, float dz)
 }
 
 // =============================================================================
-// @@@ + Camera_rotate_y
+// @@@ + Camera_rotate
 // =============================================================================
-Vec3D Camera_rotate_y(Camera *camera, Vec3D p)
+Vec3D Camera_rotate_x(Camera *camera, const Vec3D *p)
 {
-	return origin_rotate_y(&p, camera->origin.ry);
+	return origin_rotate_y(p, camera->origin.rx);
+}
+
+Vec3D Camera_rotate_y(Camera *camera, const Vec3D *p)
+{
+	return origin_rotate_y(p, camera->origin.ry);
+}
+
+Vec3D Camera_rotate_z(Camera *camera, const Vec3D *p)
+{
+	return origin_rotate_y(p, camera->origin.rz);
+}
+
+// =============================================================================
+// @@@ + Camera_calculate_single_point
+// =============================================================================
+Vec3D Camera_calculate_single_point(Camera *camera, const Vec3D *v)
+{
+	Vec3D p = *v;
+
+	p.x +=  camera->origin.x;
+	p.y +=  camera->origin.y;
+	p.z += -camera->origin.z;
+
+	p = Camera_rotate_x(camera, &p);
+	p = Camera_rotate_y(camera, &p);
+	p = Camera_rotate_z(camera, &p);
+
+	return p;
 }
 
 #endif

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <conio.h>
 #include <math.h>
@@ -70,7 +71,7 @@ void app_render(Console *console)
 // =============================================================================
 // @@@ + project2D
 // =============================================================================
-Vec2D project2D(App *app, Vec3D p)
+Vec2D project2D(App *app, const Vec3D p)
 {
 	if (p.z <= 0)
 		return (Vec2D){ .x = 1000, .y = 1000 }; // Return values that are too big so that the point isnt't drawn on the screen
@@ -110,31 +111,26 @@ void app_update(App *app)
 
 	for (size_t face_index = 0; face_index < app->cube->size; face_index++)
 	{
-		Plane *face = &app->cube->face[face_index];
-		app->cube->curr_face_index = face_index;
-	
+		Plane *face = Cube_set_current_face(app->cube, face_index);
+
 		for (size_t i = 0; i < buff_size; i++)
 		{
 			Vec3D p = face->buff[i];
 
-			p = Vec3D_rotate_x(&p, face->origin.rx);
-			p = Vec3D_rotate_y(&p, face->origin.ry);
-			p = Vec3D_rotate_z(&p, face->origin.rz);
+			p =   Cube_calculate_single_point(app->cube, &p);
+			p = Camera_calculate_single_point(app->camera, &p);
 
-			p = Vec3D_rotate_x(&p, app->cube->origin.rx);
-			p = Vec3D_rotate_y(&p, app->cube->origin.ry);
-			p = Vec3D_rotate_z(&p, app->cube->origin.rz);
-
-			p.x +=  app->camera->origin.x + face->origin.x;
-			p.y +=  app->camera->origin.y + face->origin.y;
-			p.z += -app->camera->origin.z + face->origin.z;
-
-			p = Camera_rotate_y(app->camera, p);
-
-			COORD screen_pos = pointToScreen(app, project2D(app, p));
+			COORD screen_pos = pointToScreen(
+				app, project2D(app, p)
+			);
 			// plane_rotate_z(app->plane, plane_rotate_y(app->plane, plane_rotate_x(app->plane, p)))
 
-			if (screen_pos.X < 0 || screen_pos.X >= app->console->width || screen_pos.Y < 0 || screen_pos.Y >= app->console->height ) continue;
+			if (false
+				|| screen_pos.X < 0
+				|| screen_pos.X >= app->console->width
+				|| screen_pos.Y < 0
+				|| screen_pos.Y >= app->console->height
+			) continue;
 
 			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
@@ -209,16 +205,13 @@ int main()
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x03);
 
-	Camera camera = Camera_create((Vec3D){0, 0, -4});
-
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
 	float ks = 1;
 	float kx = ks / (screen_ar * font_ar);
 
-	// init_static_plane_buff();
-	Cube cube = Cube_create((Vec3D){0, 0, 5});
-	// Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
+	Camera camera = Camera_create((Vec3D){0, 0, -4});
+	Cube cube = Cube_create((Vec3D){0, 0, 0});
 
 	App app = {
 		.console  = &console,
@@ -228,11 +221,6 @@ int main()
 		.ks       = ks,
 		.kx       = kx,
 	};
-	/*
-	for (size_t i = 0; i < console.size; i++)
-		app.z_buffer[i] = -1000;
-	*/
-	// return 0;
 
 	CURSOR_INFO(&app);
 	CURSOR_HIDE(&app);
