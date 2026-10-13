@@ -8,9 +8,10 @@
 #define PI 3.14159
 
 typedef struct Cube {
-	Origin origin;
-	Plane face[FACE_COUNT];
-	size_t size;
+	Origin  origin;
+	Plane   face[FACE_COUNT];
+	size_t  size;
+	uint8_t curr_face_index;
 } Cube;
 
 #ifdef CUBE_IMPLEMENTATION
@@ -20,7 +21,10 @@ typedef struct Cube {
 
 Cube Cube_create(Vec3D v);
 void Cube_init(Cube *cube, Vec3D v);
+void Cube_rotate(Cube *cube, float rx, float ry, float rz);
+void Cube_rotate_x(Cube *cube, float angle);
 void Cube_rotate_y(Cube *cube, float angle);
+void Cube_rotate_z(Cube *cube, float angle);
 
 // =============================================================================
 // @@@ + Cube_create
@@ -75,11 +79,23 @@ void Cube_init(Cube *cube, Vec3D v)
 	cube->face[5].origin.rz = 0;
 	
 	Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '.');
-	Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, ':');
+	Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, ';');
 	Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, '@');
 	Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '%');
 	Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, '1');
 	Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, '2');
+
+	cube->curr_face_index = 0;
+}
+
+// =============================================================================
+// @@@ + Cube_rotate
+// =============================================================================
+void Cube_rotate(Cube *cube, float rx, float ry, float rz)
+{
+	cube->origin.rx += rx;
+	cube->origin.ry += ry;
+	cube->origin.rz += rz;
 }
 
 // =============================================================================
@@ -87,8 +103,6 @@ void Cube_init(Cube *cube, Vec3D v)
 // =============================================================================
 void Cube_rotate_x(Cube *cube, float angle)
 {
-	/*for (int i = 0; i < cube->size; i++)
-		cube->face[i].origin.rx += angle;*/
 	cube->origin.rx += angle;
 }
 
@@ -97,9 +111,20 @@ void Cube_rotate_x(Cube *cube, float angle)
 // =============================================================================
 void Cube_rotate_y(Cube *cube, float angle)
 {
-	/*for (int i = 0; i < cube->size; i++)
-		cube->face[i].origin.ry += angle;*/
 	cube->origin.ry += angle;
+}
+
+// =============================================================================
+// @@@ + Cube_rotate_z
+// =============================================================================
+void Cube_rotate_z(Cube *cube, float angle)
+{
+	cube->origin.rz += angle;
+}
+
+float Cube_distance_to_point(Cube *cube)
+{
+	Plane *face = cube->face[cube->curr_face_index];
 }
 
 #endif

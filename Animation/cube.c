@@ -102,37 +102,32 @@ void app_update(App *app)
 	for (size_t i = 0; i < app->console->size; i++)
 		app->z_buffer[i] = 1000;
 
-	/*
-	plane->origin.rx += 0.05;
-	plane->origin.ry += 0.05;
-	plane->origin.rz += 0.05;
-	*/
 	Cube_rotate_x(app->cube, 0.025);
 	Cube_rotate_y(app->cube, 0.05);
+	Cube_rotate_z(app->cube, 0);
 
 	size_t buff_size = SIZE * SIZE;
 
 	for (size_t face_index = 0; face_index < app->cube->size; face_index++)
 	{
-		Plane *plane = &app->cube->face[face_index];
+		Plane *face = &app->cube->face[face_index];
+		app->cube->curr_face_index = face_index;
 	
 		for (size_t i = 0; i < buff_size; i++)
 		{
-			Vec3D p = plane->buff[i];
-			/*
-			p = Plane_rotate_x(plane, p);
-			p = Plane_rotate_y(plane, p);
-			*/
-			p = Vec3D_rotate_x(&p, plane->origin.rx);
-			p = Vec3D_rotate_y(&p, plane->origin.ry);
-			p = Vec3D_rotate_z(&p, plane->origin.rz);
+			Vec3D p = face->buff[i];
+
+			p = Vec3D_rotate_x(&p, face->origin.rx);
+			p = Vec3D_rotate_y(&p, face->origin.ry);
+			p = Vec3D_rotate_z(&p, face->origin.rz);
 
 			p = Vec3D_rotate_x(&p, app->cube->origin.rx);
 			p = Vec3D_rotate_y(&p, app->cube->origin.ry);
-	
-			p.x +=  app->camera->origin.x + plane->origin.x;
-			p.y +=  app->camera->origin.y + plane->origin.y;
-			p.z += -app->camera->origin.z + plane->origin.z;
+			p = Vec3D_rotate_z(&p, app->cube->origin.rz);
+
+			p.x +=  app->camera->origin.x + face->origin.x;
+			p.y +=  app->camera->origin.y + face->origin.y;
+			p.z += -app->camera->origin.z + face->origin.z;
 
 			p = Camera_rotate_y(app->camera, p);
 
@@ -145,7 +140,7 @@ void app_update(App *app)
 
 			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
 			{
-				((char*)app->console->buff)[index] = plane->texture;
+				((char*)app->console->buff)[index] = face->texture;
 				app->z_buffer[index] = p.z;
 			}
 		}
@@ -222,7 +217,7 @@ int main()
 	float kx = ks / (screen_ar * font_ar);
 
 	// init_static_plane_buff();
-	Cube cube = Cube_create((Vec3D){0, 0, 0});
+	Cube cube = Cube_create((Vec3D){0, 0, 5});
 	// Plane plane = Plane_create((Vec3D){0, 0, 0}, '$');
 
 	App app = {
