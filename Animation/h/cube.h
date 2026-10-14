@@ -90,8 +90,8 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, ';');
 		Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, 'i');
 		Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '*');
-		Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, '+');
-		Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, 'i');
+		Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, '2');
+		Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, 'a');
 		
 		/*Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '1');
 		Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, '2');
