@@ -197,7 +197,7 @@ int main()
 
 	float font_ar = console.font_ar;
 	float screen_ar = (float)console.width / console.height;
-	float ks = 2;
+	float ks = 2.5;
 	float kx = ks / (screen_ar * font_ar);
 
 	Camera camera = Camera_create((Vec3D){0, 0, -4});
