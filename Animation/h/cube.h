@@ -21,7 +21,6 @@ void   Cube_init                   (Cube *cube, Vec3D v);
 void   Cube_translate_x            (Cube *cube, float dx);
 void   Cube_translate_y            (Cube *cube, float dy);
 void   Cube_translate_z            (Cube *cube, float dz);
-void   Cube_rotate                 (Cube *cube, float rx, float ry, float rz);
 void   Cube_rotate_x               (Cube *cube, float angle);
 void   Cube_rotate_y               (Cube *cube, float angle);
 void   Cube_rotate_z               (Cube *cube, float angle);
@@ -117,16 +116,6 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	void Cube_translate_z(Cube *cube, float dz)
 	{
 		cube->origin.x += dz;
-	}
-
-	// =============================================================================
-	// @@@ + Cube_rotate
-	// =============================================================================
-	void Cube_rotate(Cube *cube, float rx, float ry, float rz)
-	{
-		cube->origin.rx += rx;
-		cube->origin.ry += ry;
-		cube->origin.rz += rz;
 	}
 
 	// =============================================================================

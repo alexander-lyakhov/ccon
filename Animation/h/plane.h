@@ -23,9 +23,9 @@ void  Plane_translate_x (Plane *plane, float dx);
 void  Plane_translate_y (Plane *plane, float dy);
 void  Plane_translate_z (Plane *plane, float dz);
 
-Vec3D Plane_rotate_x    (Plane *plane, Vec3D p);
-Vec3D Plane_rotate_y    (Plane *plane, Vec3D p);
-Vec3D Plane_rotate_z    (Plane *plane, Vec3D p);
+void  Plane_rotate_x    (Plane *plane, float angle);
+void  Plane_rotate_y    (Plane *plane, float angle);
+void  Plane_rotate_z    (Plane *plane, float angle);
 //----------------------------------------------------------------------------------
 // End of function prototypes
 
@@ -118,25 +118,25 @@ Vec3D Plane_rotate_z    (Plane *plane, Vec3D p);
 	// =============================================================================
 	// @@@ + Plane_rotate_x
 	// =============================================================================
-	Vec3D Plane_rotate_x(Plane *plane, Vec3D p)
+	void Plane_rotate_x(Plane *plane, float angle)
 	{
-		return origin_rotate_x(&p, plane->origin.rx);
+		plane->origin.rx += angle;
 	}
 
 	// =============================================================================
 	// @@@ + Plane_rotate_y
 	// =============================================================================
-	Vec3D Plane_rotate_y(Plane *plane, Vec3D p)
+	void Plane_rotate_y(Plane *plane, float angle)
 	{
-		return origin_rotate_y(&p, plane->origin.ry);
+		plane->origin.ry += angle;
 	}
 
 	// =============================================================================
 	// @@@ + Plane_rotate_z
 	// =============================================================================
-	Vec3D Plane_rotate_z(Plane *plane, Vec3D p)
+	void Plane_rotate_z(Plane *plane, float angle)
 	{
-		return origin_rotate_z(&p, plane->origin.rz);
+		plane->origin.rz += angle;
 	}
 
 #endif
