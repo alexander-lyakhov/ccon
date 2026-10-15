@@ -82,23 +82,14 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->face[4].origin.ry = 0;
 		cube->face[4].origin.rz = 0;
 
-		cube->face[5].origin.rx = 0;
-		cube->face[5].origin.ry = PI;
+		cube->face[5].origin.rx = PI;
+		cube->face[5].origin.ry = 0;
 		cube->face[5].origin.rz = 0;
-		
-		Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '.');
-		Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, ';');
-		Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, 'i');
-		Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '*');
-		Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, 'a');
-		Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, '2');
-		
-		/*Plane_init(&(cube->face[0]), (Vec3D){0, 0, 0}, '1');
-		Plane_init(&(cube->face[1]), (Vec3D){0, 0, 0}, '2');
-		Plane_init(&(cube->face[2]), (Vec3D){0, 0, 0}, '3');
-		Plane_init(&(cube->face[3]), (Vec3D){0, 0, 0}, '4');
-		Plane_init(&(cube->face[4]), (Vec3D){0, 0, 0}, '5');
-		Plane_init(&(cube->face[5]), (Vec3D){0, 0, 0}, '6');*/
+
+		char texture[] = "+;i%#$";
+
+		for (int i = 0; i < FACE_COUNT; i++)
+			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
 
 		cube->size = FACE_COUNT;
 		cube->curr_face_index = 0;
