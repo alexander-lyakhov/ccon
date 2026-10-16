@@ -165,26 +165,28 @@ uint8_t app_listen(App *app)
 
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
+		// Rotate camera keys (cursor keys)
+		//------------------------------------------
+		switch(key) {
+			case KEY_LEFT:
+				Camera_rotate_y(app->camera, -0.05);
+				return 1;
+
+			case KEY_RIGHT:
+				Camera_rotate_y(app->camera, 0.05);
+				return 1;
+
+			case KEY_UP:
+				Camera_rotate_x(app->camera, 0.05);
+				return 1;
+
+			case KEY_DOWN:
+				Camera_rotate_x(app->camera, -0.05);
+				return 1;
+		}
+
 		switch(key | 32) {
-
-			// Move cube keys ( j, k, h, l )
-			//----------------------------------------
-			case 'j':
-				Cube_translate_x(app->cube, -0.1);
-				break;
-
-			case 'k':
-				Cube_translate_x(app->cube, 0.1);
-				break;
-
-			case 'h':
-				Cube_translate_y(app->cube, -0.1);
-				break;
-
-			case 'l':
-				Cube_translate_y(app->cube, 0.1);
-				break;
-
+			
 			// Move camera keys (a, s, w, d)
 			//----------------------------------------
 			case 's':
@@ -202,25 +204,23 @@ uint8_t app_listen(App *app)
 			case 'd':
 				Camera_translate_x(app->camera, -0.1);
 				break;
-		}
 
-		// Rotate camera keys (cursor keys)
-		//------------------------------------------
-		switch(key) {
-			case KEY_LEFT:
-				Camera_rotate_y(app->camera, -0.05);
+			// Move cube keys ( j, k, h, l )
+			//----------------------------------------
+			case 'j':
+				Cube_translate_x(app->cube, -0.1);
 				break;
 
-			case KEY_RIGHT:
-				Camera_rotate_y(app->camera, 0.05);
+			case 'k':
+				Cube_translate_x(app->cube, 0.1);
 				break;
 
-			case KEY_UP:
-				Camera_rotate_x(app->camera, 0.05);
+			case 'h':
+				Cube_translate_y(app->cube, -0.1);
 				break;
 
-			case KEY_DOWN:
-				Camera_rotate_x(app->camera, -0.05);
+			case 'l':
+				Cube_translate_y(app->cube, 0.1);
 				break;
 		}
 	}
