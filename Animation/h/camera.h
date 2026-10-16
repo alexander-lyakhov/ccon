@@ -44,6 +44,10 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 		camera->origin.x = v.x;
 		camera->origin.y = v.y;
 		camera->origin.z = v.z;
+
+		camera->origin.rx = 0;
+		camera->origin.ry = 0;
+		camera->origin.rz = 0;
 	}
 
 	// =============================================================================
@@ -68,7 +72,7 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 	void Camera_translate_z(Camera *camera, float dz)
 	{
 		camera->origin.x -= dz * sin(camera->origin.ry);
-		camera->origin.z += dz * cos(camera->origin.ry);
+		camera->origin.z += dz * cos(camera->origin.rx) * cos(camera->origin.ry);
 	}
 
 	// =============================================================================
@@ -114,9 +118,16 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 		p = Camera_rotate_y(camera, &p);
 		p = Camera_rotate_z(camera, &p);
 		*/
+		/*
 		p = origin_rotate_x(&p, camera->origin.rx);
 		p = origin_rotate_y(&p, camera->origin.ry);
 		p = origin_rotate_z(&p, camera->origin.rz);
+		*/
+
+		p = Vec3D_rotate_x(&p, camera->origin.rx);
+		p = Vec3D_rotate_y(&p, camera->origin.ry);
+		p = Vec3D_rotate_z(&p, camera->origin.rz);
+
 		return p;
 	}
 

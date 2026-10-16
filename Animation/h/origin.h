@@ -27,6 +27,7 @@ Vec3D origin_rotate_z(const Vec3D *p, float angle);
 // =============================================================================
 // @@@ + origin_rotate_x
 // =============================================================================
+/*
 Vec3D origin_rotate_x(const Vec3D *p, float angle)
 {
 	float COS = cos(angle);
@@ -38,10 +39,11 @@ Vec3D origin_rotate_x(const Vec3D *p, float angle)
 		p->y * SIN + p->z * COS,
 	};
 }
-
+*/
 // =============================================================================
 // @@@ + origin_rotate_y
 // =============================================================================
+/*
 Vec3D origin_rotate_y(const Vec3D *p, float angle)
 {
 	float COS = cos(angle);
@@ -53,10 +55,11 @@ Vec3D origin_rotate_y(const Vec3D *p, float angle)
 		p->x * SIN + p->z * COS,
 	};
 }
-
+*/
 // =============================================================================
 // @@@ + origin_rotate_z
 // =============================================================================
+/*
 Vec3D origin_rotate_z(const Vec3D *p, float angle)
 {
 	float COS = cos(angle);
@@ -68,6 +71,6 @@ Vec3D origin_rotate_z(const Vec3D *p, float angle)
 		p->z,
 	};
 }
-
+*/
 #endif
 #endif

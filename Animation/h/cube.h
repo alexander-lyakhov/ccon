@@ -10,8 +10,9 @@
 typedef struct Cube {
 	Origin  origin;
 	Plane   face[FACE_COUNT];
-	size_t  size;
+	Plane*  current_face;
 	uint8_t curr_face_index;
+	size_t  size;
 } Cube;
 
 // Function prototypes
@@ -148,7 +149,9 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	Plane* Cube_set_current_face(Cube *cube, uint8_t face_index)
 	{
 		cube->curr_face_index = face_index;
-		return &cube->face[face_index];
+		cube->current_face = &cube->face[face_index];
+		
+		return cube->current_face;
 	}
 
 	// =============================================================================
@@ -166,23 +169,19 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	Vec3D Cube_calculate_single_point(Cube *cube, const Vec3D *v)
 	{
-		Plane *face = &cube->face[
-			cube->curr_face_index
-		];
-
 		Vec3D p = *v;
 
-		p = Vec3D_rotate_x(&p, face->origin.rx);
-		p = Vec3D_rotate_y(&p, face->origin.ry);
-		p = Vec3D_rotate_z(&p, face->origin.rz);
+		p = Vec3D_rotate_x(&p, cube->current_face->origin.rx);
+		p = Vec3D_rotate_y(&p, cube->current_face->origin.ry);
+		p = Vec3D_rotate_z(&p, cube->current_face->origin.rz);
 
 		p = Vec3D_rotate_x(&p, cube->origin.rx);
 		p = Vec3D_rotate_y(&p, cube->origin.ry);
 		p = Vec3D_rotate_z(&p, cube->origin.rz);
 
-		p.x += cube->origin.x + face->origin.x;
-		p.y += cube->origin.y + face->origin.y;
-		p.z += cube->origin.z + face->origin.z;
+		p.x += cube->origin.x + cube->current_face->origin.x;
+		p.y += cube->origin.y + cube->current_face->origin.y;
+		p.z += cube->origin.z + cube->current_face->origin.z;
 
 		return p;
 	}

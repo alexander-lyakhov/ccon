@@ -141,6 +141,17 @@ void app_update(App *app)
 			}
 		}
 	}
+	sprintf(app->console->buff + app->console->width * 0, "camera->origin.rx: %7.3f", app->camera->origin.rx);
+	sprintf(app->console->buff + app->console->width * 1, "camera->origin.ry: %7.3f", app->camera->origin.ry);
+	sprintf(app->console->buff + app->console->width * 2, "camera->origin.rz: %7.3f", app->camera->origin.rz);
+
+	sprintf(app->console->buff + app->console->width * 3, "camera->origin.x: %8.3f", app->camera->origin.x);
+	sprintf(app->console->buff + app->console->width * 4, "camera->origin.y: %8.3f", app->camera->origin.y);
+	sprintf(app->console->buff + app->console->width * 5, "camera->origin.z: %8.3f", app->camera->origin.z);
+
+	sprintf(app->console->buff + app->console->width * 6, "  cube->origin.x: %8.3f", app->cube->origin.x);
+	sprintf(app->console->buff + app->console->width * 7, "  cube->origin.y: %8.3f", app->cube->origin.y);
+	sprintf(app->console->buff + app->console->width * 8, "  cube->origin.z: %8.3f", app->cube->origin.z);
 }
 
 // =============================================================================
@@ -154,26 +165,10 @@ uint8_t app_listen(App *app)
 
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-
-		// Move camera keys (a, s, w, d)
-		//------------------------------------------
 		switch(key | 32) {
-			case 's':
-				Camera_translate_z(app->camera, -0.1);
-				break;
 
-			case 'w':
-				Camera_translate_z(app->camera, 0.1);
-				break;
-
-			case 'a':
-				Camera_translate_x(app->camera, 0.1);
-				break;
-
-			case 'd':
-				Camera_translate_x(app->camera, -0.1);
-				break;
-
+			// Move cube keys ( j, k, h, l )
+			//----------------------------------------
 			case 'j':
 				Cube_translate_x(app->cube, -0.1);
 				break;
@@ -188,6 +183,24 @@ uint8_t app_listen(App *app)
 
 			case 'l':
 				Cube_translate_y(app->cube, 0.1);
+				break;
+
+			// Move camera keys (a, s, w, d)
+			//----------------------------------------
+			case 's':
+				Camera_translate_z(app->camera, -0.1);
+				break;
+
+			case 'w':
+				Camera_translate_z(app->camera, 0.1);
+				break;
+
+			case 'a':
+				Camera_translate_x(app->camera, 0.1);
+				break;
+
+			case 'd':
+				Camera_translate_x(app->camera, -0.1);
 				break;
 		}
 
@@ -229,8 +242,13 @@ int main()
 	float ks = 2.5;
 	float kx = ks / (screen_ar * font_ar);
 
-	Camera camera = Camera_create((Vec3D){0, 0, -4});
-	Cube cube = Cube_create((Vec3D){0, 0, 4});
+	Camera camera = Camera_create(
+		(Vec3D){0, 0, -4}
+	);
+	
+	Cube cube = Cube_create(
+		(Vec3D){0, 0, 4}
+	);
 
 	App app = {
 		.console  = &console,
