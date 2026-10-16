@@ -107,7 +107,7 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_translate_y(Cube *cube, float dy)
 	{
-		cube->origin.x += dy;
+		cube->origin.y += dy;
 	}
 
 	// =============================================================================
@@ -115,7 +115,7 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_translate_z(Cube *cube, float dz)
 	{
-		cube->origin.x += dz;
+		cube->origin.z += dz;
 	}
 
 	// =============================================================================
