@@ -11,4 +11,14 @@
 #define  POP_ADDR(addr) (addr) = tmp;
 #define  INC_LINE(addr) (addr) += console->width;
 
+typedef enum _KEYS {
+	KEY_LEFT   = 75,
+	KEY_RIGHT  = 77,
+	KEY_UP     = 72,
+	KEY_DOWN   = 80,
+	KEY_ENTER  = 13,
+	KEY_ESCAPE = 27,
+	KEY_SPACE  = 32
+} KEYS;
+
 #endif

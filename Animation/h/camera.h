@@ -12,14 +12,15 @@ typedef struct Camera {
 
 // Function prototypes
 //----------------------------------------------------------------------------------
-Camera Camera_create      (Vec3D v);
-void   Camera_init        (Camera *camera, Vec3D v);
-void   Camera_translate_x (Camera *camera, float dx);
-void   Camera_translate_y (Camera *camera, float dx);
-void   Camera_translate_z (Camera *camera, float dx);
-Vec3D  Camera_rotate_x    (Camera *camera, float angle);
-Vec3D  Camera_rotate_y    (Camera *camera, float angle);
-Vec3D  Camera_rotate_z    (Camera *camera, float angle);
+Camera Camera_create                 (Vec3D v);
+void   Camera_init                   (Camera *camera, Vec3D v);
+void   Camera_translate_x            (Camera *camera, float dx);
+void   Camera_translate_y            (Camera *camera, float dx);
+void   Camera_translate_z            (Camera *camera, float dx);
+Vec3D  Camera_rotate_x               (Camera *camera, float angle);
+Vec3D  Camera_rotate_y               (Camera *camera, float angle);
+Vec3D  Camera_rotate_z               (Camera *camera, float angle);
+Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 //----------------------------------------------------------------------------------
 // End of function prototypes
 
@@ -46,7 +47,7 @@ Vec3D  Camera_rotate_z    (Camera *camera, float angle);
 	}
 
 	// =============================================================================
-	// @@@ + plane_translate_x
+	// @@@ + Camera_translate_x
 	// =============================================================================
 	void Camera_translate_x(Camera *camera, float dx)
 	{
@@ -113,9 +114,9 @@ Vec3D  Camera_rotate_z    (Camera *camera, float angle);
 		p = Camera_rotate_y(camera, &p);
 		p = Camera_rotate_z(camera, &p);
 		*/
-		p = origin_rotate_y(&p, camera->origin.rx);
+		p = origin_rotate_x(&p, camera->origin.rx);
 		p = origin_rotate_y(&p, camera->origin.ry);
-		p = origin_rotate_y(&p, camera->origin.rz);
+		p = origin_rotate_z(&p, camera->origin.rz);
 		return p;
 	}
 

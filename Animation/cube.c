@@ -154,36 +154,45 @@ uint8_t app_listen(App *app)
 
 		if (key == 27 || ((key | 32) == 'q')) return 0;
 
-		// Camera Zoom out
-		if ((key | 32) == 's') {
-			Camera_translate_z(app->camera, -0.1);
+
+		// Move camera keys (a, s, w, d)
+		//------------------------------------------
+		switch(key | 32) {
+			case 's':
+				Camera_translate_z(app->camera, -0.1);
+				break;
+
+			case 'w':
+				Camera_translate_z(app->camera, 0.1);
+				break;
+
+			case 'a':
+				Camera_translate_x(app->camera, 0.1);
+				break;
+
+			case 'd':
+				Camera_translate_x(app->camera, -0.1);
+				break;
 		}
 
-		// Camera Zoom in
-		if ((key | 32) == 'w') {
-			Camera_translate_z(app->camera, 0.1);
-		}
+		// Rotate camera keys (cursor keys)
+		//------------------------------------------
+		switch(key) {
+			case KEY_LEFT:
+				Camera_rotate_y(app->camera, -0.05);
+				break;
 
-		// Camera Step left
-		if ((key | 32) == 'a') {
-			Cube_translate_x(app->cube, -0.1);
-		}
+			case KEY_RIGHT:
+				Camera_rotate_y(app->camera, 0.05);
+				break;
 
-		// Camera Step right
-		if ((key | 32) == 'd') {
-			Cube_translate_x(app->cube, 0.1);
-		}
+			case KEY_UP:
+				Camera_rotate_x(app->camera, 0.05);
+				break;
 
-		// Camera rotate left
-		if ((key | 32) == 'o') {
-			// app->camera->origin.ry -= 0.05;
-			Camera_rotate_y(app->camera, -0.05);
-		}
-
-		// Camera rotate right
-		if ((key | 32) == 'p') {
-			// app->camera->origin.ry += 0.05;
-			Camera_rotate_y(app->camera, 0.05);
+			case KEY_DOWN:
+				Camera_rotate_x(app->camera, -0.05);
+				break;
 		}
 	}
 
