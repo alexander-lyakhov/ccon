@@ -176,12 +176,14 @@ uint8_t app_listen(App *app)
 
 		// Camera rotate left
 		if ((key | 32) == 'o') {
-			app->camera->origin.ry -= 0.05;
+			// app->camera->origin.ry -= 0.05;
+			Camera_rotate_y(app->camera, -0.05);
 		}
 
 		// Camera rotate right
 		if ((key | 32) == 'p') {
-			app->camera->origin.ry += 0.05;
+			// app->camera->origin.ry += 0.05;
+			Camera_rotate_y(app->camera, 0.05);
 		}
 	}
 
@@ -196,6 +198,8 @@ int main()
 	Console_mem_fill(&console, " ", 0x03);
 
 	float font_ar = console.font_ar;
+	if (!font_ar) font_ar = 0.462; // fallback for my Windows Terminal
+
 	float screen_ar = (float)console.width / console.height;
 	float ks = 2.5;
 	float kx = ks / (screen_ar * font_ar);
