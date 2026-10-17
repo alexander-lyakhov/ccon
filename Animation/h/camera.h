@@ -2,8 +2,6 @@
 #define CAMERA_H__
 
 #include "./vec.h"
-
-#define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 
 typedef struct Camera {
@@ -75,6 +73,7 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 	void Camera_translate_z(Camera *camera, float dz)
 	{
 		camera->origin.x -= dz * sin(camera->origin.ry);
+		camera->origin.y -= dz * sin(camera->origin.rx);
 		camera->origin.z += dz * cos(camera->origin.rx) * cos(camera->origin.ry);
 	}
 

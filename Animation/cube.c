@@ -23,8 +23,6 @@
 #define CUBE_IMPLEMENTATION
 #include "h/cube.h"
 
-// #define SIZE 80
-
 typedef struct App {
 	Console *console;
 	Camera *camera;
@@ -35,6 +33,8 @@ typedef struct App {
 
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
+
+	uint8_t debug;
 } App;
 
 void app_render_buff(Console *console)
@@ -94,6 +94,37 @@ COORD pointToScreen(App *app, Vec2D p)
 }
 
 // =============================================================================
+// @@@ + App_show_debug_info
+// =============================================================================
+void App_show_debug_info(App *app)
+{
+	sprintf(app->console->buff + app->console->width *  0, "Camera X rotation: %7.3f", app->camera->origin.rx);
+	sprintf(app->console->buff + app->console->width *  1, "Camera Y rotation: %7.3f", app->camera->origin.ry);
+	sprintf(app->console->buff + app->console->width *  2, "Camera Z rotation: %7.3f", app->camera->origin.rz);
+	sprintf(app->console->buff + app->console->width *  3, "--------------------------");
+	
+	sprintf(app->console->buff + app->console->width *  4,  "%-17s: %7.3f", "Camera X" ,app->camera->origin.x);
+	sprintf(app->console->buff + app->console->width *  5,  "%-17s: %7.3f", "Camera Y", app->camera->origin.y);
+	sprintf(app->console->buff + app->console->width *  6,  "%-17s: %7.3f", "Camera Z", app->camera->origin.z);
+
+	sprintf(app->console->buff + app->console->width *  7, "--------------------------");
+
+	sprintf(app->console->buff + app->console->width *  8,  "%-17s: %7.3f", "Cube X rotation", app->cube->origin.rx);
+	sprintf(app->console->buff + app->console->width *  9,  "%-17s: %7.3f", "Cube Y rotation", app->cube->origin.ry);
+	sprintf(app->console->buff + app->console->width * 10,  "%-17s: %7.3f", "Cube Z rotation", app->cube->origin.rz);
+
+	sprintf(app->console->buff + app->console->width * 11, "--------------------------");
+
+	sprintf(app->console->buff + app->console->width * 12, "%-17s: %7.3f", "Cube X", app->cube->origin.x);
+	sprintf(app->console->buff + app->console->width * 13, "%-17s: %7.3f", "Cube Y", app->cube->origin.y);
+	sprintf(app->console->buff + app->console->width * 14, "%-17s: %7.3f", "Cube Z", app->cube->origin.z);
+
+	for (int row = 0; row <= 14; row++)
+		for (int col = 0; col < 26; col++)
+			(app->console->attrs + app->console->width * row)[col] = 0x07;
+}
+
+// =============================================================================
 // @@@ + app_update
 // =============================================================================
 void app_update(App *app)
@@ -144,17 +175,9 @@ void app_update(App *app)
 			}
 		}
 	}
-	sprintf(app->console->buff + app->console->width * 0, "camera->origin.rx: %7.3f", app->camera->origin.rx);
-	sprintf(app->console->buff + app->console->width * 1, "camera->origin.ry: %7.3f", app->camera->origin.ry);
-	sprintf(app->console->buff + app->console->width * 2, "camera->origin.rz: %7.3f", app->camera->origin.rz);
 
-	sprintf(app->console->buff + app->console->width * 3, "camera->origin.x: %8.3f", app->camera->origin.x);
-	sprintf(app->console->buff + app->console->width * 4, "camera->origin.y: %8.3f", app->camera->origin.y);
-	sprintf(app->console->buff + app->console->width * 5, "camera->origin.z: %8.3f", app->camera->origin.z);
-
-	sprintf(app->console->buff + app->console->width * 6, "  cube->origin.x: %8.3f", app->cube->origin.x);
-	sprintf(app->console->buff + app->console->width * 7, "  cube->origin.y: %8.3f", app->cube->origin.y);
-	sprintf(app->console->buff + app->console->width * 8, "  cube->origin.z: %8.3f", app->cube->origin.z);
+	if (app->debug)
+		App_show_debug_info(app);
 }
 
 // =============================================================================
@@ -236,6 +259,10 @@ uint8_t app_listen(App *app)
 				Camera_reset(app->camera);
 				Cube_reset(app->cube);
 				break;
+		
+			case 'i':
+				app->debug ^= 1;
+				break;
 		}
 	}
 
@@ -271,6 +298,7 @@ int main()
 		.z_buffer = malloc(sizeof(float) * console.size),
 		.ks       = ks,
 		.kx       = kx,
+		.debug    = 0,
 	};
 
 	CURSOR_INFO(&app);

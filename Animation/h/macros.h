@@ -5,7 +5,7 @@
 #define CURSOR_HIDE(env) cursorInfo.bVisible = 0; SetConsoleCursorInfo((env)->console->handle, &cursorInfo);
 #define CURSOR_SHOW(env) cursorInfo.bVisible = 1; SetConsoleCursorInfo((env)->console->handle, &cursorInfo);
 
-#define LOOP_TO(value) for (size_t index = 0; index < (value); index++)
+#define LOOP_TO (value) for (size_t index = 0; index < (value); index++)
 
 #define PUSH_ADDR(addr) void *tmp = (addr);
 #define  POP_ADDR(addr) (addr) = tmp;
