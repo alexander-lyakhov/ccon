@@ -7,7 +7,7 @@
 #include "./origin.h"
 
 typedef struct Camera {
-	Origin origin;
+	Origin origin, origin_default;
 } Camera;
 
 // Function prototypes
@@ -20,6 +20,7 @@ void   Camera_translate_z            (Camera *camera, float dx);
 void   Camera_rotate_x               (Camera *camera, float angle);
 void   Camera_rotate_y               (Camera *camera, float angle);
 void   Camera_rotate_z               (Camera *camera, float angle);
+void   Camera_reset                  (Camera *camera);
 Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 //----------------------------------------------------------------------------------
 // End of function prototypes
@@ -48,6 +49,8 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 		camera->origin.rx = 0;
 		camera->origin.ry = 0;
 		camera->origin.rz = 0;
+
+		camera->origin_default = camera->origin;
 	}
 
 	// =============================================================================
@@ -97,6 +100,14 @@ Vec3D  Camera_calculate_single_point (Camera *camera, const Vec3D *v);
 	void Camera_rotate_z(Camera *camera, float angle)
 	{
 		camera->origin.rz += angle;
+	}
+
+	// =============================================================================
+	// @@@ + Camera_reset
+	// =============================================================================
+	void Camera_reset(Camera *camera)
+	{
+		camera->origin = camera->origin_default;
 	}
 
 	// =============================================================================

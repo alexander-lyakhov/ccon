@@ -8,10 +8,11 @@
 #define PI 3.14159
 
 typedef struct Cube {
-	Origin  origin;
+	Origin  origin, origin_default;
 	Plane   face[FACE_COUNT];
 	Plane*  current_face;
 	uint8_t curr_face_index;
+	uint8_t is_rotating;
 	size_t  size;
 } Cube;
 
@@ -25,6 +26,8 @@ void   Cube_translate_z            (Cube *cube, float dz);
 void   Cube_rotate_x               (Cube *cube, float angle);
 void   Cube_rotate_y               (Cube *cube, float angle);
 void   Cube_rotate_z               (Cube *cube, float angle);
+void   Cube_toggle_rotate          (Cube *cube);
+void   Cube_reset                  (Cube *cube);
 Plane* Cube_set_current_face       (Cube *cube, uint8_t face_index);
 Plane* Cube_get_current_face       (Cube *cube);
 Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
@@ -93,6 +96,8 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		cube->size = FACE_COUNT;
 		cube->curr_face_index = 0;
+		cube->is_rotating = 0;
+		cube->origin_default = cube->origin;
 	}
 
 	// =============================================================================
@@ -141,6 +146,22 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	void Cube_rotate_z(Cube *cube, float angle)
 	{
 		cube->origin.rz += angle;
+	}
+
+	// =============================================================================
+	// @@@ + Cube_toggle_rotate
+	// =============================================================================
+	void Cube_toggle_rotate(Cube *cube)
+	{
+		cube->is_rotating ^= 1;
+	}
+
+	// =============================================================================
+	// @@@ + Cube_reset
+	// =============================================================================
+	void Cube_reset(Cube *cube)
+	{
+		cube->origin = cube->origin_default;
 	}
 
 	// =============================================================================

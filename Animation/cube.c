@@ -104,9 +104,12 @@ void app_update(App *app)
 	for (size_t i = 0; i < app->console->size; i++)
 		app->z_buffer[i] = 1000;
 
-	// Cube_rotate_x(app->cube, 0.025);
-	// Cube_rotate_y(app->cube, 0.05);
-	// Cube_rotate_z(app->cube, 0);
+	if (app->cube->is_rotating)
+	{
+		Cube_rotate_x(app->cube, 0.025);
+		Cube_rotate_y(app->cube, 0.05);
+		Cube_rotate_z(app->cube, 0);
+	}
 
 	size_t buff_size = SIZE * SIZE;
 
@@ -221,6 +224,17 @@ uint8_t app_listen(App *app)
 
 			case 'l':
 				Cube_translate_y(app->cube, 0.1);
+				break;
+			
+			// Other
+			//----------------------------------------
+			case ' ':
+				Cube_toggle_rotate(app->cube);
+				break;
+
+			case 'r':
+				Camera_reset(app->camera);
+				Cube_reset(app->cube);
 				break;
 		}
 	}
