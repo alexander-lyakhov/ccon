@@ -14,18 +14,18 @@ typedef struct Plane {
 // Function prototypes
 //----------------------------------------------------------------------------------
 void  Plane_init_static_buff();
+void  Plane_free_static_buff(Plane *plane);
 
-Plane Plane_create      (Vec3D v, char texture);
-void  Plane_init        (Plane *plane, Vec3D v, char texture);
-void  Plane_free        (Plane *plane);
+Plane Plane_create          (Vec3D v, char texture);
+void  Plane_init            (Plane *plane, Vec3D v, char texture);
 
-void  Plane_translate_x (Plane *plane, float dx);
-void  Plane_translate_y (Plane *plane, float dy);
-void  Plane_translate_z (Plane *plane, float dz);
+void  Plane_translate_x     (Plane *plane, float dx);
+void  Plane_translate_y     (Plane *plane, float dy);
+void  Plane_translate_z     (Plane *plane, float dz);
 
-void  Plane_rotate_x    (Plane *plane, float angle);
-void  Plane_rotate_y    (Plane *plane, float angle);
-void  Plane_rotate_z    (Plane *plane, float angle);
+void  Plane_rotate_x        (Plane *plane, float angle);
+void  Plane_rotate_y        (Plane *plane, float angle);
+void  Plane_rotate_z        (Plane *plane, float angle);
 //----------------------------------------------------------------------------------
 // End of function prototypes
 
@@ -60,6 +60,15 @@ void  Plane_rotate_z    (Plane *plane, float angle);
 	}
 
 	// =============================================================================
+	// @@@ + Plane_free_static_buff
+	// =============================================================================
+	void Plane_free_static_buff(Plane *plane)
+	{
+		free(plane->buff);
+		plane->buff = NULL;
+	}
+
+	// =============================================================================
 	// @@@ + Plane_create
 	// =============================================================================
 	Plane Plane_create(Vec3D v, char texture)
@@ -81,15 +90,6 @@ void  Plane_rotate_z    (Plane *plane, float angle);
 
 		plane->texture = texture;
 		plane->buff = buff;
-	}
-
-	// =============================================================================
-	// @@@ + Plane_free
-	// =============================================================================
-	void Plane_free(Plane *plane)
-	{
-		free(plane->buff);
-		plane->buff = NULL;
 	}
 
 	// =============================================================================

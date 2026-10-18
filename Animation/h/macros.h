@@ -1,7 +1,7 @@
 #ifndef MACROS_H__
 #define MACROS_H__
 
-#define CURSOR_INFO(env) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((env)->console->handle, &cursorInfo);
+#define CURSOR_INIT(env) CONSOLE_CURSOR_INFO cursorInfo; GetConsoleCursorInfo((env)->console->handle, &cursorInfo);
 #define CURSOR_HIDE(env) cursorInfo.bVisible = 0; SetConsoleCursorInfo((env)->console->handle, &cursorInfo);
 #define CURSOR_SHOW(env) cursorInfo.bVisible = 1; SetConsoleCursorInfo((env)->console->handle, &cursorInfo);
 

@@ -55,6 +55,11 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_init(Cube *cube, Vec3D v)
 	{
+		cube->size = FACE_COUNT;
+		cube->curr_face_index = 0;
+		cube->is_rotating = 1;
+		cube->origin_default = cube->origin;
+
 		Plane_init_static_buff();
 
 		cube->origin.x = v.x;
@@ -93,11 +98,6 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		for (int i = 0; i < FACE_COUNT; i++)
 			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
-
-		cube->size = FACE_COUNT;
-		cube->curr_face_index = 0;
-		cube->is_rotating = 0;
-		cube->origin_default = cube->origin;
 	}
 
 	// =============================================================================

@@ -60,9 +60,9 @@ void app_render_attrs(Console *console)
 }
 
 // =============================================================================
-// @@@ + app_render
+// @@@ + App_render
 // =============================================================================
-void app_render(Console *console)
+void App_render(Console *console)
 {
 	app_render_buff(console);
 	app_render_attrs(console);
@@ -125,12 +125,12 @@ void App_show_debug_info(App *app)
 }
 
 // =============================================================================
-// @@@ + app_update
+// @@@ + App_update
 // =============================================================================
-void app_update(App *app)
+void App_update(App *app)
 {
-	// Console_mem_fill(app->console, " ", 0x03);
-	memset(app->console->buff, ' ', app->console->size);
+	Console_mem_fill(app->console, " ", 0x03);
+	// memset(app->console->buff, ' ', app->console->size);
 
 	for (size_t i = 0; i < app->console->size; i++)
 		app->z_buffer[i] = 1000;
@@ -181,9 +181,9 @@ void app_update(App *app)
 }
 
 // =============================================================================
-// @@@ + app_listen
+// @@@ + App_listen
 // =============================================================================
-uint8_t app_listen(App *app)
+uint8_t App_listen(App *app)
 {
 	if (_kbhit())
 	{
@@ -269,12 +269,22 @@ uint8_t app_listen(App *app)
 	return 1;
 }
 
+// =============================================================================
+// @@@ + App_free_mem
+// =============================================================================
+void App_free_mem(App *app)
+{
+	Console_mem_free(app->console);
+	Plane_free_static_buff(&(app->cube->face[0]));
+	free(app->z_buffer);
+}
+
 int main()
 {
 	system("cls");
 
 	Console console = Console_create();
-	Console_mem_fill(&console, " ", 0x03);
+	// Console_mem_fill(&console, " ", 0x03);
 
 	float font_ar = console.font_ar;
 	if (!font_ar) font_ar = 0.462; // fallback for my Windows Terminal
@@ -301,24 +311,17 @@ int main()
 		.debug    = 0,
 	};
 
-	CURSOR_INFO(&app);
+	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
-
-	// app_render(&console);
-
-	// printf("%f", kx);
 	
-	while (app_listen(&app))
+	while (App_listen(&app))
 	{
-		app_render(&console);
-		app_update(&app);
+		App_render(&console);
+		App_update(&app);
 		usleep(5000);
 	}
-	
-	Console_mem_free(&console);
-	// free(plane.buff);
-	Plane_free(&cube.face[0]);
-	free(app.z_buffer);
+
+	App_free_mem(&app);
 
 	CURSOR_SHOW(&app);
 
