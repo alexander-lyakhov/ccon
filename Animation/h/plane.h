@@ -39,8 +39,6 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	// =============================================================================
 	void Plane_init_static_buff()
 	{
-		puts("Plane_init_static_buff");
-
 		buff = malloc(SIZE * SIZE * sizeof(Vec3D));
 
 		float kx_distribution = (float)SIZE / (SIZE - 1);

@@ -30,6 +30,7 @@ typedef struct App {
 	Cube *cube;
 
 	float *z_buffer;
+	char *texture;
 
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
@@ -138,8 +139,8 @@ void App_update(App *app)
 	if (app->cube->is_rotating)
 	{
 		Cube_rotate_x(app->cube, 0.025);
-		Cube_rotate_y(app->cube, 0.05);
-		Cube_rotate_z(app->cube, 0);
+		Cube_rotate_y(app->cube, 0.025);
+		// Cube_rotate_z(app->cube, 0.025);
 	}
 
 	size_t buff_size = SIZE * SIZE;
@@ -170,7 +171,7 @@ void App_update(App *app)
 
 			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
 			{
-				((char*)app->console->buff)[index] = face->texture;
+				((char*)app->console->buff)[index] = app->texture[i] == '#' ? '.' : face->texture;
 				app->z_buffer[index] = p.z;
 			}
 		}
@@ -277,6 +278,35 @@ void App_free_mem(App *app)
 	Console_mem_free(app->console);
 	Plane_free_static_buff(&(app->cube->face[0]));
 	free(app->z_buffer);
+	free(app->texture);
+}
+
+// =============================================================================
+// @@@ + App_load_texture
+// =============================================================================
+uint8_t App_load_texture(App *app)
+{
+	FILE *file = fopen("ASCII-04.txt", "r");
+
+	if (!file) return 0;
+
+	char str[256];
+
+	for (char *p = app->texture;;)
+	{
+		fgets(str, 256, file);
+
+		if (feof(file))
+			break;
+
+		memcpy(p, str, SIZE);
+		p += SIZE;
+
+		memcpy(p, str, SIZE);
+		p += SIZE;
+	}
+
+	return 1;
 }
 
 int main()
@@ -284,7 +314,7 @@ int main()
 	system("cls");
 
 	Console console = Console_create();
-	// Console_mem_fill(&console, " ", 0x03);
+	Console_mem_fill(&console, " ", 0x03);
 
 	float font_ar = console.font_ar;
 	if (!font_ar) font_ar = 0.462; // fallback for my Windows Terminal
@@ -294,7 +324,7 @@ int main()
 	float kx = ks / (screen_ar * font_ar);
 
 	Camera camera = Camera_create(
-		(Vec3D){0, 0, -4}
+		(Vec3D){0, 0, -3}
 	);
 	
 	Cube cube = Cube_create(
@@ -306,10 +336,17 @@ int main()
 		.camera   = &camera,
 		.cube     = &cube,
 		.z_buffer = malloc(sizeof(float) * console.size),
+		.texture  = malloc(sizeof(char) * SIZE * SIZE),
 		.ks       = ks,
 		.kx       = kx,
 		.debug    = 0,
 	};
+
+	if (!App_load_texture(&app)) {
+		perror("File open error");
+		App_free_mem(&app);
+		exit(1);
+	}
 
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
@@ -320,7 +357,7 @@ int main()
 		App_update(&app);
 		usleep(5000);
 	}
-
+	
 	App_free_mem(&app);
 
 	CURSOR_SHOW(&app);
