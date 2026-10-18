@@ -140,7 +140,7 @@ void App_update(App *app)
 	{
 		Cube_rotate_x(app->cube, 0.025);
 		Cube_rotate_y(app->cube, 0.025);
-		// Cube_rotate_z(app->cube, 0.025);
+		Cube_rotate_z(app->cube, 0.025);
 	}
 
 	size_t buff_size = SIZE * SIZE;
@@ -171,7 +171,10 @@ void App_update(App *app)
 
 			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
 			{
-				((char*)app->console->buff)[index] = app->texture[i] == '#' ? '.' : face->texture;
+				((char*)app->console->buff)[index] = app->texture[i] == '#'
+					? face_index < 3 ? '#' : '.'
+					: face->texture;
+
 				app->z_buffer[index] = p.z;
 			}
 		}
