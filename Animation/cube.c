@@ -140,7 +140,7 @@ void App_update(App *app)
 	{
 		Cube_rotate_x(app->cube, 0.025);
 		Cube_rotate_y(app->cube, 0.025);
-		Cube_rotate_z(app->cube, 0.025);
+		// Cube_rotate_z(app->cube, 0.025);
 	}
 
 	size_t buff_size = SIZE * SIZE;
@@ -289,7 +289,7 @@ void App_free_mem(App *app)
 // =============================================================================
 uint8_t App_load_texture(App *app)
 {
-	FILE *file = fopen("ASCII-04.txt", "r");
+	FILE *file = fopen("texture.txt", "r");
 
 	if (!file) return 0;
 
