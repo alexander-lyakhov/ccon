@@ -141,7 +141,7 @@ void App_update(App *app)
 	{
 		Cube_rotate_x(app->cube, 0.025);
 		Cube_rotate_y(app->cube, 0.025);
-		// Cube_rotate_z(app->cube, 0.025);
+		Cube_rotate_z(app->cube, 0.025);
 	}
 
 	size_t buff_size = SIZE * SIZE;
@@ -366,16 +366,6 @@ int main()
 	};
 	
 	app.texture = App_load_texture(&app);
-
-	printf("%p", app.texture);
-	// App_free_mem(&app);
-	// return 1;
-
-	/*if (!App_load_texture(&app)) {
-		perror("File open error");
-		App_free_mem(&app);
-		exit(1);
-	}*/
 
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
