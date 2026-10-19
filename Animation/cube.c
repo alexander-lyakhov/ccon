@@ -35,7 +35,8 @@ typedef struct App {
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
 
-	uint8_t debug;
+	uint8_t is_debug_mode;
+	uint8_t is_texture_visible;
 } App;
 
 void app_render_buff(Console *console)
@@ -171,16 +172,19 @@ void App_update(App *app)
 
 			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
 			{
-				((char*)app->console->buff)[index] = app->texture[i] == '#'
-					? face_index < 3 ? '#' : '.'
-					: face->texture;
+				((char*)app->console->buff)[index] = face->texture;
+
+				if (app->texture && app->is_texture_visible)
+					((char*)app->console->buff)[index] = app->texture[i] == '#'
+						? face_index < 3 ? '#' : '.'
+						: face->texture;
 
 				app->z_buffer[index] = p.z;
 			}
 		}
 	}
 
-	if (app->debug)
+	if (app->is_debug_mode)
 		App_show_debug_info(app);
 }
 
@@ -263,9 +267,13 @@ uint8_t App_listen(App *app)
 				Camera_reset(app->camera);
 				Cube_reset(app->cube);
 				break;
-		
+
 			case 'i':
-				app->debug ^= 1;
+				app->is_debug_mode ^= 1;
+				break;
+
+			case 't':
+				app->is_texture_visible ^= 1;
 				break;
 		}
 	}
@@ -280,22 +288,33 @@ void App_free_mem(App *app)
 {
 	Console_mem_free(app->console);
 	Plane_free_static_buff(&(app->cube->face[0]));
-	free(app->z_buffer);
-	free(app->texture);
+	
+	if (app->z_buffer)
+	{
+		free(app->z_buffer);
+		app->z_buffer = NULL;
+	}
+		
+	if (app->texture)
+	{
+		free(app->texture);
+		app->texture = NULL;
+	}
 }
 
 // =============================================================================
 // @@@ + App_load_texture
 // =============================================================================
-uint8_t App_load_texture(App *app)
+char* App_load_texture(App *app)
 {
 	FILE *file = fopen("texture.txt", "r");
 
-	if (!file) return 0;
+	if (!file) return NULL;
 
+	char *texture = malloc(sizeof(char) * SIZE * SIZE);
 	char str[256];
 
-	for (char *p = app->texture;;)
+	for (char *p = texture;;)
 	{
 		fgets(str, 256, file);
 
@@ -309,7 +328,7 @@ uint8_t App_load_texture(App *app)
 		p += SIZE;
 	}
 
-	return 1;
+	return texture;
 }
 
 int main()
@@ -335,21 +354,28 @@ int main()
 	);
 
 	App app = {
-		.console  = &console,
-		.camera   = &camera,
-		.cube     = &cube,
-		.z_buffer = malloc(sizeof(float) * console.size),
-		.texture  = malloc(sizeof(char) * SIZE * SIZE),
-		.ks       = ks,
-		.kx       = kx,
-		.debug    = 0,
+		.console            = &console,
+		.camera             = &camera,
+		.cube               = &cube,
+		.z_buffer           = malloc(sizeof(float) * console.size),
+		.texture            = NULL,
+		.ks                 = ks,
+		.kx                 = kx,
+		.is_debug_mode      = 0,
+		.is_texture_visible = 1,
 	};
+	
+	app.texture = App_load_texture(&app);
 
-	if (!App_load_texture(&app)) {
+	printf("%p", app.texture);
+	// App_free_mem(&app);
+	// return 1;
+
+	/*if (!App_load_texture(&app)) {
 		perror("File open error");
 		App_free_mem(&app);
 		exit(1);
-	}
+	}*/
 
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
