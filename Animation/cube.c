@@ -284,10 +284,10 @@ uint8_t App_listen(App *app)
 // =============================================================================
 // @@@ + App_free_mem
 // =============================================================================
-void App_free_mem(App *app)
+void App_free(App *app)
 {
 	Console_mem_free(app->console);
-	Plane_free_static_buff(&(app->cube->face[0]));
+	  Plane_mem_free(&(app->cube->face[0]));
 	
 	if (app->z_buffer)
 	{
@@ -305,7 +305,7 @@ void App_free_mem(App *app)
 // =============================================================================
 // @@@ + App_load_texture
 // =============================================================================
-char* App_load_texture(App *app)
+char* App_load_texture()
 {
 	FILE *file = fopen("texture.txt", "r");
 
@@ -358,15 +358,13 @@ int main()
 		.camera             = &camera,
 		.cube               = &cube,
 		.z_buffer           = malloc(sizeof(float) * console.size),
-		.texture            = NULL,
+		.texture            = App_load_texture(),
 		.ks                 = ks,
 		.kx                 = kx,
 		.is_debug_mode      = 0,
 		.is_texture_visible = 1,
 	};
 	
-	app.texture = App_load_texture(&app);
-
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
 	
@@ -377,7 +375,7 @@ int main()
 		usleep(5000);
 	}
 	
-	App_free_mem(&app);
+	App_free(&app);
 
 	CURSOR_SHOW(&app);
 

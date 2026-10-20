@@ -14,7 +14,7 @@ typedef struct Plane {
 // Function prototypes
 //----------------------------------------------------------------------------------
 void  Plane_init_static_buff();
-void  Plane_free_static_buff(Plane *plane);
+void  Plane_mem_free(Plane *plane);
 
 Plane Plane_create          (Vec3D v, char texture);
 void  Plane_init            (Plane *plane, Vec3D v, char texture);
@@ -58,9 +58,10 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	}
 
 	// =============================================================================
-	// @@@ + Plane_free_static_buff
+	// @@@ + Plane_mem_free
 	// =============================================================================
-	void Plane_free_static_buff(Plane *plane)
+	// void Plane_free_static_buff(Plane *plane)
+	void Plane_mem_free(Plane *plane)
 	{
 		free(plane->buff);
 		plane->buff = NULL;
