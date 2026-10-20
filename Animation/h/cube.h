@@ -24,7 +24,7 @@ typedef struct Cube {
 //----------------------------------------------------------------------------------
 Cube   Cube_create                 (Vec3D v);
 void   Cube_init                   (Cube *cube, Vec3D v);
-char*  Cube_load_texture           (Cube *cube);
+char*  Cube_load_texture           (Cube *cube, const char *filename);
 void   Cube_mem_free               (Cube *cube);
 void   Cube_translate_x            (Cube *cube, float dx);
 void   Cube_translate_y            (Cube *cube, float dy);
@@ -65,7 +65,7 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->curr_face_index    = 0;
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;
-		cube->texture            = Cube_load_texture(cube);
+		cube->texture            = NULL;
 
 		Plane_init_static_buff();
 
@@ -112,9 +112,9 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	// @@@ + Cube_load_texture
 	// =============================================================================
-	char* Cube_load_texture(Cube *cube)
+	char* Cube_load_texture(Cube *cube, const char *filename)
 	{
-		FILE *file = fopen("texture.txt", "r");
+		FILE *file = fopen(filename, "r");
 
 		if (!file) return NULL;
 
@@ -134,6 +134,8 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 			memcpy(p, str, SIZE);
 			p += SIZE;
 		}
+
+		cube->texture = texture;
 
 		return texture;
 	}

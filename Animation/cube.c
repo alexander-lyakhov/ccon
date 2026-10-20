@@ -344,6 +344,9 @@ int main()
 	Cube cube = Cube_create(
 		(Vec3D){0, 0, 4}
 	);
+	Cube_load_texture(
+		&cube, "texture.txt"
+	);
 
 	App app = {
 		.console       = &console,
