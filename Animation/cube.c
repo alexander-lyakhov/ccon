@@ -37,6 +37,23 @@ typedef struct App {
 	uint8_t is_debug_mode;
 } App;
 
+// =============================================================================
+// @@@ + App_init
+// =============================================================================
+void App_init(App *app)
+{
+
+	float screen_ar = (float)app->console->width / app->console->height;
+	float font_ar   = app->console->font_ar;
+	
+	if (!font_ar)
+		font_ar = 0.462; // fallback for my Windows Terminal
+
+	app->z_buffer = malloc(sizeof(float) * app->console->size),
+	app->ks = 2.5;
+	app->kx = app->ks / (screen_ar * font_ar);
+}
+
 void app_render_buff(Console *console)
 {
 	WriteConsoleOutputCharacter(
@@ -188,10 +205,28 @@ void App_update(App *app)
 }
 
 // =============================================================================
+// @@@ + App_resize
+// =============================================================================
+uint8_t App_resize(App *app)
+{
+	Console_mem_reset(app->console);
+
+	if (app->z_buffer)
+		free(app->z_buffer);
+
+	App_init(app);
+
+	return 1;
+}
+
+// =============================================================================
 // @@@ + App_listen
 // =============================================================================
 uint8_t App_listen(App *app)
 {
+	if (Console_check_resize(app->console))
+		return App_resize(app);
+
 	if (_kbhit())
 	{
 		char key = _getch();
@@ -287,7 +322,7 @@ void App_free(App *app)
 {
 	Console_mem_free(app->console);
 	   Cube_mem_free(app->cube);
-	
+
 	if (app->z_buffer)
 		free(app->z_buffer);
 
@@ -330,13 +365,6 @@ int main()
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x03);
 
-	float font_ar = console.font_ar;
-	if (!font_ar) font_ar = 0.462; // fallback for my Windows Terminal
-
-	float screen_ar = (float)console.width / console.height;
-	float ks = 2.5;
-	float kx = ks / (screen_ar * font_ar);
-
 	Camera camera = Camera_create(
 		(Vec3D){0, 0, -3}
 	);
@@ -352,11 +380,10 @@ int main()
 		.console       = &console,
 		.camera        = &camera,
 		.cube          = &cube,
-		.z_buffer      = malloc(sizeof(float) * console.size),
-		.ks            = ks,
-		.kx            = kx,
 		.is_debug_mode = 0,
 	};
+
+	App_init(&app);
 	
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
