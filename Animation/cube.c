@@ -30,13 +30,11 @@ typedef struct App {
 	Cube *cube;
 
 	float *z_buffer;
-	char *texture;
 
 	float ks; // general screen scale
 	float kx; // screen x scale (actual for console)
 
 	uint8_t is_debug_mode;
-	uint8_t is_texture_visible;
 } App;
 
 void app_render_buff(Console *console)
@@ -174,11 +172,12 @@ void App_update(App *app)
 			{
 				((char*)app->console->buff)[index] = face->texture;
 
-				if (app->texture && app->is_texture_visible)
-					((char*)app->console->buff)[index] = app->texture[i] == '#'
+				if (app->cube->texture && app->cube->is_texture_visible)
+				{
+					((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
 						? face_index < 3 ? '#' : '.'
 						: face->texture;
-
+				}
 				app->z_buffer[index] = p.z;
 			}
 		}
@@ -273,7 +272,7 @@ uint8_t App_listen(App *app)
 				break;
 
 			case 't':
-				app->is_texture_visible ^= 1;
+				app->cube->is_texture_visible ^= 1;
 				break;
 		}
 	}
@@ -291,12 +290,8 @@ void App_free(App *app)
 	
 	if (app->z_buffer)
 		free(app->z_buffer);
-		
-	if (app->texture)
-		free(app->texture);
 
 	app->z_buffer = NULL;
-	app->texture  = NULL;
 }
 
 // =============================================================================
@@ -351,15 +346,13 @@ int main()
 	);
 
 	App app = {
-		.console            = &console,
-		.camera             = &camera,
-		.cube               = &cube,
-		.z_buffer           = malloc(sizeof(float) * console.size),
-		.texture            = App_load_texture(),
-		.ks                 = ks,
-		.kx                 = kx,
-		.is_debug_mode      = 0,
-		.is_texture_visible = 1,
+		.console       = &console,
+		.camera        = &camera,
+		.cube          = &cube,
+		.z_buffer      = malloc(sizeof(float) * console.size),
+		.ks            = ks,
+		.kx            = kx,
+		.is_debug_mode = 0,
 	};
 	
 	CURSOR_INIT(&app);

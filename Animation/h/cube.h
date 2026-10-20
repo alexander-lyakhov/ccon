@@ -11,15 +11,20 @@ typedef struct Cube {
 	Origin  origin, origin_default;
 	Plane   face[FACE_COUNT];
 	Plane*  current_face;
-	uint8_t curr_face_index;
-	uint8_t is_rotating;
+	char*   texture;
+	
 	size_t  size;
+	uint8_t curr_face_index;
+
+	uint8_t is_rotating;
+	uint8_t is_texture_visible;
 } Cube;
 
 // Function prototypes
 //----------------------------------------------------------------------------------
 Cube   Cube_create                 (Vec3D v);
 void   Cube_init                   (Cube *cube, Vec3D v);
+char*  Cube_load_texture           (Cube *cube);
 void   Cube_mem_free               (Cube *cube);
 void   Cube_translate_x            (Cube *cube, float dx);
 void   Cube_translate_y            (Cube *cube, float dy);
@@ -56,9 +61,11 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_init(Cube *cube, Vec3D v)
 	{
-		cube->size = FACE_COUNT;
-		cube->curr_face_index = 0;
-		cube->is_rotating = 1;
+		cube->size               = FACE_COUNT;
+		cube->curr_face_index    = 0;
+		cube->is_rotating        = 1;
+		cube->is_texture_visible = 1;
+		cube->texture            = Cube_load_texture(cube);
 
 		Plane_init_static_buff();
 
@@ -103,11 +110,45 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	}
 
 	// =============================================================================
+	// @@@ + Cube_load_texture
+	// =============================================================================
+	char* Cube_load_texture(Cube *cube)
+	{
+		FILE *file = fopen("texture.txt", "r");
+
+		if (!file) return NULL;
+
+		char *texture = malloc(sizeof(char) * SIZE * SIZE);
+		char str[256];
+
+		for (char *p = texture;;)
+		{
+			fgets(str, 256, file);
+
+			if (feof(file))
+				break;
+
+			memcpy(p, str, SIZE);
+			p += SIZE;
+
+			memcpy(p, str, SIZE);
+			p += SIZE;
+		}
+
+		return texture;
+	}
+
+	// =============================================================================
 	// @@@ + Cube_mem_free
 	// =============================================================================
 	void Cube_mem_free(Cube *cube)
 	{
 		Plane_mem_free(&(cube->face[0]));
+
+		if (cube->texture)
+			free(cube->texture);
+
+		cube->texture = NULL;
 	}
 
 	// =============================================================================
