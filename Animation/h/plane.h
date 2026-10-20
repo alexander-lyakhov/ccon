@@ -6,8 +6,9 @@
 
 typedef struct Plane {
 	Origin origin;
-	Vec3D *buff;
-	char texture;
+	Vec3D* buff;
+	size_t buff_size;
+	char   texture;
 
 } Plane;
 
@@ -84,12 +85,13 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	// =============================================================================
 	void Plane_init(Plane *plane, Vec3D v, char texture)
 	{
-		plane->origin.x = v.x;
-		plane->origin.y = v.y;
-		plane->origin.z = v.z;
+		plane->origin.x  = v.x;
+		plane->origin.y  = v.y;
+		plane->origin.z  = v.z;
 
-		plane->texture = texture;
-		plane->buff = buff;
+		plane->texture   = texture;
+		plane->buff      = buff;
+		plane->buff_size = SIZE * SIZE;
 	}
 
 	// =============================================================================

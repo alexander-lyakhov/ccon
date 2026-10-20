@@ -162,15 +162,34 @@ void App_show_debug_info(App *app)
 }
 
 // =============================================================================
+// @@@ + reset_z_buffer
+// =============================================================================
+void reset_z_buffer(App *app)
+{
+	for (size_t i = 0; i < app->console->size; i++)
+		app->z_buffer[i] = 1000;
+}
+
+// =============================================================================
+// @@@ + is_out_of_screen
+// =============================================================================
+uint8_t is_out_of_screen(Console *console, const COORD *screen_pos)
+{
+	return false
+		|| screen_pos->X < 0
+		|| screen_pos->X >= console->width
+		|| screen_pos->Y < 0
+		|| screen_pos->Y >= console->height;
+}
+
+// =============================================================================
 // @@@ + App_update
 // =============================================================================
 void App_update(App *app)
 {
 	Console_mem_fill(app->console, " ", 0x03);
 	// memset(app->console->buff, ' ', app->console->size);
-
-	for (size_t i = 0; i < app->console->size; i++)
-		app->z_buffer[i] = 1000;
+	reset_z_buffer(app);
 
 	if (app->cube->is_rotating)
 	{
@@ -179,13 +198,11 @@ void App_update(App *app)
 		Cube_rotate_z(app->cube, 0.025);
 	}
 
-	size_t buff_size = SIZE * SIZE;
-
 	for (size_t face_index = 0; face_index < app->cube->size; face_index++)
 	{
 		Plane *face = Cube_set_current_face(app->cube, face_index);
-
-		for (size_t i = 0; i < buff_size; i++)
+		
+		for (size_t i = 0; i < face->buff_size; i++)
 		{
 			Vec3D p = face->buff[i];
 
@@ -196,12 +213,8 @@ void App_update(App *app)
 				app, project2D(app, p)
 			);
 
-			if (false
-				|| screen_pos.X < 0
-				|| screen_pos.X >= app->console->width
-				|| screen_pos.Y < 0
-				|| screen_pos.Y >= app->console->height
-			) continue;
+			if (is_out_of_screen(app->console, &screen_pos))
+				continue;
 
 			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
@@ -209,7 +222,7 @@ void App_update(App *app)
 			{
 				((char*)app->console->buff)[index] = face->texture;
 
-				if (app->cube->texture && app->cube->is_texture_visible)
+				if (Cube_should_display_texture(app->cube))
 				{
 					((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
 						? face_index < 3 ? '#' : '.'
@@ -218,6 +231,7 @@ void App_update(App *app)
 				app->z_buffer[index] = p.z;
 			}
 		}
+		
 	}
 
 	if (app->is_debug_mode)

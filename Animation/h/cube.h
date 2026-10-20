@@ -22,21 +22,22 @@ typedef struct Cube {
 
 // Function prototypes
 //----------------------------------------------------------------------------------
-Cube   Cube_create                 (Vec3D v);
-void   Cube_init                   (Cube *cube, Vec3D v);
-char*  Cube_load_texture           (Cube *cube, const char *filename);
-void   Cube_mem_free               (Cube *cube);
-void   Cube_translate_x            (Cube *cube, float dx);
-void   Cube_translate_y            (Cube *cube, float dy);
-void   Cube_translate_z            (Cube *cube, float dz);
-void   Cube_rotate_x               (Cube *cube, float angle);
-void   Cube_rotate_y               (Cube *cube, float angle);
-void   Cube_rotate_z               (Cube *cube, float angle);
-void   Cube_toggle_rotate          (Cube *cube);
-void   Cube_reset                  (Cube *cube);
-Plane* Cube_set_current_face       (Cube *cube, uint8_t face_index);
-Plane* Cube_get_current_face       (Cube *cube);
-Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
+Cube    Cube_create                 (Vec3D v);
+void    Cube_init                   (Cube *cube, Vec3D v);
+char*   Cube_load_texture           (Cube *cube, const char *filename);
+void    Cube_mem_free               (Cube *cube);
+void    Cube_translate_x            (Cube *cube, float dx);
+void    Cube_translate_y            (Cube *cube, float dy);
+void    Cube_translate_z            (Cube *cube, float dz);
+void    Cube_rotate_x               (Cube *cube, float angle);
+void    Cube_rotate_y               (Cube *cube, float angle);
+void    Cube_rotate_z               (Cube *cube, float angle);
+void    Cube_toggle_rotate          (Cube *cube);
+void    Cube_reset                  (Cube *cube);
+Plane*  Cube_set_current_face       (Cube *cube, uint8_t face_index);
+Plane*  Cube_get_current_face       (Cube *cube);
+uint8_t Cube_should_display_texture (Cube *cube);
+Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 //----------------------------------------------------------------------------------
 // End of function prototypes
 
@@ -236,6 +237,14 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		return &cube->face[
 			cube->curr_face_index
 		];
+	}
+
+	// =============================================================================
+	// @@@ + Cube_should_display_texture
+	// =============================================================================
+	uint8_t Cube_should_display_texture(Cube *cube)
+	{
+		return cube->texture && cube->is_texture_visible;
 	}
 
 	// =============================================================================
