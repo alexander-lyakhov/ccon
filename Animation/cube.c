@@ -282,24 +282,21 @@ uint8_t App_listen(App *app)
 }
 
 // =============================================================================
-// @@@ + App_free_mem
+// @@@ + App_free
 // =============================================================================
 void App_free(App *app)
 {
 	Console_mem_free(app->console);
-	  Plane_mem_free(&(app->cube->face[0]));
+	   Cube_mem_free(app->cube);
 	
 	if (app->z_buffer)
-	{
 		free(app->z_buffer);
-		app->z_buffer = NULL;
-	}
 		
 	if (app->texture)
-	{
 		free(app->texture);
-		app->texture = NULL;
-	}
+
+	app->z_buffer = NULL;
+	app->texture  = NULL;
 }
 
 // =============================================================================

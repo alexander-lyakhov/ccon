@@ -60,10 +60,11 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	// =============================================================================
 	// @@@ + Plane_mem_free
 	// =============================================================================
-	// void Plane_free_static_buff(Plane *plane)
 	void Plane_mem_free(Plane *plane)
 	{
-		free(plane->buff);
+		if (plane->buff)
+			free(plane->buff);
+
 		plane->buff = NULL;
 	}
 

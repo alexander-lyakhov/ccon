@@ -20,6 +20,7 @@ typedef struct Cube {
 //----------------------------------------------------------------------------------
 Cube   Cube_create                 (Vec3D v);
 void   Cube_init                   (Cube *cube, Vec3D v);
+void   Cube_mem_free               (Cube *cube);
 void   Cube_translate_x            (Cube *cube, float dx);
 void   Cube_translate_y            (Cube *cube, float dy);
 void   Cube_translate_z            (Cube *cube, float dz);
@@ -99,6 +100,14 @@ Vec3D  Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
 
 		cube->origin_default = cube->origin;
+	}
+
+	// =============================================================================
+	// @@@ + Cube_mem_free
+	// =============================================================================
+	void Cube_mem_free(Cube *cube)
+	{
+		Plane_mem_free(&(cube->face[0]));
 	}
 
 	// =============================================================================

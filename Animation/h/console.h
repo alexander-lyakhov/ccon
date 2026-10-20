@@ -159,8 +159,11 @@ void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
 // =============================================================================
 void Console_mem_free(Console *console)
 {
-	free(console->buff);
-	free(console->attrs);
+	if (console->buff)
+		free(console->buff);
+
+	if (console->attrs)
+		free(console->attrs);
 
 	console->buff  = NULL;
 	console->attrs = NULL;
