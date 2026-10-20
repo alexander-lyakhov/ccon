@@ -173,13 +173,13 @@ void reset_z_buffer(App *app)
 // =============================================================================
 // @@@ + is_out_of_screen
 // =============================================================================
-uint8_t is_out_of_screen(Console *console, const COORD *screen_pos)
+uint8_t is_out_of_screen(App *app, const COORD *screen_pos)
 {
 	return false
 		|| screen_pos->X < 0
-		|| screen_pos->X >= console->width
+		|| screen_pos->X >= app->console->width
 		|| screen_pos->Y < 0
-		|| screen_pos->Y >= console->height;
+		|| screen_pos->Y >= app->console->height;
 }
 
 // =============================================================================
@@ -204,34 +204,58 @@ void App_update(App *app)
 		
 		for (size_t i = 0; i < face->buff_size; i++)
 		{
+			//
+			// Get point from the plane
+			//
 			Vec3D p = face->buff[i];
 
+			//
+			// Rotate this point first related to the cube, then related to the camera view
+			//
 			p =   Cube_calculate_single_point(app->cube, &p);
 			p = Camera_calculate_single_point(app->camera, &p);
 
+			//
+			// Project this point into the screen
+			//
 			COORD screen_pos = pointToScreen(
 				app, project2D(app, p)
 			);
 
-			if (is_out_of_screen(app->console, &screen_pos))
+			//
+			// Check if the point is inside the screen
+			//
+			if (is_out_of_screen(app, &screen_pos))
 				continue;
 
+			//
+			// Get target console index to draw the ascii_char
+			//
 			int index = screen_pos.Y * app->console->width + screen_pos.X;
 
-			if ((index < app->console->size) && (p.z < app->z_buffer[index]))
-			{
-				((char*)app->console->buff)[index] = face->texture;
+			//
+			// Check if target index is inside the screen and the point is the closest to the camera
+			//
+			if (!(index < app->console->size && p.z < app->z_buffer[index]))
+				continue;
 
-				if (Cube_should_display_texture(app->cube))
-				{
-					((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
-						? face_index < 3 ? '#' : '.'
-						: face->texture;
-				}
-				app->z_buffer[index] = p.z;
+			app->z_buffer[index] = p.z;
+
+			//
+			// Draw ascii_char to console target position
+			//
+			((char*)app->console->buff)[index] = face->ascii_char;
+
+			//
+			// Check if the cube texture needs to be displayed
+			//
+			if (Cube_should_display_texture(app->cube))
+			{
+				((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
+					? face_index < 3 ? '#' : '.'
+					: face->ascii_char;
 			}
 		}
-		
 	}
 
 	if (app->is_debug_mode)

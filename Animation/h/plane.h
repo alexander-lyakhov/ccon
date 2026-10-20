@@ -8,7 +8,7 @@ typedef struct Plane {
 	Origin origin;
 	Vec3D* buff;
 	size_t buff_size;
-	char   texture;
+	char   ascii_char;
 
 } Plane;
 
@@ -17,8 +17,8 @@ typedef struct Plane {
 void  Plane_init_static_buff();
 void  Plane_mem_free(Plane *plane);
 
-Plane Plane_create          (Vec3D v, char texture);
-void  Plane_init            (Plane *plane, Vec3D v, char texture);
+Plane Plane_create          (Vec3D v, char ascii_char);
+void  Plane_init            (Plane *plane, Vec3D v, char ascii_char);
 
 void  Plane_translate_x     (Plane *plane, float dx);
 void  Plane_translate_y     (Plane *plane, float dy);
@@ -72,10 +72,10 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	// =============================================================================
 	// @@@ + Plane_create
 	// =============================================================================
-	Plane Plane_create(Vec3D v, char texture)
+	Plane Plane_create(Vec3D v, char ascii_char)
 	{
 		Plane plane;
-		Plane_init(&plane, v, texture);
+		Plane_init(&plane, v, ascii_char);
 
 		return plane;
 	}
@@ -83,15 +83,15 @@ void  Plane_rotate_z        (Plane *plane, float angle);
 	// =============================================================================
 	// @@@ + Plane_init
 	// =============================================================================
-	void Plane_init(Plane *plane, Vec3D v, char texture)
+	void Plane_init(Plane *plane, Vec3D v, char ascii_char)
 	{
-		plane->origin.x  = v.x;
-		plane->origin.y  = v.y;
-		plane->origin.z  = v.z;
+		plane->origin.x   = v.x;
+		plane->origin.y   = v.y;
+		plane->origin.z   = v.z;
 
-		plane->texture   = texture;
-		plane->buff      = buff;
-		plane->buff_size = SIZE * SIZE;
+		plane->ascii_char = ascii_char;
+		plane->buff       = buff;
+		plane->buff_size  = SIZE * SIZE;
 	}
 
 	// =============================================================================
