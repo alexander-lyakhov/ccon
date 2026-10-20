@@ -54,6 +54,23 @@ void App_init(App *app)
 	app->kx = app->ks / (screen_ar * font_ar);
 }
 
+// =============================================================================
+// @@@ + App_free
+// =============================================================================
+void App_free(App *app)
+{
+	Console_mem_free(app->console);
+	   Cube_mem_free(app->cube);
+
+	if (app->z_buffer)
+		free(app->z_buffer);
+
+	app->z_buffer = NULL;
+}
+
+// =============================================================================
+// @@@ + app_render_buff
+// =============================================================================
 void app_render_buff(Console *console)
 {
 	WriteConsoleOutputCharacter(
@@ -65,6 +82,9 @@ void app_render_buff(Console *console)
 	);
 }
 
+// =============================================================================
+// @@@ + app_render_attrs
+// =============================================================================
 void app_render_attrs(Console *console)
 {
 	WriteConsoleOutputAttribute(
@@ -313,49 +333,6 @@ uint8_t App_listen(App *app)
 	}
 
 	return 1;
-}
-
-// =============================================================================
-// @@@ + App_free
-// =============================================================================
-void App_free(App *app)
-{
-	Console_mem_free(app->console);
-	   Cube_mem_free(app->cube);
-
-	if (app->z_buffer)
-		free(app->z_buffer);
-
-	app->z_buffer = NULL;
-}
-
-// =============================================================================
-// @@@ + App_load_texture
-// =============================================================================
-char* App_load_texture()
-{
-	FILE *file = fopen("texture.txt", "r");
-
-	if (!file) return NULL;
-
-	char *texture = malloc(sizeof(char) * SIZE * SIZE);
-	char str[256];
-
-	for (char *p = texture;;)
-	{
-		fgets(str, 256, file);
-
-		if (feof(file))
-			break;
-
-		memcpy(p, str, SIZE);
-		p += SIZE;
-
-		memcpy(p, str, SIZE);
-		p += SIZE;
-	}
-
-	return texture;
 }
 
 int main()
