@@ -135,9 +135,10 @@ COORD pointToScreen(App *app, Vec2D p)
 // =============================================================================
 void App_show_debug_info(App *app)
 {
-	sprintf(app->console->buff + app->console->width *  0, "Camera X rotation: %7.3f", app->camera->origin.rx);
-	sprintf(app->console->buff + app->console->width *  1, "Camera Y rotation: %7.3f", app->camera->origin.ry);
-	sprintf(app->console->buff + app->console->width *  2, "Camera Z rotation: %7.3f", app->camera->origin.rz);
+	sprintf(app->console->buff + app->console->width *  0, "%-17s: %7.3f", "Camera X rotation", app->camera->origin.rx);
+	sprintf(app->console->buff + app->console->width *  1, "%-17s: %7.3f", "Camera Y rotation", app->camera->origin.ry);
+	sprintf(app->console->buff + app->console->width *  2, "%-17s: %7.3f", "Camera Z rotation", app->camera->origin.rz);
+
 	sprintf(app->console->buff + app->console->width *  3, "--------------------------");
 	
 	sprintf(app->console->buff + app->console->width *  4,  "%-17s: %7.3f", "Camera X" ,app->camera->origin.x);
@@ -157,8 +158,15 @@ void App_show_debug_info(App *app)
 	sprintf(app->console->buff + app->console->width * 14, "%-17s: %7.3f", "Cube Z", app->cube->origin.z);
 
 	for (int row = 0; row <= 14; row++)
+	{
 		for (int col = 0; col < 26; col++)
 			(app->console->attrs + app->console->width * row)[col] = 0x07;
+
+		char *buff_line = app->console->buff + app->console->width * row;
+
+		if (buff_line[26] == 0)
+			buff_line[26] = ' ';
+	}
 }
 
 // =============================================================================
