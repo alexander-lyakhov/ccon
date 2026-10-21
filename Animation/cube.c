@@ -23,36 +23,10 @@
 #define CUBE_IMPLEMENTATION
 #include "h/cube.h"
 
-typedef struct App {
-	Console *console;
-	Camera *camera;
-	Plane *plane;
-	Cube *cube;
+#define SGE_IMPLEMENTATION
+#include "h/engine.h"
 
-	float *z_buffer;
-
-	float ks; // general screen scale
-	float kx; // screen x scale (actual for console)
-
-	uint8_t is_debug_mode;
-} App;
-
-// =============================================================================
-// @@@ + App_init
-// =============================================================================
-void App_init(App *app)
-{
-
-	float screen_ar = (float)app->console->width / app->console->height;
-	float font_ar   = app->console->font_ar;
-	
-	if (!font_ar)
-		font_ar = 0.462; // fallback for my Windows Terminal
-
-	app->z_buffer = malloc(sizeof(float) * app->console->size),
-	app->ks = 2.5;
-	app->kx = app->ks / (screen_ar * font_ar);
-}
+#include "h/app.h"
 
 // =============================================================================
 // @@@ + App_free
@@ -61,36 +35,7 @@ void App_free(App *app)
 {
 	Console_mem_free(app->console);
 	   Cube_mem_free(app->cube);
-
-	if (app->z_buffer)
-		free(app->z_buffer);
-
-	app->z_buffer = NULL;
-}
-
-// =============================================================================
-// @@@ + project2D
-// =============================================================================
-Vec2D project2D(App *app, const Vec3D p)
-{
-	if (p.z <= 0)
-		return (Vec2D){ .x = 1000, .y = 1000 }; // Return values that are too big so that the point isnt't drawn on the screen
-
-	return (Vec2D) {
-		.x = p.x / p.z,
-		.y = p.y / p.z,
-	};
-}
-
-// =============================================================================
-// @@@ + pointToScreen
-// =============================================================================
-COORD pointToScreen(App *app, Vec2D p)
-{
-	return (COORD) {
-		round(app->console->width  * (1 + p.x * app->kx) / 2),
-		round(app->console->height * (1 - p.y * app->ks) / 2),
-	};
+	    SGE_mem_free(app->engine);
 }
 
 // =============================================================================
@@ -133,34 +78,13 @@ void App_show_debug_info(App *app)
 }
 
 // =============================================================================
-// @@@ + reset_z_buffer
-// =============================================================================
-void reset_z_buffer(App *app)
-{
-	for (size_t i = 0; i < app->console->size; i++)
-		app->z_buffer[i] = 1000;
-}
-
-// =============================================================================
-// @@@ + is_out_of_screen
-// =============================================================================
-uint8_t is_out_of_screen(App *app, const COORD *screen_pos)
-{
-	return false
-		|| screen_pos->X < 0
-		|| screen_pos->X >= app->console->width
-		|| screen_pos->Y < 0
-		|| screen_pos->Y >= app->console->height;
-}
-
-// =============================================================================
 // @@@ + App_update
 // =============================================================================
 void App_update(App *app)
 {
 	Console_mem_fill(app->console, " ", 0x03);
 	// memset(app->console->buff, ' ', app->console->size);
-	reset_z_buffer(app);
+	SGE_reset_z_buffer(app->engine);
 
 	if (app->cube->is_rotating)
 	{
@@ -189,14 +113,14 @@ void App_update(App *app)
 			//
 			// Project this point into the screen
 			//
-			COORD screen_pos = pointToScreen(
-				app, project2D(app, p)
+			COORD screen_pos = SGE_point_to_screen(
+				app->engine, SGE_project_2d(p)
 			);
 
 			//
 			// Check if the point is inside the screen
 			//
-			if (is_out_of_screen(app, &screen_pos))
+			if (!SGE_check_screen_pos(app->engine, &screen_pos))
 				continue;
 
 			//
@@ -207,10 +131,10 @@ void App_update(App *app)
 			//
 			// Check if target index is inside the screen and the point is the closest to the camera
 			//
-			if (!(index < app->console->size && p.z < app->z_buffer[index]))
+			if (!(index < app->console->size && p.z < app->engine->z_buffer[index]))
 				continue;
 
-			app->z_buffer[index] = p.z;
+			app->engine->z_buffer[index] = p.z;
 
 			//
 			// Draw ascii_char to console target position
@@ -239,11 +163,7 @@ void App_update(App *app)
 uint8_t App_resize(App *app)
 {
 	Console_mem_reset(app->console);
-
-	if (app->z_buffer)
-		free(app->z_buffer);
-
-	App_init(app);
+	SGE_reset(app->engine);
 
 	return 1;
 }
@@ -366,18 +286,25 @@ int main()
 	Cube cube = Cube_create(
 		(Vec3D){0, 0, 4}
 	);
+
 	Cube_load_texture(
 		&cube, "texture.txt"
 	);
+
+	SGE engine = {
+		.console  = &console,
+		.z_buffer = NULL,
+		.scale    = 2.5,
+	};
+	SGE_init(&engine);
 
 	App app = {
 		.console       = &console,
 		.camera        = &camera,
 		.cube          = &cube,
+		.engine        = &engine,
 		.is_debug_mode = 0,
 	};
-
-	App_init(&app);
 	
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
