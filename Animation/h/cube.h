@@ -1,6 +1,11 @@
 #ifndef CUBE_H__
 #define CUBE_H__
 
+#include <stdint.h>
+#include <unistd.h>
+
+#include "./plane.h"
+
 #define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 

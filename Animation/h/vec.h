@@ -1,6 +1,8 @@
 #ifndef VEC_H__
 #define VEC_H__
 
+#include <math.h>
+
 typedef struct Vec2D {
 	float x;
 	float y;
@@ -16,6 +18,7 @@ Vec3D Vec3D_rotate_x(const Vec3D *p, float angle);
 Vec3D Vec3D_rotate_y(const Vec3D *p, float angle);
 Vec3D Vec3D_rotate_z(const Vec3D *p, float angle);
 
+// #define VEC3D_IMPLEMENTATION
 #ifdef VEC3D_IMPLEMENTATION
 
 	// =============================================================================

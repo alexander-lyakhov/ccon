@@ -7,6 +7,7 @@
 #include "./camera.h"
 #include "./plane.h"
 #include "./cube.h"
+#include "./engine.h"
 
 typedef struct App {
 	Console *console;

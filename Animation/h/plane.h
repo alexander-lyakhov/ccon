@@ -1,6 +1,9 @@
 #ifndef PLANE_H__
 #define PLANE_H__
 
+#include <unistd.h>
+#include "./vec.h"
+
 #define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 

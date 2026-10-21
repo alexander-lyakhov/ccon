@@ -9,6 +9,7 @@
 
 #include <stdbool.h>
 
+#include "./console.h"
 #include "./vec.h"
 
 typedef struct SGE {
