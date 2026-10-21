@@ -20,6 +20,8 @@ typedef struct _Console {
 	uint16_t height;
 	uint16_t size;
 
+	short font_width;
+	short font_height;
 	float font_ar;
 
 	void (*mem_alloc)(struct _Console *console);
@@ -68,14 +70,16 @@ static Console* _Console_create()
 	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 	uint16_t size   = width * height;
 
-	Console *console = malloc(sizeof(Console));
-	console->handle  = handle;
-	console->csbi    = csbi;
-	console->cfi     = cfi;
-	console->width   = width;
-	console->height  = height;
-	console->size    = size;
-	console->font_ar = (float)FONT.X / FONT.Y;
+	Console *console     = malloc(sizeof(Console));
+	console->handle      = handle;
+	console->csbi        = csbi;
+	console->cfi         = cfi;
+	console->width       = width;
+	console->height      = height;
+	console->size        = size;
+	console->font_width  = FONT.X;
+	console->font_height = FONT.Y;
+	console->font_ar     = (float)FONT.X / FONT.Y;
 
 	return console;
 }
@@ -183,16 +187,27 @@ void Console_mem_reset(Console *console)
 // =============================================================================
 uint8_t Console_check_resize(Console *console)
 {
-	GetConsoleScreenBufferInfo(console->handle, &(console->csbi));
+	GetConsoleScreenBufferInfo(
+		console->handle, &(console->csbi)
+	);
+	GetCurrentConsoleFont(
+		console->handle, 1, &(console->cfi)
+	);
+	COORD FONT = GetConsoleFontSize(
+		console->handle, console->cfi.nFont
+	);
 
 	uint16_t width  = console->csbi.srWindow.Right  + 1;
 	uint16_t height = console->csbi.srWindow.Bottom - console->csbi.srWindow.Top + 1;
 
-	if (console->width != width || console->height != height)
+	if (console->width != width || console->height != height || console->font_height != FONT.Y)
 	{
-		console->width  = width;
-		console->height = height;
-		console->size   = width * height;
+		console->width       = width;
+		console->height      = height;
+		console->size        = width * height;
+		console->font_width  = FONT.X;
+		console->font_height = FONT.Y;
+		console->font_ar     = (float)FONT.X / FONT.Y;
 
 		return 1; // Console size has been changed
 	}
