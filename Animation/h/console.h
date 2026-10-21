@@ -31,11 +31,14 @@ typedef struct _Console {
 
 Console Console_create();
 Console Console_createW();
-void    Console_mem_alloc   (Console *console);
-void    Console_mem_fill    (Console *console, const void *fillchar, WORD attr);
-void    Console_mem_free    (Console *console);
-void    Console_mem_reset   (Console *console);
-uint8_t Console_check_resize(Console *console);
+void    Console_mem_alloc    (Console *console);
+void    Console_mem_fill     (Console *console, const void *fillchar, WORD attr);
+void    Console_mem_free     (Console *console);
+void    Console_mem_reset    (Console *console);
+uint8_t Console_check_resize (Console *console);
+void    Console_render       (Console *console);
+void    Console_render_buff  (Console *console);
+void    Console_render_attrs (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
@@ -46,9 +49,6 @@ static void _Console_mem_allocW(Console *console);
 static void _Console_mem_fill (Console *console, const void *fillchar, WORD attr);
 static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr);
 
-// ================================================================================
-// @@@ + Console_create
-// ================================================================================
 static Console* _Console_create()
 {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -84,6 +84,9 @@ static Console* _Console_create()
 	return console;
 }
 
+// =============================================================================
+// @@@ + Console_create
+// =============================================================================
 Console Console_create()
 {
 	Console *console = _Console_create();
@@ -96,6 +99,9 @@ Console Console_create()
 	return *console;
 }
 
+// =============================================================================
+// @@@ + Console_createW
+// =============================================================================
 Console Console_createW()
 {
 	Console *console = _Console_create();
@@ -111,6 +117,10 @@ Console Console_createW()
 // =============================================================================
 // @@@ + Console_mem_alloc
 // =============================================================================
+void Console_mem_alloc(Console *console) {
+	console->mem_alloc(console);
+}
+
 static void _Console_mem_alloc(Console *console)
 {
 	console->buff  = malloc(console->size * sizeof(char));
@@ -123,13 +133,13 @@ static void _Console_mem_allocW(Console *console)
 	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
-void Console_mem_alloc(Console *console) {
-	console->mem_alloc(console);
-}
-
 // =============================================================================
 // @@@ + Console_mem_fill
 // =============================================================================
+void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
+	console->mem_fill(console, fillchar, attr);
+}
+
 static void _Console_mem_fill(Console *console, const void *fillchar, WORD attr)
 {
 	char *b = console->buff;
@@ -152,10 +162,6 @@ static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr
 		*b++ = *(WCHR*)fillchar;
 		*a++ = attr;
 	}
-}
-
-void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
-	console->mem_fill(console, fillchar, attr);
 }
 
 // =============================================================================
@@ -213,6 +219,43 @@ uint8_t Console_check_resize(Console *console)
 	}
 
 	return 0; // Console size stays the same
+}
+
+// =============================================================================
+// @@@ + Console_render
+// =============================================================================
+void Console_render(Console *console)
+{
+	Console_render_buff(console);
+	Console_render_attrs(console);
+}
+
+// =============================================================================
+// @@@ + Console_render_buff
+// =============================================================================
+void Console_render_buff(Console *console)
+{
+	WriteConsoleOutputCharacter(
+		console->handle,
+		console->buff,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
+}
+
+// =============================================================================
+// @@@ + Console_render_attrs
+// =============================================================================
+void Console_render_attrs(Console *console)
+{
+	WriteConsoleOutputAttribute(
+		console->handle,
+		console->attrs,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
 }
 
 #endif

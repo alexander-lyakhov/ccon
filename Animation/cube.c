@@ -69,43 +69,6 @@ void App_free(App *app)
 }
 
 // =============================================================================
-// @@@ + app_render_buff
-// =============================================================================
-void app_render_buff(Console *console)
-{
-	WriteConsoleOutputCharacter(
-		console->handle,
-		console->buff,
-		console->size,
-		(COORD){0, 0},
-		&console->written
-	);
-}
-
-// =============================================================================
-// @@@ + app_render_attrs
-// =============================================================================
-void app_render_attrs(Console *console)
-{
-	WriteConsoleOutputAttribute(
-		console->handle,
-		console->attrs,
-		console->size,
-		(COORD){0, 0},
-		&console->written
-	);
-}
-
-// =============================================================================
-// @@@ + App_render
-// =============================================================================
-void App_render(Console *console)
-{
-	app_render_buff(console);
-	app_render_attrs(console);
-}
-
-// =============================================================================
 // @@@ + project2D
 // =============================================================================
 Vec2D project2D(App *app, const Vec3D p)
@@ -379,6 +342,14 @@ uint8_t App_listen(App *app)
 	}
 
 	return 1;
+}
+
+// =============================================================================
+// @@@ + App_render
+// =============================================================================
+void App_render(Console *console)
+{
+	Console_render(console);
 }
 
 int main()
