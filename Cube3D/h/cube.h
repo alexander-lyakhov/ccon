@@ -18,7 +18,7 @@ typedef struct Cube {
 	Plane*  current_face;
 	char*   texture;
 	
-	size_t  size;
+	size_t  sides;
 	uint8_t curr_face_index;
 
 	uint8_t is_rotating;
@@ -67,7 +67,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_init(Cube *cube, Vec3D v)
 	{
-		cube->size               = FACE_COUNT;
+		cube->sides              = FACE_COUNT;
 		cube->curr_face_index    = 0;
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;

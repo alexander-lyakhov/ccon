@@ -26,7 +26,7 @@
 #include "h/engine.h"
 
 typedef enum {
-	CUBE_COLOR = 0x07,
+	CUBE_COLOR = 0x03,
 	INFO_COLOR = 0x07,
 
 } Color;
@@ -107,7 +107,7 @@ void App_update(App *app)
 		Cube_rotate_z(app->cube, 0.025);
 	}
 
-	for (size_t face_index = 0; face_index < app->cube->size; face_index++)
+	for (size_t face_index = 0; face_index < app->cube->sides; face_index++)
 	{
 		Plane *face = Cube_set_current_face(app->cube, face_index);
 		
