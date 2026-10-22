@@ -25,7 +25,22 @@
 #define SGE_IMPLEMENTATION
 #include "h/engine.h"
 
-#include "h/app.h"
+typedef enum {
+	CUBE_COLOR = 0x07,
+	INFO_COLOR = 0x07,
+
+} Color;
+
+typedef struct App {
+	Console *console;
+	Camera *camera;
+	Plane *plane;
+	Cube *cube;
+	SGE *engine;
+
+	uint8_t is_debug_mode;
+
+} App;
 
 // =============================================================================
 // @@@ + App_free
@@ -67,7 +82,7 @@ void App_show_debug_info(App *app)
 	for (int row = 0; row <= 14; row++)
 	{
 		for (int col = 0; col < 26; col++)
-			(app->console->attrs + app->console->width * row)[col] = 0x07;
+			(app->console->attrs + app->console->width * row)[col] = INFO_COLOR;
 
 		char *buff_line = app->console->buff + app->console->width * row;
 
@@ -81,7 +96,7 @@ void App_show_debug_info(App *app)
 // =============================================================================
 void App_update(App *app)
 {
-	Console_mem_fill(app->console, " ", 0x03);
+	Console_mem_fill(app->console, " ", CUBE_COLOR);
 	// memset(app->console->buff, ' ', app->console->size);
 	SGE_reset_z_buffer(app->engine);
 
@@ -276,7 +291,7 @@ int main()
 	system("cls");
 
 	Console console = Console_create();
-	Console_mem_fill(&console, " ", 0x03);
+	Console_mem_fill(&console, " ", CUBE_COLOR);
 
 	Camera camera = Camera_create(
 		(Vec3D){0, 0, -3}
