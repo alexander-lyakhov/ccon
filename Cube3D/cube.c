@@ -26,7 +26,7 @@
 #include "h/engine.h"
 
 typedef enum {
-	CUBE_COLOR = 0x0c,
+	CUBE_COLOR = 0x08,
 	INFO_COLOR = 0x07,
 	LOGO_COLOR = 0xf0
 
@@ -161,12 +161,13 @@ void App_update(App *app)
 			//
 			if (Cube_should_display_texture(app->cube))
 			{
-				((char*)app->console->buff)[index] = app->cube->texture[i] == '.'
-					// ? face_index < 3 ? '#' : '.'
+				((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
+					? face_index < 3 ? '#' : '.'
 					// ? '#'
-					? face->ascii_char
+					// ? face->ascii_char
 					: face->ascii_char;
 
+				/*
 				app->console->attrs[index] = CUBE_COLOR;
 
 				if (app->cube->texture[i] == '.')
@@ -180,6 +181,7 @@ void App_update(App *app)
 					// ((char*)app->console->buff)[index] = '#';
 					(app->console->attrs)[index] = LOGO_COLOR & 0x0f;
 				}
+				*/
 			}
 		}
 	}
@@ -319,7 +321,7 @@ int main()
 	);
 
 	Cube_load_texture(
-		&cube, "texture-tnt.txt"
+		&cube, "texture.txt"
 	);
 
 	SGE engine = {
