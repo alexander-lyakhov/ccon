@@ -28,7 +28,7 @@
 typedef enum {
 	CUBE_COLOR = 0x0c,
 	INFO_COLOR = 0x07,
-	LOGO_COLOR = 0xf0
+	TXTR_COLOR = 0xf0
 
 } Color;
 
@@ -161,25 +161,14 @@ void App_update(App *app)
 			//
 			if (Cube_should_display_texture(app->cube))
 			{
-				((char*)app->console->buff)[index] = app->cube->texture[i] == '.'
-					// ? face_index < 3 ? '#' : '.'
-					// ? '#'
-					? face->ascii_char
-					: face->ascii_char;
+				((char*)app->console->buff) [index] = face->ascii_char;
+				((WORD*)app->console->attrs)[index] = CUBE_COLOR;
 
-				app->console->attrs[index] = CUBE_COLOR;
+				if (app->cube->texture[i] == '1')
+					(app->console->attrs)[index] = (TXTR_COLOR & 0xf0) >> 4;
 
-				if (app->cube->texture[i] == '.')
-				{
-					// ((char*)app->console->buff)[index] = '#';
-					(app->console->attrs)[index] = (LOGO_COLOR & 0xf0) >> 4;
-				}
-
-				if (app->cube->texture[i] == '@')
-				{
-					// ((char*)app->console->buff)[index] = '#';
-					(app->console->attrs)[index] = LOGO_COLOR & 0x0f;
-				}
+				if (app->cube->texture[i] == '2')
+					(app->console->attrs)[index] = TXTR_COLOR & 0x0f;
 			}
 		}
 	}
@@ -319,7 +308,7 @@ int main()
 	);
 
 	Cube_load_texture(
-		&cube, "texture-tnt.txt"
+		&cube, "texture-color-tnt.txt"
 	);
 
 	SGE engine = {

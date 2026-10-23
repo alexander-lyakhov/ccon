@@ -26,7 +26,7 @@
 #include "h/engine.h"
 
 typedef enum {
-	CUBE_COLOR = 0x08,
+	CUBE_COLOR = 0x03,
 	INFO_COLOR = 0x07,
 	LOGO_COLOR = 0xf0
 
@@ -163,25 +163,7 @@ void App_update(App *app)
 			{
 				((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
 					? face_index < 3 ? '#' : '.'
-					// ? '#'
-					// ? face->ascii_char
 					: face->ascii_char;
-
-				/*
-				app->console->attrs[index] = CUBE_COLOR;
-
-				if (app->cube->texture[i] == '.')
-				{
-					// ((char*)app->console->buff)[index] = '#';
-					(app->console->attrs)[index] = (LOGO_COLOR & 0xf0) >> 4;
-				}
-
-				if (app->cube->texture[i] == '@')
-				{
-					// ((char*)app->console->buff)[index] = '#';
-					(app->console->attrs)[index] = LOGO_COLOR & 0x0f;
-				}
-				*/
 			}
 		}
 	}
