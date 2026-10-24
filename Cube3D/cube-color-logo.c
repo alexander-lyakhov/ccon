@@ -26,9 +26,9 @@
 #include "h/engine.h"
 
 typedef enum {
-	CUBE_COLOR = 0x03,
+	CUBE_COLOR = 0x08,
 	INFO_COLOR = 0x07,
-	LOGO_COLOR = 0xfc
+	LOGO_COLOR = 0xf3
 
 } Color;
 
