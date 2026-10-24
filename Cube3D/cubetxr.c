@@ -286,7 +286,7 @@ void App_render(Console *console)
 	Console_render(console);
 }
 
-int main()
+int main(int argc, const char *args[])
 {
 	system("cls");
 
@@ -302,8 +302,7 @@ int main()
 	);
 
 	Cube_load_texture(
-		&cube, "texture-logo.txt"
-		// &cube, "texture-tnt.txt"
+		&cube, argc == 2 ? args[1] : "texture-logo.txt"
 	);
 
 	SGE engine = {
