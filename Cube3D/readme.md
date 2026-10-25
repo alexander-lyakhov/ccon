@@ -1,6 +1,6 @@
 # 3D Cube for `windows` console
 
-[cube.zip](https://github.com/alexander-lyakhov/ccon/tree/master/cube3d/download/cube.zip)
+[Download](https://github.com/alexander-lyakhov/ccon/tree/master/cube3d/download/)
 
 |Keyboard shortcuts             | Action
 |-------------------------------|--------
