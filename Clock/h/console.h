@@ -10,6 +10,7 @@ typedef wchar_t WCHR;
 typedef struct _Console {
 	HANDLE handle;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	CONSOLE_FONT_INFO cfi;
 	DWORD written;
 
 	void* buff;
@@ -19,6 +20,10 @@ typedef struct _Console {
 	uint16_t height;
 	uint16_t size;
 
+	short font_width;
+	short font_height;
+	float font_ar;
+
 	void (*mem_alloc)(struct _Console *console);
 	void (*mem_fill) (struct _Console *console, const void *fillchar, WORD attr);
 
@@ -26,11 +31,14 @@ typedef struct _Console {
 
 Console Console_create();
 Console Console_createW();
-void    Console_mem_alloc   (Console *console);
-void    Console_mem_fill    (Console *console, const void *fillchar, WORD attr);
-void    Console_mem_free    (Console *console);
-void    Console_mem_reset   (Console *console);
-uint8_t Console_check_resize(Console *console);
+void    Console_mem_alloc    (Console *console);
+void    Console_mem_fill     (Console *console, const void *fillchar, WORD attr);
+void    Console_mem_free     (Console *console);
+void    Console_mem_reset    (Console *console);
+uint8_t Console_check_resize (Console *console);
+void    Console_render       (Console *console);
+void    Console_render_buff  (Console *console);
+void    Console_render_attrs (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
 #ifdef CONSOLE_IMPLEMENTATION
@@ -41,29 +49,44 @@ static void _Console_mem_allocW(Console *console);
 static void _Console_mem_fill (Console *console, const void *fillchar, WORD attr);
 static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr);
 
-// ================================================================================
-// @@@ + Console_create
-// ================================================================================
 static Console* _Console_create()
 {
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-	GetConsoleScreenBufferInfo(handle, &csbi);
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	CONSOLE_FONT_INFO cfi;
+
+	GetConsoleScreenBufferInfo(
+		handle, &csbi
+	);
+	GetCurrentConsoleFont(
+		handle, 1, &cfi
+	);
+	COORD FONT = GetConsoleFontSize(
+		handle, cfi.nFont
+	);
 
 	uint16_t width  = csbi.srWindow.Right + 1;
 	uint16_t height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 	uint16_t size   = width * height;
 
-	Console *console = malloc(sizeof(Console));
-	console->handle  = handle;
-	console->width   = width;
-	console->height  = height;
-	console->size    = size;
+	Console *console     = malloc(sizeof(Console));
+	console->handle      = handle;
+	console->csbi        = csbi;
+	console->cfi         = cfi;
+	console->width       = width;
+	console->height      = height;
+	console->size        = size;
+	console->font_width  = FONT.X;
+	console->font_height = FONT.Y;
+	console->font_ar     = (float)FONT.X / FONT.Y;
 
 	return console;
 }
 
+// =============================================================================
+// @@@ + Console_create
+// =============================================================================
 Console Console_create()
 {
 	Console *console = _Console_create();
@@ -76,6 +99,9 @@ Console Console_create()
 	return *console;
 }
 
+// =============================================================================
+// @@@ + Console_createW
+// =============================================================================
 Console Console_createW()
 {
 	Console *console = _Console_create();
@@ -91,6 +117,10 @@ Console Console_createW()
 // =============================================================================
 // @@@ + Console_mem_alloc
 // =============================================================================
+void Console_mem_alloc(Console *console) {
+	console->mem_alloc(console);
+}
+
 static void _Console_mem_alloc(Console *console)
 {
 	console->buff  = malloc(console->size * sizeof(char));
@@ -103,13 +133,13 @@ static void _Console_mem_allocW(Console *console)
 	console->attrs = malloc(console->size * sizeof(WORD));
 }
 
-void Console_mem_alloc(Console *console) {
-	console->mem_alloc(console);
-}
-
 // =============================================================================
 // @@@ + Console_mem_fill
 // =============================================================================
+void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
+	console->mem_fill(console, fillchar, attr);
+}
+
 static void _Console_mem_fill(Console *console, const void *fillchar, WORD attr)
 {
 	char *b = console->buff;
@@ -134,17 +164,16 @@ static void _Console_mem_fillW(Console *console, const void *fillchar, WORD attr
 	}
 }
 
-void Console_mem_fill(Console *console, const void *fillchar, WORD attr) {
-	console->mem_fill(console, fillchar, attr);
-}
-
 // =============================================================================
 // @@@ + Console_mem_free
 // =============================================================================
 void Console_mem_free(Console *console)
 {
-	free(console->buff);
-	free(console->attrs);
+	if (console->buff)
+		free(console->buff);
+
+	if (console->attrs)
+		free(console->attrs);
 
 	console->buff  = NULL;
 	console->attrs = NULL;
@@ -164,21 +193,69 @@ void Console_mem_reset(Console *console)
 // =============================================================================
 uint8_t Console_check_resize(Console *console)
 {
-	GetConsoleScreenBufferInfo(console->handle, &(console->csbi));
+	GetConsoleScreenBufferInfo(
+		console->handle, &(console->csbi)
+	);
+	GetCurrentConsoleFont(
+		console->handle, 1, &(console->cfi)
+	);
+	COORD FONT = GetConsoleFontSize(
+		console->handle, console->cfi.nFont
+	);
 
 	uint16_t width  = console->csbi.srWindow.Right  + 1;
 	uint16_t height = console->csbi.srWindow.Bottom - console->csbi.srWindow.Top + 1;
 
-	if (console->width != width || console->height != height)
+	if (console->width != width || console->height != height || console->font_height != FONT.Y)
 	{
-		console->width  = width;
-		console->height = height;
-		console->size   = width * height;
+		console->width       = width;
+		console->height      = height;
+		console->size        = width * height;
+		console->font_width  = FONT.X;
+		console->font_height = FONT.Y;
+		console->font_ar     = (float)FONT.X / FONT.Y;
 
 		return 1; // Console size has been changed
 	}
 
 	return 0; // Console size stays the same
+}
+
+// =============================================================================
+// @@@ + Console_render
+// =============================================================================
+void Console_render(Console *console)
+{
+	Console_render_buff(console);
+	Console_render_attrs(console);
+}
+
+// =============================================================================
+// @@@ + Console_render_buff
+// =============================================================================
+void Console_render_buff(Console *console)
+{
+	WriteConsoleOutputCharacter(
+		console->handle,
+		console->buff,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
+}
+
+// =============================================================================
+// @@@ + Console_render_attrs
+// =============================================================================
+void Console_render_attrs(Console *console)
+{
+	WriteConsoleOutputAttribute(
+		console->handle,
+		console->attrs,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
 }
 
 #endif
