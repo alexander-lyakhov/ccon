@@ -139,7 +139,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		char texture[] = "+;i%#$";
 		// char texture[] = "$#%i;+";
-		// char texture[] = "%#$%#$";
+		// char texture[] = "$#%%#$";
 
 		for (int i = 0; i < FACE_COUNT; i++)
 			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
