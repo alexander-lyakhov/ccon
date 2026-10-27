@@ -161,8 +161,14 @@ void App_update(App *app)
 			//
 			if (Cube_should_display_texture(app->cube))
 			{
+				int texture_chunk_index  = face_index % app->cube->texture_chunks;
+				int texture_offset_y     = i / SIZE;
+				int texture_offset_x     = i - texture_offset_y * SIZE;
+				int texture_offset_index = texture_chunk_index * SIZE + texture_offset_y * app->cube->texture_width + texture_offset_x;
+
 				((char*)app->console->buff) [index] = face->ascii_char;
-				((WORD*)app->console->attrs)[index] = app->cube->texture[i] & 0x0f;
+				// ((WORD*)app->console->attrs)[index] = app->cube->texture[i] & 0x0f;
+				((WORD*)app->console->attrs)[index] = app->cube->texture[texture_offset_index] & 0x0f;
 			}
 		}
 	}
@@ -303,6 +309,7 @@ int main(int argc, const char *args[])
 
 	Cube_load_texture(
 		&cube, argc == 2 ? args[1] : "texture-logo.txt"
+		// &cube, argc == 2 ? args[1] : "texture-dizzy-family.txt"
 	);
 
 	SGE engine = {

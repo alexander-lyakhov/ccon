@@ -18,18 +18,18 @@ typedef struct Plane {
 // Function prototypes
 //----------------------------------------------------------------------------------
 void  Plane_init_static_buff();
-void  Plane_mem_free(Plane *plane);
+void  Plane_mem_free    (Plane *plane);
 
-Plane Plane_create          (Vec3D v, char ascii_char);
-void  Plane_init            (Plane *plane, Vec3D v, char ascii_char);
+Plane Plane_create      (Vec3D v, char ascii_char);
+void  Plane_init        (Plane *plane, Vec3D v, char ascii_char);
 
-void  Plane_translate_x     (Plane *plane, float dx);
-void  Plane_translate_y     (Plane *plane, float dy);
-void  Plane_translate_z     (Plane *plane, float dz);
+void  Plane_translate_x (Plane *plane, float dx);
+void  Plane_translate_y (Plane *plane, float dy);
+void  Plane_translate_z (Plane *plane, float dz);
 
-void  Plane_rotate_x        (Plane *plane, float angle);
-void  Plane_rotate_y        (Plane *plane, float angle);
-void  Plane_rotate_z        (Plane *plane, float angle);
+void  Plane_rotate_x    (Plane *plane, float angle);
+void  Plane_rotate_y    (Plane *plane, float angle);
+void  Plane_rotate_z    (Plane *plane, float angle);
 //----------------------------------------------------------------------------------
 // End of function prototypes
 

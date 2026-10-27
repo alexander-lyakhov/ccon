@@ -17,6 +17,8 @@ typedef struct Cube {
 	Plane   face[FACE_COUNT];
 	Plane*  current_face;
 	char*   texture;
+	size_t  texture_chunks;
+	size_t  texture_width;
 	
 	size_t  sides;
 	uint8_t curr_face_index;
@@ -72,6 +74,8 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;
 		cube->texture            = NULL;
+		cube->texture_chunks     = 0;
+		cube->texture_width      = 0;
 
 		Plane_init_static_buff();
 
@@ -82,7 +86,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->origin.rx = 0;
 		cube->origin.ry = 0;
 		cube->origin.rz = 0;
-
+		
 		cube->face[0].origin.rx = 0;
 		cube->face[0].origin.ry = PI / 2;
 		cube->face[0].origin.rz = 0;
@@ -106,8 +110,36 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->face[5].origin.rx = PI;
 		cube->face[5].origin.ry = 0;
 		cube->face[5].origin.rz = 0;
+		
+		/*
+		cube->face[0].origin.rx = 0;
+		cube->face[0].origin.ry = 0;
+		cube->face[0].origin.rz = 0;
+
+		cube->face[1].origin.rx = 0;
+		cube->face[1].origin.ry = PI / 2;
+		cube->face[1].origin.rz = 0;
+
+		cube->face[2].origin.rx = 0;
+		cube->face[2].origin.ry = PI;
+		cube->face[2].origin.rz = 0;
+
+		cube->face[3].origin.rx = 0;
+		cube->face[3].origin.ry = -PI / 2;
+		cube->face[3].origin.rz = 0;
+
+		cube->face[4].origin.rx = -PI / 2;
+		cube->face[4].origin.ry = 0;
+		cube->face[4].origin.rz = 0;
+
+		cube->face[5].origin.rx = PI / 2;
+		cube->face[5].origin.ry = 0;
+		cube->face[5].origin.rz = 0;
+		*/
 
 		char texture[] = "+;i%#$";
+		// char texture[] = "$#%i;+";
+		// char texture[] = "%#$%#$";
 
 		for (int i = 0; i < FACE_COUNT; i++)
 			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
@@ -124,26 +156,34 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		if (!file) return NULL;
 
-		char *texture = malloc(sizeof(char) * SIZE * SIZE);
-		char str[256];
-
-		for (char *p = texture;;)
+		char str[1024];
+		size_t texture_width = 0;
+		
+		for (char *p = NULL;;)
 		{
-			fgets(str, 256, file);
+			fgets(str, 1024, file);
 
 			if (feof(file))
 				break;
 
-			memcpy(p, str, SIZE);
-			p += SIZE;
+			if (cube->texture == NULL)
+			{
+				texture_width = strlen(str) - 1; // -1 is the new line character
+				cube->texture_chunks = texture_width / SIZE;
+				cube->texture = malloc(sizeof(char) * texture_width * SIZE);
+				p = cube->texture;
+			}
 
-			memcpy(p, str, SIZE);
-			p += SIZE;
+			memcpy(p, str, texture_width);
+			p += texture_width;
+
+			memcpy(p, str, texture_width);
+			p += texture_width;
 		}
 
-		cube->texture = texture;
+		cube->texture_width = texture_width;
 
-		return texture;
+		return cube->texture;
 	}
 
 	// =============================================================================
