@@ -101,16 +101,18 @@ void App_update(App *app)
 	// memset(app->console->buff, ' ', app->console->size);
 	SGE_reset_z_buffer(app->engine);
 
-	if (app->cube->is_rotating)
+	Cube *cube = app->cube;
+
+	if (cube->is_rotating)
 	{
-		Cube_rotate_x(app->cube, 0.025);
-		Cube_rotate_y(app->cube, 0.025);
-		Cube_rotate_z(app->cube, 0.025);
+		Cube_rotate_x(cube, 0.025);
+		Cube_rotate_y(cube, 0.025);
+		Cube_rotate_z(cube, 0.025);
 	}
 
-	for (size_t face_index = 0; face_index < app->cube->sides; face_index++)
+	for (size_t face_index = 0; face_index < cube->sides; face_index++)
 	{
-		Plane *face = Cube_set_current_face(app->cube, face_index);
+		Plane *face = Cube_set_current_face(cube, face_index);
 		
 		for (size_t i = 0; i < face->buff_size; i++)
 		{
@@ -161,13 +163,13 @@ void App_update(App *app)
 			//
 			if (Cube_should_display_texture(app->cube))
 			{
-				int texture_chunk_index  = face_index % app->cube->texture.chunks;
+				int texture_chunk_index  = face_index % cube->texture.chunks;
 				int texture_offset_y     = i / SIZE;
 				int texture_offset_x     = i - texture_offset_y * SIZE;
-				int texture_offset_index = texture_chunk_index * SIZE + texture_offset_y * app->cube->texture.width + texture_offset_x;
+				int texture_offset_index = texture_chunk_index * SIZE + texture_offset_y * cube->texture.width + texture_offset_x;
 
 				((char*)app->console->buff) [index] = face->ascii_char;
-				((WORD*)app->console->attrs)[index] = app->cube->texture.buff[texture_offset_index] & 0x0f;
+				((WORD*)app->console->attrs)[index] = cube->texture.buff[texture_offset_index] & 0x0f;
 				// ((WORD*)app->console->attrs)[index] = app->cube->texture[i] & 0x0f;
 			}
 		}
