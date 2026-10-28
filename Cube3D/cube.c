@@ -161,7 +161,7 @@ void App_update(App *app)
 			//
 			if (Cube_should_display_texture(app->cube))
 			{
-				((char*)app->console->buff)[index] = app->cube->texture[i] == '#'
+				((char*)app->console->buff)[index] = app->cube->texture.buff[i] == '#'
 					? face_index < 3 ? '#' : '.'
 					: face->ascii_char;
 			}

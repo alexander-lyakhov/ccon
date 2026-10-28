@@ -9,16 +9,20 @@
 #define ORIGIN_IMPLEMENTATION
 #include "./origin.h"
 
+#define TEXTURE_IMPLEMENTATION
+#include "./texture.h"
+
 #define FACE_COUNT 6
 #define PI 3.14159
 
 typedef struct Cube {
 	Origin  origin, origin_default;
+	Texture texture;
 	Plane   face[FACE_COUNT];
 	Plane*  current_face;
-	char*   texture;
-	size_t  texture_chunks;
-	size_t  texture_width;
+	// char*   texture;
+	// size_t  texture_chunks;
+	// size_t  texture_width;
 	
 	size_t  sides;
 	uint8_t curr_face_index;
@@ -69,13 +73,12 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_init(Cube *cube, Vec3D v)
 	{
+	    Texture_init(&cube->texture);
+
 		cube->sides              = FACE_COUNT;
 		cube->curr_face_index    = 0;
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;
-		cube->texture            = NULL;
-		cube->texture_chunks     = 0;
-		cube->texture_width      = 0;
 
 		Plane_init_static_buff();
 
@@ -152,38 +155,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	char* Cube_load_texture(Cube *cube, const char *filename)
 	{
-		FILE *file = fopen(filename, "r");
-
-		if (!file) return NULL;
-
-		char str[1024];
-		size_t texture_width = 0;
-		
-		for (char *p = NULL;;)
-		{
-			fgets(str, 1024, file);
-
-			if (feof(file))
-				break;
-
-			if (cube->texture == NULL)
-			{
-				texture_width = strlen(str) - 1; // -1 is the new line character
-				cube->texture_chunks = texture_width / SIZE;
-				cube->texture = malloc(sizeof(char) * texture_width * SIZE);
-				p = cube->texture;
-			}
-
-			memcpy(p, str, texture_width);
-			p += texture_width;
-
-			memcpy(p, str, texture_width);
-			p += texture_width;
-		}
-
-		cube->texture_width = texture_width;
-
-		return cube->texture;
+		Texture_load(&cube->texture, filename);
 	}
 
 	// =============================================================================
@@ -191,12 +163,8 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	void Cube_mem_free(Cube *cube)
 	{
-		Plane_mem_free(&(cube->face[0]));
-
-		if (cube->texture)
-			free(cube->texture);
-
-		cube->texture = NULL;
+		  Plane_mem_free(&cube->face[0]);
+		Texture_mem_free(&cube->texture);
 	}
 
 	// =============================================================================
@@ -289,7 +257,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	// =============================================================================
 	uint8_t Cube_should_display_texture(Cube *cube)
 	{
-		return cube->texture && cube->is_texture_visible;
+		return cube->texture.buff && cube->is_texture_visible;
 	}
 
 	// =============================================================================
