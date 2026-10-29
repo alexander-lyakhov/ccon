@@ -77,7 +77,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;
 
-		Plane_init_static_buff((Vec3D){0, 0, 1});
+		Plane_init_static_buff();
 
 		cube->origin.x = v.x;
 		cube->origin.y = v.y;
@@ -86,63 +86,36 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->origin.rx = 0;
 		cube->origin.ry = 0;
 		cube->origin.rz = 0;
-		
-		cube->face[0].origin.rx = 0;
-		cube->face[0].origin.ry = PI / 2;
-		cube->face[0].origin.rz = 0;
-
-		cube->face[1].origin.rx = 0;
-		cube->face[1].origin.ry = -PI / 2;
-		cube->face[1].origin.rz = 0;
-
-		cube->face[2].origin.rx = PI / 2;
-		cube->face[2].origin.ry = 0;
-		cube->face[2].origin.rz = 0;
-
-		cube->face[3].origin.rx = -PI / 2;
-		cube->face[3].origin.ry = 0;
-		cube->face[3].origin.rz = 0;
-
-		cube->face[4].origin.rx = 0;
-		cube->face[4].origin.ry = 0;
-		cube->face[4].origin.rz = 0;
-
-		cube->face[5].origin.rx = PI;
-		cube->face[5].origin.ry = 0;
-		cube->face[5].origin.rz = 0;
-		
-		/*
-		cube->face[0].origin.rx = 0;
-		cube->face[0].origin.ry = 0;
-		cube->face[0].origin.rz = 0;
-
-		cube->face[1].origin.rx = 0;
-		cube->face[1].origin.ry = PI / 2;
-		cube->face[1].origin.rz = 0;
-
-		cube->face[2].origin.rx = 0;
-		cube->face[2].origin.ry = PI;
-		cube->face[2].origin.rz = 0;
-
-		cube->face[3].origin.rx = 0;
-		cube->face[3].origin.ry = -PI / 2;
-		cube->face[3].origin.rz = 0;
-
-		cube->face[4].origin.rx = -PI / 2;
-		cube->face[4].origin.ry = 0;
-		cube->face[4].origin.rz = 0;
-
-		cube->face[5].origin.rx = PI / 2;
-		cube->face[5].origin.ry = 0;
-		cube->face[5].origin.rz = 0;
-		*/
 
 		char texture[] = "+;i%#$";
 		// char texture[] = "$#%i;+";
 		// char texture[] = "$#%%#$";
 
 		for (int i = 0; i < FACE_COUNT; i++)
-			Plane_init(&(cube->face[i]), (Vec3D){0, 0, 0}, texture[i]);
+			Plane_init(
+				&(cube->face[i]),
+				(Vec3D){0, 0, 0}, // Position
+				(Vec3D){0, 0, 1}, // Translation
+				(Vec3D){0, 0, 0}, // Rotation
+				texture[i]
+			);
+		
+		cube->face[0].origin.ry = PI / 2;
+		cube->face[1].origin.ry = -PI / 2;
+
+		cube->face[2].origin.rx = PI / 2;
+		cube->face[3].origin.rx = -PI / 2;
+		cube->face[4].origin.rx = 0;
+		cube->face[5].origin.rx = PI;
+		
+		/*
+		cube->face[0].origin.ry = 0;
+		cube->face[1].origin.ry = PI / 2;
+		cube->face[2].origin.ry = PI;
+		cube->face[3].origin.ry = -PI / 2;
+		cube->face[4].origin.rx = -PI / 2;
+		cube->face[5].origin.rx = PI / 2;
+		*/
 
 		cube->origin_default = cube->origin;
 	}
@@ -263,6 +236,10 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	Vec3D Cube_calculate_single_point(Cube *cube, const Vec3D *v)
 	{
 		Vec3D p = *v;
+
+		p.x += cube->current_face->origin.tx;
+		p.y += cube->current_face->origin.ty;
+		p.z += cube->current_face->origin.tz;
 
 		p = Vec3D_rotate_x(&p, cube->current_face->origin.rx);
 		p = Vec3D_rotate_y(&p, cube->current_face->origin.ry);
