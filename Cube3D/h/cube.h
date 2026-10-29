@@ -48,6 +48,7 @@ void    Cube_reset                  (Cube *cube);
 Plane*  Cube_set_current_face       (Cube *cube, uint8_t face_index);
 Plane*  Cube_get_current_face       (Cube *cube);
 uint8_t Cube_should_display_texture (Cube *cube);
+void    Cube_try_explode            (Cube *cube, Vec3D *p);
 Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 //----------------------------------------------------------------------------------
 // End of function prototypes
@@ -77,6 +78,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		cube->sides              = FACE_COUNT;
 		cube->curr_face_index    = 0;
+		cube->explode_phase      = 0;
 		cube->is_rotating        = 1;
 		cube->is_exploding       = 0;
 		cube->is_texture_visible = 1;
@@ -235,6 +237,19 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	}
 
 	// =============================================================================
+	// @@@ + Cube_try_explode
+	// =============================================================================
+	void Cube_try_explode(Cube *cube, Vec3D *p)
+	{
+		if (cube->is_exploding)
+			p->z += (cube->origin.rz - cube->explode_phase < PI / 2)
+				? sin(cube->origin.rz - cube->explode_phase)
+				: 1;
+		else
+			cube->explode_phase = cube->origin.rz;
+	}
+
+	// =============================================================================
 	// @@@ + Cube_calculate_single_point
 	// =============================================================================
 	Vec3D Cube_calculate_single_point(Cube *cube, const Vec3D *v)
@@ -243,7 +258,10 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		
 		p.x += cube->current_face->origin.tx;
 		p.y += cube->current_face->origin.ty;
-		p.z += cube->current_face->origin.tz + cube->is_exploding;
+		p.z += cube->current_face->origin.tz;
+		// p.z += cube->current_face->origin.tz + cube->is_exploding;
+
+		Cube_try_explode(cube, &p); // may modify p.z
 
 		p = Vec3D_rotate_x(&p, cube->current_face->origin.rx);
 		p = Vec3D_rotate_y(&p, cube->current_face->origin.ry);
