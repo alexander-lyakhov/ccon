@@ -41,7 +41,7 @@ void  Plane_rotate_z    (Plane *plane, float angle);
 	// =============================================================================
 	// @@@ + Plane_init_static_buff
 	// =============================================================================
-	void Plane_init_static_buff()
+	void Plane_init_static_buff(Vec3D translate)
 	{
 		buff = malloc(SIZE * SIZE * sizeof(Vec3D));
 
@@ -53,9 +53,9 @@ void  Plane_rotate_z    (Plane *plane, float angle);
 			for (size_t col = 0; col < SIZE; col++)
 			{
 				buff[index++] = (Vec3D) {
-					.x = (float)col / SIZE * kx_distribution * 2 - 1,
-					.y = (float)row / SIZE * ky_distribution * 2 - 1,
-					.z = 1
+					.x = translate.x + (float)col / SIZE * kx_distribution * 2 - 1,
+					.y = translate.y + (float)row / SIZE * ky_distribution * 2 - 1,
+					.z = translate.z + 0
 				};
 			}
 		}

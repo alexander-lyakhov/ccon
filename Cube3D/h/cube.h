@@ -20,9 +20,6 @@ typedef struct Cube {
 	Texture texture;
 	Plane   face[FACE_COUNT];
 	Plane*  current_face;
-	// char*   texture;
-	// size_t  texture_chunks;
-	// size_t  texture_width;
 	
 	size_t  sides;
 	uint8_t curr_face_index;
@@ -80,7 +77,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->is_rotating        = 1;
 		cube->is_texture_visible = 1;
 
-		Plane_init_static_buff();
+		Plane_init_static_buff((Vec3D){0, 0, 1});
 
 		cube->origin.x = v.x;
 		cube->origin.y = v.y;
