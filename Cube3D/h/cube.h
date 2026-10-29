@@ -25,7 +25,10 @@ typedef struct Cube {
 	uint8_t curr_face_index;
 
 	uint8_t is_rotating;
+	uint8_t is_exploding;
 	uint8_t is_texture_visible;
+
+	float explode_phase;
 } Cube;
 
 // Function prototypes
@@ -75,6 +78,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		cube->sides              = FACE_COUNT;
 		cube->curr_face_index    = 0;
 		cube->is_rotating        = 1;
+		cube->is_exploding       = 0;
 		cube->is_texture_visible = 1;
 
 		Plane_init_static_buff();
@@ -236,10 +240,10 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	Vec3D Cube_calculate_single_point(Cube *cube, const Vec3D *v)
 	{
 		Vec3D p = *v;
-
+		
 		p.x += cube->current_face->origin.tx;
 		p.y += cube->current_face->origin.ty;
-		p.z += cube->current_face->origin.tz;
+		p.z += cube->current_face->origin.tz + cube->is_exploding;
 
 		p = Vec3D_rotate_x(&p, cube->current_face->origin.rx);
 		p = Vec3D_rotate_y(&p, cube->current_face->origin.ry);

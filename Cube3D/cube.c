@@ -273,6 +273,10 @@ uint8_t App_listen(App *app)
 			case 't':
 				app->cube->is_texture_visible ^= 1;
 				break;
+
+			case 'e':
+				app->cube->is_exploding ^= 1;
+				break;
 		}
 	}
 
