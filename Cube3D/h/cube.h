@@ -25,10 +25,11 @@ typedef struct Cube {
 	uint8_t curr_face_index;
 
 	uint8_t is_rotating;
-	uint8_t is_exploding;
+	uint8_t is_expanded;
+	uint8_t is_expanded_ones;
 	uint8_t is_texture_visible;
 
-	float explode_phase;
+	float expand_phase;
 } Cube;
 
 // Function prototypes
@@ -48,7 +49,8 @@ void    Cube_reset                  (Cube *cube);
 Plane*  Cube_set_current_face       (Cube *cube, uint8_t face_index);
 Plane*  Cube_get_current_face       (Cube *cube);
 uint8_t Cube_should_display_texture (Cube *cube);
-void    Cube_try_explode            (Cube *cube, Vec3D *p);
+void    Cube_toggle_expand          (Cube *cube);
+void    Cube_try_to_expand          (Cube *cube, Vec3D *p);
 Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 //----------------------------------------------------------------------------------
 // End of function prototypes
@@ -78,9 +80,10 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 
 		cube->sides              = FACE_COUNT;
 		cube->curr_face_index    = 0;
-		cube->explode_phase      = 0;
+		cube->expand_phase       = 0;
 		cube->is_rotating        = 1;
-		cube->is_exploding       = 0;
+		cube->is_expanded        = 0;
+		cube->is_expanded_ones   = 0;
 		cube->is_texture_visible = 1;
 
 		Plane_init_static_buff();
@@ -237,16 +240,30 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 	}
 
 	// =============================================================================
+	// @@@ + Cube_toggle_expand
+	// =============================================================================
+	void Cube_toggle_expand(Cube *cube)
+	{
+		cube->is_expanded ^= 1;
+	    cube->is_expanded_ones = 1;
+		cube->expand_phase = cube->origin.rz;
+	}
+
+	// =============================================================================
 	// @@@ + Cube_try_explode
 	// =============================================================================
-	void Cube_try_explode(Cube *cube, Vec3D *p)
+	void Cube_try_to_expand(Cube *cube, Vec3D *p)
 	{
-		if (cube->is_exploding)
-			p->z += (cube->origin.rz - cube->explode_phase < PI / 2)
-				? sin(cube->origin.rz - cube->explode_phase)
+	    
+		if (cube->is_expanded)
+			p->z += (cube->origin.rz - cube->expand_phase < PI / 2)
+				? sin(cube->origin.rz - cube->expand_phase)
 				: 1;
-		else
-			cube->explode_phase = cube->origin.rz;
+
+		if (!cube->is_expanded)
+			p->z += (cube->origin.rz - cube->expand_phase < PI / 2 && cube->is_expanded_ones)
+				? 1 - sin(cube->origin.rz - cube->expand_phase)
+				: 0;
 	}
 
 	// =============================================================================
@@ -261,7 +278,7 @@ Vec3D   Cube_calculate_single_point (Cube *cube, const Vec3D *v);
 		p.z += cube->current_face->origin.tz;
 		// p.z += cube->current_face->origin.tz + cube->is_exploding;
 
-		Cube_try_explode(cube, &p); // may modify p.z
+		Cube_try_to_expand(cube, &p); // may modify p.z
 
 		p = Vec3D_rotate_x(&p, cube->current_face->origin.rx);
 		p = Vec3D_rotate_y(&p, cube->current_face->origin.ry);

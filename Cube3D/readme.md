@@ -10,5 +10,6 @@
 | `Space`                       | Toggle cube rotation on / off
 | `I`                           | Toggle info
 | `T`                           | Toggle texture on / off
+| `E`                           | Toggle explode faces
 | `R`                           | Reset
 | `Q`, `Esc`                    | Quit

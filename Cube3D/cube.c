@@ -275,7 +275,7 @@ uint8_t App_listen(App *app)
 				break;
 
 			case 'e':
-				app->cube->is_exploding ^= 1;
+				Cube_toggle_expand(app->cube);
 				break;
 		}
 	}
