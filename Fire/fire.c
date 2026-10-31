@@ -42,10 +42,19 @@ void App_first_pass(App *app)
 			
 			WORD curr_line_attr = console->attrs[index];
 			WORD prev_line_attr = console->attrs[index + console->width];
-
-			console->attrs[index] = RAND(100) > 50 && prev_line_attr > 0
+			
+			/*console->attrs[index] = RAND(100) > 50 && prev_line_attr > 0
 				? prev_line_attr - 1
-				: prev_line_attr;
+				: prev_line_attr;*/
+			
+			WORD attr = RAND(100) > 50 && prev_line_attr > 0
+				? (prev_line_attr - 1) & 0x0e
+				: prev_line_attr & 0x0e;
+			
+			// if (attr <= 0x0d) attr &= 0x0d;
+			if (attr < 0x0c) attr &= 4;
+
+			console->attrs[index] = attr;
 		}
 	}
 }
@@ -69,11 +78,11 @@ void App_update(App *app)
 
 		    if (value > 70 && prev_line_attr)
 		    {
-		    	char attr = prev_line_attr;
+		    	WORD attr = prev_line_attr;
 		    	
 		    	char offset = col ? RAND(3) - 1 : 0;
 
-		    	if (RAND(100) > 75) attr &= 0x0e;
+		    	// if (RAND(100) > 75) attr &= 0x0e;
 		    	if (attr < 0x0c) attr &= 4;
 
 		    	console->attrs[index + offset] = attr;
@@ -82,7 +91,7 @@ void App_update(App *app)
 
 		    if (value > 62 && curr_line_attr)
 		    {
-		    	char attr = (curr_line_attr - 1) & 0x0e;
+		    	WORD attr = (curr_line_attr - 1) & 0x0e;
 		    	
 		    	// if (attr <= 0x0d) attr &= 0x0d;
 		    	if (attr < 0x0c) attr &= 4;
@@ -124,7 +133,7 @@ int main()
 	};
 
 	App_first_pass(&app);
-	Console_render(&console);
+	Console_render_buff(&console);
 
 	while (App_listen(&app))
 	{
