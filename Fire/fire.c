@@ -62,13 +62,13 @@ void App_next_frame(App *app, size_t index)
 	{
 		WORD attr = prev_line_attr;
 		
-		char offset = RAND(3) - 1;
+		char offset = index ? RAND(3) - 1 : 0;
 
-		if (RAND(100) > 75)
+		if (RAND(100) > 80)
 			attr &= 0x0e;
 
 		if (attr < 0x0c)
-			attr &= 4;
+			attr &= 0x04;
 
 		console->attrs[index + offset] = attr;
 
@@ -79,9 +79,12 @@ void App_next_frame(App *app, size_t index)
 	{
 		WORD attr = (curr_line_attr - 1) & 0x0e;
 		
-		if (attr <= 0x0d) attr &= 0x0d;
-		// if (attr < 0x0c) attr &= 4;
-		
+		if (app->is_smoke_enabled) {
+			if (attr <= 0x0d) attr &= 0x0d;
+		}
+		else {
+			if (attr < 0x0c) attr &= 0x04;
+		}
 		console->attrs[index] = attr;
 	}
 }
@@ -106,7 +109,8 @@ uint8_t App_listen(App *app)
 	{
 		char key = _getch();
 
-		if (key == 27 || ((key | 32) == 'q')) return 0;
+		if (key == 27 || ((key | 32) == 'q'))
+			return 0;
 
 		if ((key | 32) == 's')
 			app->is_smoke_enabled ^= 1;
