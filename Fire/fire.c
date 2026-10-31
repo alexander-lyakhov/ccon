@@ -31,17 +31,17 @@ void App_first_pass(App *app)
 {
 	Console *console = app->console;
 
-	for (int i = 0; i < console->width; i ++)
+	for (int i = console->size - console->width; i < console->size; i++)
 		console->attrs[i] = 0x0f;
 
-	for (int row = 1; row < console->height; row++)
+	for (int row = console->height - 2; row >= 0; row--)
 	{
 		for (int col = 0; col < console->width; col++)
 		{
 			size_t index = row * console->width + col;
 			
 			WORD curr_line_attr = console->attrs[index];
-			WORD prev_line_attr = console->attrs[index - console->width];
+			WORD prev_line_attr = console->attrs[index + console->width];
 
 			console->attrs[index] = RAND(100) > 50 && prev_line_attr > 0
 				? prev_line_attr - 1
@@ -56,22 +56,14 @@ void App_update(App *app)
 {
 	Console *console = app->console;
 
-	for (int row = 1; row < console->height; row++)
+	for (int row = console->height - 2; row >= 0; row--)
 	{
 		for (int col = 0; col < console->width; col++)
 		{
 			size_t index = row * console->width + col;
 			
 			WORD curr_line_attr = console->attrs[index];
-			WORD prev_line_attr = console->attrs[index - console->width];
-
-			/*console->attrs[index] = RAND(100) > 50 && prev_line_attr
-				? curr_line_attr ? prev_line_attr - 1 : 0x0000
-				: curr_line_attr ? curr_line_attr - 1 : 0x0000;*/
-
-			/*console->attrs[index] = RAND(100) > 50
-				? curr_line_attr ? curr_line_attr - 1 : 0x0000
-				: curr_line_attr ? curr_line_attr : 0x0000;*/
+			WORD prev_line_attr = console->attrs[index + console->width];
 		
 		    int value = RAND(100);
 
@@ -139,7 +131,7 @@ int main()
 		// App_render(&console);
 		
 		App_update(&app);
-		Console_render(&console);
+		Console_render_attrs(&console);
 		usleep(20000);
 		// Sleep(40);
 	}
