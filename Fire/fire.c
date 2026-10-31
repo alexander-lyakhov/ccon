@@ -79,14 +79,16 @@ void App_update(App *app)
 		    {
 		    	char attr = prev_line_attr;
 		    	
+		    	char offset = col ? RAND(3) - 1 : 0;
+
 		    	if (RAND(100) > 75) attr &= 0x0e;
 		    	if (attr < 0x0c) attr &= 4;
 
-		    	console->attrs[index] = attr;
+		    	console->attrs[index + offset] = attr;
 		    	continue;
 		    }
 
-		    if (value > 64 && curr_line_attr)
+		    if (value > 62 && curr_line_attr)
 		    {
 		    	char attr = (curr_line_attr - 1) & 0x0e;
 		    	
@@ -138,7 +140,7 @@ int main()
 		
 		App_update(&app);
 		Console_render(&console);
-		usleep(30000);
+		usleep(20000);
 		// Sleep(40);
 	}
 
