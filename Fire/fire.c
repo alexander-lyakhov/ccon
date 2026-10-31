@@ -77,13 +77,23 @@ void App_update(App *app)
 
 		    if (value > 70 && prev_line_attr)
 		    {
-		    	console->attrs[index] = prev_line_attr & 0x0e;
+		    	char attr = prev_line_attr;
+		    	
+		    	if (RAND(100) > 75) attr &= 0x0e;
+		    	if (attr < 0x0c) attr &= 4;
+
+		    	console->attrs[index] = attr;
 		    	continue;
 		    }
 
-		    if (value > 50 && curr_line_attr)
+		    if (value > 64 && curr_line_attr)
 		    {
-		    	console->attrs[index] = (curr_line_attr - 1) & 0x0e;
+		    	char attr = (curr_line_attr - 1) & 0x0e;
+		    	
+		    	if (attr < 0x0c)
+		    		attr &= 4;
+
+		    	console->attrs[index] = attr;
 		    	continue;
 		    }
 		}
@@ -128,8 +138,8 @@ int main()
 		
 		App_update(&app);
 		Console_render(&console);
-		// usleep(100000);
-		Sleep(50);
+		usleep(30000);
+		// Sleep(40);
 	}
 
 	App_free(&app);
