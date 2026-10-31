@@ -132,7 +132,7 @@ int main()
 
 	App app = {
 		.console = &console,
-		.is_smoke_enabled = 1,
+		.is_smoke_enabled = 0,
 	};
 
 	App_update(&app, App_first_frame);
