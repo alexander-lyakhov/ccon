@@ -82,7 +82,7 @@ void App_update(App *app)
 		    	
 		    	char offset = col ? RAND(3) - 1 : 0;
 
-		    	// if (RAND(100) > 75) attr &= 0x0e;
+		    	if (RAND(100) > 75) attr &= 0x0e;
 		    	if (attr < 0x0c) attr &= 4;
 
 		    	console->attrs[index + offset] = attr;
@@ -93,8 +93,8 @@ void App_update(App *app)
 		    {
 		    	WORD attr = (curr_line_attr - 1) & 0x0e;
 		    	
-		    	// if (attr <= 0x0d) attr &= 0x0d;
-		    	if (attr < 0x0c) attr &= 4;
+		    	if (attr <= 0x0d) attr &= 0x0d;
+		    	// if (attr < 0x0c) attr &= 4;
 
 		    	console->attrs[index] = attr;
 		    	continue;
@@ -125,7 +125,7 @@ int main()
 	INIT_RAND;
 
 	Console console = Console_create();
-	Console_mem_fill(&console, "#", 0x0000);
+	Console_mem_fill(&console, "%", 0x0000);
 
 	App app = {
 		.console     = &console,
