@@ -65,9 +65,27 @@ void App_update(App *app)
 			WORD curr_line_attr = console->attrs[index];
 			WORD prev_line_attr = console->attrs[index - console->width];
 
-			console->attrs[index] = RAND(100) > 50 && prev_line_attr
+			/*console->attrs[index] = RAND(100) > 50 && prev_line_attr
 				? curr_line_attr ? prev_line_attr - 1 : 0x0000
-				: curr_line_attr ? curr_line_attr - 1 : 0x0000;
+				: curr_line_attr ? curr_line_attr - 1 : 0x0000;*/
+
+			/*console->attrs[index] = RAND(100) > 50
+				? curr_line_attr ? curr_line_attr - 1 : 0x0000
+				: curr_line_attr ? curr_line_attr : 0x0000;*/
+		
+		    int value = RAND(100);
+
+		    if (value > 70 && prev_line_attr)
+		    {
+		    	console->attrs[index] = prev_line_attr & 0x0e;
+		    	continue;
+		    }
+
+		    if (value > 50 && curr_line_attr)
+		    {
+		    	console->attrs[index] = (curr_line_attr - 1) & 0x0e;
+		    	continue;
+		    }
 		}
 	}
 }
@@ -78,6 +96,7 @@ void App_update(App *app)
 uint8_t App_listen(App *app)
 {
 	if (_kbhit())
+	// if (1)
 	{
 		char key = _getch();
 
@@ -93,7 +112,7 @@ int main()
 	INIT_RAND;
 
 	Console console = Console_create();
-	Console_mem_fill(&console, "@", 0x0000);
+	Console_mem_fill(&console, "#", 0x0000);
 
 	App app = {
 		.console     = &console,
@@ -101,13 +120,14 @@ int main()
 	};
 
 	App_first_pass(&app);
+	Console_render(&console);
 
 	while (App_listen(&app))
 	{
 		// App_render(&console);
 		
-		Console_render(&console);
 		App_update(&app);
+		Console_render(&console);
 		// usleep(100000);
 		Sleep(50);
 	}
