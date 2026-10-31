@@ -84,8 +84,8 @@ void App_update(App *app)
 		    {
 		    	char attr = (curr_line_attr - 1) & 0x0e;
 		    	
-		    	if (attr < 0x0c)
-		    		attr &= 4;
+		    	// if (attr <= 0x0d) attr &= 0x0d;
+		    	if (attr < 0x0c) attr &= 4;
 
 		    	console->attrs[index] = attr;
 		    	continue;
