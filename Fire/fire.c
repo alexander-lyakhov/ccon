@@ -27,6 +27,15 @@ void App_free(App *app)
 }
 
 // =============================================================================
+// @@@ + App_init_frame
+// =============================================================================
+void App_init_frame(App *app)
+{
+	for (int i = app->console->size - app->console->width; i < app->console->size; i++)
+		app->console->attrs[i] = 0x0f;
+}
+
+// =============================================================================
 // @@@ + App_first_frame
 // =============================================================================
 void App_first_frame(App *app, size_t index)
@@ -100,10 +109,26 @@ void App_update(App *app, CallbackFn callback)
 }
 
 // =============================================================================
+// @@@ + App_resize
+// =============================================================================
+uint8_t App_resize(App *app)
+{
+	Console_mem_reset(app->console);
+	
+	App_init_frame(app);
+	App_update(app, App_first_frame);
+
+	return 1;
+}
+
+// =============================================================================
 // @@@ + App_listen
 // =============================================================================
 uint8_t App_listen(App *app)
 {
+	if (Console_check_resize(app->console))
+		return App_resize(app);
+
 	if (_kbhit())
 	// if (1)
 	{
@@ -121,20 +146,19 @@ uint8_t App_listen(App *app)
 int main()
 {
 	system("cls");
+	system("colortool/colortool.exe -q schemes/cmd-legacy.ini");
 
 	INIT_RAND;
 
 	Console console = Console_create();
 	Console_mem_fill(&console, "@", 0x0000);
 
-	for (int i = console.size - console.width; i < console.size; i++)
-		console.attrs[i] = 0x0f;
-
 	App app = {
 		.console = &console,
 		.is_smoke_enabled = 0,
 	};
 
+	App_init_frame(&app);
 	App_update(&app, App_first_frame);
 	
 	Console_render_buff(&console);
