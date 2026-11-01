@@ -38,6 +38,7 @@ void    Console_mem_reset    (Console *console);
 uint8_t Console_check_resize (Console *console);
 void    Console_render       (Console *console);
 void    Console_render_buff  (Console *console);
+void    Console_render_buffW (Console *console);
 void    Console_render_attrs (Console *console);
 
 // #define CONSOLE_IMPLEMENTATION
@@ -238,6 +239,20 @@ void Console_render_buff(Console *console)
 	WriteConsoleOutputCharacter(
 		console->handle,
 		console->buff,
+		console->size,
+		(COORD){0, 0},
+		&console->written
+	);
+}
+
+// =============================================================================
+// @@@ + Console_render_buffW
+// =============================================================================
+void Console_render_buffW(Console *console)
+{
+	WriteConsoleOutputCharacterW(
+		console->handle,
+		(WCHR*)console->buff,
 		console->size,
 		(COORD){0, 0},
 		&console->written

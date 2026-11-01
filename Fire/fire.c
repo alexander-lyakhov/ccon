@@ -7,6 +7,7 @@
 
 #define INIT_RAND srand(time(NULL))
 #define RAND(range) (rand() % range)
+#define BITS_OFFSET 4
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
@@ -32,7 +33,7 @@ void App_free(App *app)
 void App_init_frame(App *app)
 {
 	for (int i = app->console->size - app->console->width; i < app->console->size; i++)
-		app->console->attrs[i] = 0x0f;
+		app->console->attrs[i] = 0xf0;
 }
 
 // =============================================================================
@@ -42,8 +43,8 @@ void App_first_frame(App *app, size_t index)
 {
 	Console *console = app->console;
 
-	WORD curr_line_attr = console->attrs[index];
-	WORD prev_line_attr = console->attrs[index + console->width];
+	WORD curr_line_attr = console->attrs[index] >> BITS_OFFSET;
+	WORD prev_line_attr = console->attrs[index + console->width] >> BITS_OFFSET;
 		
 	WORD attr = RAND(100) > 50 && prev_line_attr > 0
 		? (prev_line_attr - 1) & 0x0e
@@ -52,7 +53,7 @@ void App_first_frame(App *app, size_t index)
 	// if (attr <= 0x0d) attr &= 0x0d;
 	if (attr < 0x0c) attr &= 4;
 
-	console->attrs[index] = attr;
+	console->attrs[index] = attr << BITS_OFFSET;
 }
 
 // =============================================================================
@@ -62,8 +63,8 @@ void App_next_frame(App *app, size_t index)
 {
 	Console *console = app->console;
 
-	WORD curr_line_attr = console->attrs[index];
-	WORD prev_line_attr = console->attrs[index + console->width];
+	WORD curr_line_attr = console->attrs[index] >> BITS_OFFSET;
+	WORD prev_line_attr = console->attrs[index + console->width] >> BITS_OFFSET;
 
 	int value = RAND(100);
 
@@ -79,7 +80,7 @@ void App_next_frame(App *app, size_t index)
 		if (attr < 0x0c)
 			attr &= 0x04;
 
-		console->attrs[index + offset] = attr;
+		console->attrs[index + offset] = attr << BITS_OFFSET;
 
 		return;
 	}
@@ -94,7 +95,7 @@ void App_next_frame(App *app, size_t index)
 		else {
 			if (attr < 0x0c) attr &= 0x04;
 		}
-		console->attrs[index] = attr;
+		console->attrs[index] = attr << BITS_OFFSET;
 	}
 }
 
@@ -150,8 +151,8 @@ int main()
 
 	INIT_RAND;
 
-	Console console = Console_create();
-	Console_mem_fill(&console, "@", 0x0000);
+	Console console = Console_createW();
+	Console_mem_fill(&console, L"░", 0x0000);
 
 	App app = {
 		.console = &console,
@@ -161,7 +162,7 @@ int main()
 	App_init_frame(&app);
 	App_update(&app, App_first_frame);
 	
-	Console_render_buff(&console);
+	Console_render_buffW(&console);
 
 	while (App_listen(&app))
 	{
