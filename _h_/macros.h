@@ -11,6 +11,9 @@
 #define  POP_ADDR(addr) (addr) = tmp;
 #define  INC_LINE(addr) (addr) += console->width;
 
+#define INIT_RAND srand(time(NULL))
+#define RAND(range) (rand() % range)
+
 typedef enum _KEYS {
 	KEY_LEFT   = 75,
 	KEY_RIGHT  = 77,

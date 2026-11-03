@@ -7,7 +7,11 @@
 
 #define INIT_RAND srand(time(NULL))
 #define RAND(range) (rand() % range)
-#define BITS_OFFSET 4
+
+#define BITS_OFFSET 0
+#define INIT_COOR 0x0f
+// #define FIRE_CHAR L"░"
+#define FIRE_CHAR L"@"
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
@@ -17,7 +21,7 @@ typedef struct {
 	uint8_t is_smoke_enabled;
 } App;
 
-typedef void (*CallbackFn)(App *app, size_t index);
+typedef void (*Frame)(App *app, size_t index);
 
 // =============================================================================
 // @@@ + App_free
@@ -33,7 +37,7 @@ void App_free(App *app)
 void App_init_frame(App *app)
 {
 	for (int i = app->console->size - app->console->width; i < app->console->size; i++)
-		app->console->attrs[i] = 0xf0;
+		app->console->attrs[i] = INIT_COOR;
 }
 
 // =============================================================================
@@ -102,7 +106,7 @@ void App_next_frame(App *app, size_t index)
 // =============================================================================
 // @@@ + App_update
 // =============================================================================
-void App_update(App *app, CallbackFn callback)
+void App_update(App *app, Frame callback)
 {
 	for (int row = app->console->height - 2; row >= 0; row--)
 		for (int col = 0; col < app->console->width; col++)
@@ -152,7 +156,7 @@ int main()
 	INIT_RAND;
 
 	Console console = Console_createW();
-	Console_mem_fill(&console, L"░", 0x0000);
+	Console_mem_fill(&console, FIRE_CHAR, 0x0000);
 
 	App app = {
 		.console = &console,
