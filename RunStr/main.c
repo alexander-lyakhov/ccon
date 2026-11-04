@@ -1,14 +1,21 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <conio.h>
 #include <windows.h>
 
 #define SEEK_OFFSET 17
 #define FB_SIZE 768
 
+#define CONSOLE_IMPLEMENTATION
+#include "h/console.h"
+
 typedef struct {
+	Console *console;
 	char *font_buff;
+	char *view_buff;
+	char *message;
 
 } App;
 
@@ -18,8 +25,20 @@ typedef struct {
 // =============================================================================
 void App_free(App *app)
 {
+	Console_mem_free(app->console);
+
 	if (app->font_buff)
 		free(app->font_buff);
+
+	if (app->view_buff)
+		free(app->view_buff);
+
+	if (app->message)
+		free(app->message);
+
+	app->font_buff = NULL;
+	app->view_buff = NULL;
+	app->message   = NULL;
 }
 
 // =============================================================================
@@ -51,9 +70,9 @@ void App_exit(App *app, const char *message)
 }
 
 // =============================================================================
-// @@@ + App_load
+// @@@ + App_load_font
 // =============================================================================
-uint8_t App_load(App *app, const char *filename)
+uint8_t App_load_font(App *app, const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 
@@ -70,20 +89,66 @@ uint8_t App_load(App *app, const char *filename)
 	return res;
 }
 
+// =============================================================================
+// @@@ + App_init_view
+// =============================================================================
+void App_init_view(App *app, const char *message)
+{
+	size_t str_size = strlen(message);
+	size_t index = 0;
+
+	app->message   = malloc(sizeof(message));
+	app->view_buff = malloc(strlen(message) << 4);
+
+	strcpy(app->message, message);
+
+	for (int line = 0; line < 8; line++)
+	{
+		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
+		{
+			char *letter = app->font_buff + (*char_ptr - 32) * 8;
+			char byte = letter[line];
+
+			for (int i = 0; i < 8; i++)
+			{
+				app->view_buff[index++] = byte & 0x10000000 ? '#' : ' ';
+				byte <<= 1;
+			}
+		}
+	}
+
+	for (int line = 0; line < 8; line++)
+	{
+		char *dest = (char*)app->console->buff + line * app->console->width;
+		char *src = app->view_buff + line * str_size * 8;
+		memcpy(dest, src, str_size * 8);
+	}
+
+	Console_render(app->console);
+}
+
 int main()
 {
 	system("cls");
 
-	App app = { 0 };
+	Console console = Console_create();
+	Console_mem_fill(&console, " ", 0x07);
 
-	if (!App_load(&app, "DB_fnt.$C"))
+	App app = {
+		.console   = &console,
+		.font_buff = NULL,
+		.font_buff = NULL,
+		.message   = NULL,
+	};
+
+	if (!App_load_font(&app, "DB_fnt.$C"))
 		App_exit(&app, "File open Error");
 
-	App_print(&app);
+	App_init_view(&app, "Test");
+
+	// App_print(&app);
 
 	App_free(&app);
-
-	_getch();
 
 	return 0;
 }
