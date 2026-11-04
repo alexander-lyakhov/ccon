@@ -7,6 +7,8 @@
 
 #define SEEK_OFFSET 17
 #define FB_SIZE 768
+#define CHAR_W 8
+#define CHAR_H 8
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
@@ -90,6 +92,21 @@ uint8_t App_load_font(App *app, const char *filename)
 }
 
 // =============================================================================
+// @@@ + App_update
+// =============================================================================
+void App_update(App *app)
+{
+	int str_size = strlen(app->message);
+
+	for (int line = 0; line < 8; line++)
+	{
+		char *dest = (char*)app->console->buff + line * app->console->width;
+		char *src = app->view_buff + line * str_size * CHAR_W;
+		memcpy(dest, src, str_size * 8);
+	}
+}
+
+// =============================================================================
 // @@@ + App_init_view
 // =============================================================================
 void App_init_view(App *app, const char *message)
@@ -98,32 +115,27 @@ void App_init_view(App *app, const char *message)
 	size_t index = 0;
 
 	app->message   = malloc(sizeof(message));
-	app->view_buff = malloc(strlen(message) << 4);
+	app->view_buff = malloc(strlen(message) * CHAR_W * CHAR_H);
 
 	strcpy(app->message, message);
 
-	for (int line = 0; line < 8; line++)
+	char *p_view = app->view_buff;
+
+	for (int line = 0; line < CHAR_H; line++)
 	{
 		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
 		{
-			char *letter = app->font_buff + (*char_ptr - 32) * 8;
+			char *letter = app->font_buff + (*char_ptr - 32) * CHAR_H;
 			char byte = letter[line];
 
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < CHAR_W; i++)
 			{
-				app->view_buff[index++] = byte & 0x10000000 ? '#' : ' ';
+				*p_view++ = (byte & 128) ? '#' : ' ';
 				byte <<= 1;
 			}
 		}
 	}
-
-	for (int line = 0; line < 8; line++)
-	{
-		char *dest = (char*)app->console->buff + line * app->console->width;
-		char *src = app->view_buff + line * str_size * 8;
-		memcpy(dest, src, str_size * 8);
-	}
-
+	App_update(app);
 	Console_render(app->console);
 }
 
@@ -144,7 +156,7 @@ int main()
 	if (!App_load_font(&app, "DB_fnt.$C"))
 		App_exit(&app, "File open Error");
 
-	App_init_view(&app, "Test");
+	App_init_view(&app, "RunStr test message");
 
 	// App_print(&app);
 
