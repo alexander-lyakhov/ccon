@@ -4,6 +4,7 @@
 #include <string.h>
 #include <conio.h>
 #include <windows.h>
+#include <unistd.h>
 
 #define SEEK_OFFSET 17
 #define FB_SIZE 768
@@ -92,9 +93,9 @@ uint8_t App_load_font(App *app, const char *filename)
 }
 
 // =============================================================================
-// @@@ + App_update
+// @@@ + App_update_frame
 // =============================================================================
-void App_update(App *app)
+void App_update_frame(App *app)
 {
 	int str_size = strlen(app->message);
 
@@ -104,6 +105,36 @@ void App_update(App *app)
 		char *src = app->view_buff + line * str_size * CHAR_W;
 		memcpy(dest, src, str_size * 8);
 	}
+}
+
+
+// =============================================================================
+// @@@ + App_scroll
+// =============================================================================
+void App_scroll(App *app)
+{
+	Console *console = app->console;
+
+	for (int line = 0; line < CHAR_H; line++)
+	{
+		char *dest = (char*)console->buff + line * console->width;
+
+		for (int i = 0; i < console->width - 1; i++)
+		{
+			// char *dest = &console->buff[index];
+			*dest = *(dest + 1);
+			dest++;
+		}
+	}
+}
+
+// =============================================================================
+// @@@ + App_update
+// =============================================================================
+void App_update(App *app)
+{
+	// App_update_frame(app);
+	App_scroll(app);
 }
 
 // =============================================================================
@@ -135,8 +166,28 @@ void App_init_view(App *app, const char *message)
 			}
 		}
 	}
-	App_update(app);
+	// App_update(app);
+	App_update_frame(app);
 	Console_render(app->console);
+}
+
+// =============================================================================
+// @@@ + App_listen
+// =============================================================================
+uint8_t App_listen(App *app)
+{
+	/*if (Console_check_resize(app->console))
+		return App_resize(app);*/
+
+	// if (_kbhit())
+	if (1)
+	{
+		char key = _getch();
+
+		if (key == 27 || ((key | 32) == 'q'))
+			return 0;
+	}
+	return 1;
 }
 
 int main()
@@ -157,6 +208,14 @@ int main()
 		App_exit(&app, "File open Error");
 
 	App_init_view(&app, "RunStr test message");
+
+	while (App_listen(&app))
+	{
+		App_update(&app);
+		Console_render_buff(&console);
+		usleep(20000);
+		// Sleep(40);
+	}
 
 	// App_print(&app);
 
