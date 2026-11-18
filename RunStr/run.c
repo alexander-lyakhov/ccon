@@ -13,10 +13,11 @@
 #include "h/console.h"
 
 typedef struct {
-	unsigned char *buff;
-	unsigned char *lines[CHAR_H];
-	uint16_t width;
-	uint16_t size;
+	char *buff;
+	char *lines[CHAR_H];
+	uint32_t width;
+	uint32_t size;
+	uint32_t offset;
 
 } View;
 
@@ -28,6 +29,8 @@ typedef struct {
 	char *message;
 
 } App;
+
+void App_update_frame(App *app);
 
 // =============================================================================
 // @@@ + View_destroy
@@ -45,7 +48,12 @@ void View_destroy(View *view)
 // =============================================================================
 void* View_init(View *view, const char *message)
 {
-	view->buff = malloc(strlen(message) * CHAR_W * CHAR_H);
+	size_t str_len = strlen(message);
+
+    view->width = str_len * CHAR_W;
+    view->size  = str_len * CHAR_W * CHAR_H;
+	view->buff  = malloc(view->size);
+
 	return view->buff;
 }
 
@@ -54,10 +62,12 @@ void* View_init(View *view, const char *message)
 // =============================================================================
 void App_init(App *app, const char *message)
 {
+	puts("App_init");
+
 	size_t str_size = strlen(message);
 	size_t index = 0;
 
-	app->message   = malloc(sizeof(message));
+	app->message = malloc(sizeof(message));
 	strcpy(app->message, message);
 	// app->view_buff = malloc(strlen(message) * CHAR_W * CHAR_H);
 
@@ -136,11 +146,27 @@ void App_free(App *app)
 	if (app->source_view)
 		View_destroy(app->source_view);
 
-	if (app->target_view)
-		View_destroy(app->target_view);
+	app->font_buff   = NULL;
+	app->message     = NULL;
+	app->source_view = NULL;
+	app->target_view = NULL;
+}
 
-	app->font_buff = NULL;
-	app->message   = NULL;
+// =============================================================================
+// @@@ + App_update_frame
+// =============================================================================
+void App_update_frame(App *app)
+{
+	puts("App_update_frame");
+
+	int str_size = strlen(app->message);
+
+	for (int line = 0; line < 8; line++)
+	{
+		char *dest = (char*)app->console->buff + line * app->console->width;
+		char *src = app->source_view->buff + line * str_size * CHAR_W;
+		memcpy(dest, src, str_size * 8);
+	}
 }
 
 // =============================================================================
@@ -156,14 +182,22 @@ void App_exit(App *app, const char *message)
 int main()
 {
 	system("cls");
-	printf("Hello !!!");
 
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x07);
 
-	View source_view = { 0 };
+	View source_view = {
+		.buff   = NULL,
+		.width  = 0,
+		.size   = 0,
+		.offset = 0,
+	};
+
 	View target_view = {
-		.buff = console.buff,
+		.buff   = console.buff,
+		.width  = console.width,
+		.size   = console.width * CHAR_H,
+		.offset = 0,
 	};
 
 	App app = {
@@ -178,9 +212,11 @@ int main()
 		App_exit(&app, "File open Error");
 
 	App_init(&app, "RunStr test message");
-	App_print(&app);
+	// App_print(&app);
 
-	_getch();
+	// printf("%zu", sizeof(View));
+
+	// _getch();
 
 	return 0;
 }
