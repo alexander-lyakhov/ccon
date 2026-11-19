@@ -14,11 +14,11 @@
 
 typedef struct {
 	char *buff;
-	char *lines[CHAR_H];
-	uint32_t   line_width;
-	uint32_t scroll_width;
+	char *buff_lines[CHAR_H];
+	uint32_t width;
 	uint32_t size;
 	uint32_t offset;
+	uint16_t scroll_width;
 
 } View;
 
@@ -33,17 +33,6 @@ typedef struct {
 } App;
 
 void App_update_frame(App *app);
-
-// =============================================================================
-// @@@ + View_destroy
-// =============================================================================
-void View_destroy(View *view)
-{
-	if (view->buff)
-		free(view->buff);
-
-	view->buff = NULL;
-}
 
 // =============================================================================
 // @@@ + App_init
@@ -180,18 +169,18 @@ int main()
 
 	View source_view = {
 		.buff         = NULL,
-		.line_width   = 0,
-		.scroll_width = 0,
+		.width        = 0,
 		.size         = 0,
 		.offset       = 0,
+		.scroll_width = 0,
 	};
 
 	View target_view = {
 		.buff         = console.buff,
-		.line_width   = console.width,
-		.scroll_width = 8 * CHAR_W,
+		.width        = console.width,
 		.size         = console.width * CHAR_H,
 		.offset       = 0,
+		.scroll_width = 8 * CHAR_W,
 	};
 
 	App app = {
