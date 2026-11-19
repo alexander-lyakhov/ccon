@@ -3,11 +3,15 @@
 #include <stdbool.h>
 #include <conio.h>
 #include <windows.h>
+#include <unistd.h>
+
+#include "h/macros.h"
 
 #define SEEK_OFFSET 17
 #define FB_SIZE 768
 #define CHAR_W 8
 #define CHAR_H 8
+#define SCROLL_CHAR_WIDTH 8
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
@@ -35,44 +39,6 @@ typedef struct {
 void App_update_frame(App *app);
 
 // =============================================================================
-// @@@ + App_init
-// =============================================================================
-void App_init(App *app, const char *message)
-{
-	puts("App_init");
-
-	size_t str_len = strlen(message);
-	size_t index = 0;
-
-	app->message                 = strdup(message);
-	app->view_buff               = malloc(str_len * CHAR_W * CHAR_H);
-	
-	app->source_view->buff       = app->view_buff;
-	app->source_view->line_width = str_len * CHAR_W;
-	app->source_view->size       = str_len * CHAR_W * CHAR_H;
-
-	char *p_view = app->view_buff;
-
-	for (int line = 0; line < CHAR_H; line++)
-	{
-		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
-		{
-			char *letter = app->font_buff + (*char_ptr - 32) * CHAR_H;
-			char byte = letter[line];
-
-			for (int i = 0; i < CHAR_W; i++)
-			{
-				*p_view++ = (byte & 128) ? '#' : ' ';
-				byte <<= 1;
-			}
-		}
-	}
-	// App_update(app);
-	App_update_frame(app);
-	Console_render(app->console);
-}
-
-// =============================================================================
 // @@@ + App_load_font
 // =============================================================================
 uint8_t App_load_font(App *app, const char *filename)
@@ -90,6 +56,88 @@ uint8_t App_load_font(App *app, const char *filename)
 	fclose(fp);
 
 	return res;
+}
+
+// =============================================================================
+// @@@ + App_init
+// =============================================================================
+void App_init(App *app, const char *message)
+{
+	// puts("App_init");
+
+	size_t str_len                 = strlen(message);
+	size_t scroll_width            = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
+
+	app->message                   = strdup(message);
+	app->view_buff                 = malloc(str_len * CHAR_W * CHAR_H);
+
+	app->source_view->buff         = app->view_buff;
+	app->source_view->width        = str_len * CHAR_W;
+	app->source_view->size         = str_len * CHAR_W * CHAR_H;
+	app->source_view->offset       = 0;
+	app->source_view->scroll_width = scroll_width;
+
+	app->target_view->buff         = app->console->buff;
+	app->target_view->width        = app->console->width;
+	app->target_view->size         = app->console->size;
+	app->target_view->offset       = 0;
+	app->target_view->scroll_width = scroll_width;
+
+	char *p_view = app->view_buff;
+
+	for (int line_index = 0; line_index < CHAR_H; line_index++)
+	{
+		app->source_view->buff_lines[line_index] = app->source_view->buff + app->source_view->width * line_index;
+		app->target_view->buff_lines[line_index] = app->target_view->buff + app->target_view->width * line_index;
+
+		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
+		{
+			char *letter = app->font_buff + (*char_ptr - 32) * CHAR_H;
+			char byte = letter[line_index];
+
+			for (int i = 0; i < CHAR_W; i++)
+			{
+				*p_view++ = (byte & 128) ? '#' : ' ';
+				byte <<= 1;
+			}
+		}
+	}
+}
+
+// =============================================================================
+// @@@ + App_update_frame
+// =============================================================================
+void App_update_frame(App *app)
+{
+	// puts("App_update_frame");
+
+	int str_size = strlen(app->message);
+
+	size_t scroll_width = app->source_view->scroll_width;
+	size_t width        = app->source_view->width;
+	size_t offset       = app->source_view->offset;
+	size_t fraction     = width - offset;
+
+	for (int line_index = 0; line_index < CHAR_H; line_index++)
+	{
+		memcpy(
+			app->target_view->buff_lines[line_index] + 0,
+			app->source_view->buff_lines[line_index] + offset,
+			scroll_width < fraction ? scroll_width: fraction
+		);
+
+		if (fraction < scroll_width)
+			memcpy(
+				app->target_view->buff_lines[line_index] + fraction,
+				app->source_view->buff_lines[line_index] + 0,
+				scroll_width - fraction
+			);
+	}
+	
+	app->source_view->offset++;
+
+	if (app->source_view->offset == app->source_view->width)
+		app->source_view->offset = 0;
 }
 
 // =============================================================================
@@ -111,9 +159,9 @@ void App_print(App *app)
 }
 
 // =============================================================================
-// @@@ + App_free
+// @@@ + App_destroy
 // =============================================================================
-void App_free(App *app)
+void App_destroy(App *app)
 {
 	Console_mem_free(app->console);
 
@@ -126,6 +174,12 @@ void App_free(App *app)
 	if (app->message)
 		free(app->message);
 
+	if (app->source_view)
+		free(app->source_view);
+
+	if (app->target_view)
+		free(app->target_view);
+
 	app->font_buff   = NULL;
 	app->view_buff   = NULL;
 	app->message     = NULL;
@@ -134,59 +188,61 @@ void App_free(App *app)
 }
 
 // =============================================================================
-// @@@ + App_update_frame
-// =============================================================================
-void App_update_frame(App *app)
-{
-	puts("App_update_frame");
-
-	int str_size = strlen(app->message);
-
-	for (int line = 0; line < 8; line++)
-	{
-		char *dest = (char*)app->console->buff + line * app->console->width;
-		char *src = app->source_view->buff + line * str_size * CHAR_W;
-		memcpy(dest, src, str_size * 8);
-	}
-}
-
-// =============================================================================
 // @@@ + App_exit
 // =============================================================================
 void App_exit(App *app, const char *message)
 {
 	perror(message);
-	App_free(app);
+	App_destroy(app);
 	exit(1);
+}
+
+// =============================================================================
+// @@@ + App_render
+// =============================================================================
+void App_render(App *app)
+{
+	Console *console = app->console;
+
+	WriteConsoleOutputCharacter(
+		console->handle,
+		console->buff,
+		console->width * CHAR_H,
+		(COORD){0, 0},
+		&console->written
+	);
+}
+
+// =============================================================================
+// @@@ + App_listen
+// =============================================================================
+uint8_t App_listen(App *app)
+{
+	/*if (Console_check_resize(app->console))
+		return App_resize(app);*/
+
+	if (_kbhit())
+	// if (1)
+	{
+		char key = _getch();
+
+		if (key == 27 || ((key | 32) == 'q'))
+			return 0;
+	}
+	return 1;
 }
 
 int main()
 {
-	system("cls");
+	// system("cls");
 
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x07);
 
-	View source_view = {
-		.buff         = NULL,
-		.width        = 0,
-		.size         = 0,
-		.offset       = 0,
-		.scroll_width = 0,
-	};
-
-	View target_view = {
-		.buff         = console.buff,
-		.width        = console.width,
-		.size         = console.width * CHAR_H,
-		.offset       = 0,
-		.scroll_width = 8 * CHAR_W,
-	};
-
 	App app = {
 		.console     = &console,
-		.source_view = &source_view,
-		.target_view = &target_view,
+		.source_view = malloc(sizeof(View)),
+		.target_view = malloc(sizeof(View)),
 		.font_buff   = NULL,
 		.view_buff   = NULL,
 		.message     = NULL,
@@ -195,12 +251,26 @@ int main()
 	if (!App_load_font(&app, "DB_fnt.$C"))
 		App_exit(&app, "File open Error");
 
-	App_init(&app, "RunStr test message");
-	// App_print(&app);
+	CURSOR_INIT(&app);
+	CURSOR_HIDE(&app);
 
-	// printf("%zu", sizeof(View));
+	App_init(&app, "RunStr test message * ");
+	// App_init(&app, "R * ");
+	App_update_frame(&app);
+	Console_render(&console);
+	// App_init(&app, "RunStr * ");
 
-	// _getch();
+	while (App_listen(&app))
+	{
+		App_update_frame(&app);
+		Console_render_buff(&console);
+		// App_render(&app);
+		Sleep(40);
+		// usleep(40000);
+	}
+
+	App_destroy(&app);
+	CURSOR_SHOW(&app);
 
 	return 0;
 }
