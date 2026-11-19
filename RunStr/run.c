@@ -15,7 +15,8 @@
 typedef struct {
 	char *buff;
 	char *lines[CHAR_H];
-	uint32_t width;
+	uint32_t   line_width;
+	uint32_t scroll_width;
 	uint32_t size;
 	uint32_t offset;
 
@@ -26,6 +27,7 @@ typedef struct {
 	View *source_view;
 	View *target_view;
 	char *font_buff;
+	char *view_buff;
 	char *message;
 
 } App;
@@ -44,34 +46,23 @@ void View_destroy(View *view)
 }
 
 // =============================================================================
-// @@@ + View_init
-// =============================================================================
-void* View_init(View *view, const char *message)
-{
-	size_t str_len = strlen(message);
-
-    view->width = str_len * CHAR_W;
-    view->size  = str_len * CHAR_W * CHAR_H;
-	view->buff  = malloc(view->size);
-
-	return view->buff;
-}
-
-// =============================================================================
 // @@@ + App_init
 // =============================================================================
 void App_init(App *app, const char *message)
 {
 	puts("App_init");
 
-	size_t str_size = strlen(message);
+	size_t str_len = strlen(message);
 	size_t index = 0;
 
-	app->message = malloc(sizeof(message));
-	strcpy(app->message, message);
-	// app->view_buff = malloc(strlen(message) * CHAR_W * CHAR_H);
+	app->message                 = strdup(message);
+	app->view_buff               = malloc(str_len * CHAR_W * CHAR_H);
+	
+	app->source_view->buff       = app->view_buff;
+	app->source_view->line_width = str_len * CHAR_W;
+	app->source_view->size       = str_len * CHAR_W * CHAR_H;
 
-	char *p_view = View_init(app->source_view, message);
+	char *p_view = app->view_buff;
 
 	for (int line = 0; line < CHAR_H; line++)
 	{
@@ -140,13 +131,14 @@ void App_free(App *app)
 	if (app->font_buff)
 		free(app->font_buff);
 
+	if (app->view_buff)
+		free(app->view_buff);
+
 	if (app->message)
 		free(app->message);
 
-	if (app->source_view)
-		View_destroy(app->source_view);
-
 	app->font_buff   = NULL;
+	app->view_buff   = NULL;
 	app->message     = NULL;
 	app->source_view = NULL;
 	app->target_view = NULL;
@@ -187,17 +179,19 @@ int main()
 	Console_mem_fill(&console, " ", 0x07);
 
 	View source_view = {
-		.buff   = NULL,
-		.width  = 0,
-		.size   = 0,
-		.offset = 0,
+		.buff         = NULL,
+		.line_width   = 0,
+		.scroll_width = 0,
+		.size         = 0,
+		.offset       = 0,
 	};
 
 	View target_view = {
-		.buff   = console.buff,
-		.width  = console.width,
-		.size   = console.width * CHAR_H,
-		.offset = 0,
+		.buff         = console.buff,
+		.line_width   = console.width,
+		.scroll_width = 8 * CHAR_W,
+		.size         = console.width * CHAR_H,
+		.offset       = 0,
 	};
 
 	App app = {
@@ -205,6 +199,7 @@ int main()
 		.source_view = &source_view,
 		.target_view = &target_view,
 		.font_buff   = NULL,
+		.view_buff   = NULL,
 		.message     = NULL,
 	};
 
