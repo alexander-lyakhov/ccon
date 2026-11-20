@@ -9,8 +9,11 @@
 
 #define SEEK_OFFSET 17
 #define FB_SIZE 768
-#define CHAR_W 8
-#define CHAR_H 8
+#define DEFAULT_CHAR_W 8
+#define DEFAULT_CHAR_H 8
+#define CHAR_W 16
+#define CHAR_H 16
+#define CHAR_SCALE 1
 #define SCROLL_CHAR_WIDTH 8
 
 #define CONSOLE_IMPLEMENTATION
@@ -67,13 +70,14 @@ void App_init(App *app, const char *message)
 
 	size_t str_len                 = strlen(message);
 	size_t scroll_width            = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
+	size_t size                    = str_len * CHAR_W * CHAR_H;
 
 	app->message                   = strdup(message);
-	app->view_buff                 = malloc(str_len * CHAR_W * CHAR_H);
+	app->view_buff                 = malloc(size);
 
 	app->source_view->buff         = app->view_buff;
 	app->source_view->width        = str_len * CHAR_W;
-	app->source_view->size         = str_len * CHAR_W * CHAR_H;
+	app->source_view->size         = size;
 	app->source_view->offset       = 0;
 	app->source_view->scroll_width = scroll_width;
 
@@ -85,22 +89,39 @@ void App_init(App *app, const char *message)
 
 	char *p_view = app->view_buff;
 
-	for (int line_index = 0; line_index < CHAR_H; line_index++)
+	for (int char_line_index = 0, view_line_index = 0; char_line_index < DEFAULT_CHAR_H; char_line_index++)
 	{
-		app->source_view->buff_lines[line_index] = app->source_view->buff + app->source_view->width * line_index;
-		app->target_view->buff_lines[line_index] = app->target_view->buff + app->target_view->width * line_index;
+		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
 
 		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
 		{
-			char *letter = app->font_buff + (*char_ptr - 32) * CHAR_H;
-			char byte = letter[line_index];
+			char *letter = app->font_buff + (*char_ptr - 32) * DEFAULT_CHAR_H;
+			char byte = letter[char_line_index];
 
-			for (int i = 0; i < CHAR_W; i++)
+			for (int bit = 0; bit < DEFAULT_CHAR_W; bit++)
 			{
-				*p_view++ = (byte & 128) ? '#' : ' ';
+				*p_view++ = (byte & 128) ? '#' : '.';
+				*p_view++ = (byte & 128) ? '#' : '.';
+				
 				byte <<= 1;
 			}
 		}
+		
+		view_line_index++;
+
+		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
+
+		memcpy(
+			app->source_view->buff_lines[view_line_index - 0],
+			app->source_view->buff_lines[view_line_index - 1],
+			app->source_view->width
+		);
+
+		p_view += app->source_view->width;
+
+		view_line_index++;
 	}
 }
 
@@ -265,8 +286,8 @@ int main()
 		App_update_frame(&app);
 		Console_render_buff(&console);
 		// App_render(&app);
-		Sleep(40);
-		// usleep(40000);
+		// Sleep(40);
+		usleep(40000);
 	}
 
 	App_destroy(&app);
