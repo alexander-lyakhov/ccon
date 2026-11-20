@@ -39,12 +39,12 @@ typedef struct {
 
 } App;
 
-void App_update_frame(App *app);
+void App_update(App *app);
 
 // =============================================================================
 // @@@ + App_load_font
 // =============================================================================
-uint8_t App_load_font(App *app, const char *filename)
+bool App_load_font(App *app, const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 
@@ -54,7 +54,7 @@ uint8_t App_load_font(App *app, const char *filename)
 
 	app->font_buff = malloc(FB_SIZE);
 
-	uint8_t res = fread(app->font_buff, sizeof(char), FB_SIZE, fp) == FB_SIZE;
+	bool res = fread(app->font_buff, sizeof(char), FB_SIZE, fp) == FB_SIZE;
 
 	fclose(fp);
 
@@ -102,10 +102,12 @@ void App_init(App *app, const char *message)
 			char *letter = app->font_buff + (*char_ptr - 32) * DEFAULT_CHAR_H;
 			char byte = letter[char_line_index];
 
-			for (int bit = 0; bit < DEFAULT_CHAR_W; bit++)
+			for (int i = 0; i < DEFAULT_CHAR_W; i++)
 			{
-				*p_view++ = (byte & 128) ? '#' : '.';
-				*p_view++ = (byte & 128) ? '#' : '.';
+				char bit = (byte & 128) ? '#' : '.'; 
+				
+				*p_view++ = bit;
+				*p_view++ = bit;
 				
 				byte <<= 1;
 			}
@@ -131,11 +133,11 @@ void App_init(App *app, const char *message)
 }
 
 // =============================================================================
-// @@@ + App_update_frame
+// @@@ + App_update
 // =============================================================================
-void App_update_frame(App *app)
+void App_update(App *app)
 {
-	// puts("App_update_frame");
+	// puts("App_update");
 
 	int str_size = strlen(app->message);
 
@@ -282,15 +284,14 @@ int main()
 
 	App_init(&app, "RunStr test message * ");
 	// App_init(&app, "R * ");
-	App_update_frame(&app);
 	Console_render(&console);
-	// App_init(&app, "RunStr * ");
+	App_render(&app);
 
 	while (App_listen(&app))
 	{
-		App_update_frame(&app);
-		Console_render_buff(&console);
-		// App_render(&app);
+		App_update(&app);
+		// Console_render_buff(&console);
+		App_render(&app);
 		// Sleep(40);
 		usleep(40000);
 	}
