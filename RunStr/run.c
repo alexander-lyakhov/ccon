@@ -87,12 +87,15 @@ void App_init(App *app, const char *message)
 	app->target_view->offset       = 0;
 	app->target_view->scroll_width = scroll_width;
 
+	int screen_x = (app->console->width - app->source_view->scroll_width) >> 1;
+	int screen_y = (app->console->height - CHAR_H) >> 1;
+
 	char *p_view = app->view_buff;
 
 	for (int char_line_index = 0, view_line_index = 0; char_line_index < DEFAULT_CHAR_H; char_line_index++)
 	{
 		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * (view_line_index + screen_y) + screen_x;
 
 		//
 		// Compose a line
@@ -104,7 +107,7 @@ void App_init(App *app, const char *message)
 
 			for (int i = 0; i < DEFAULT_CHAR_W; i++)
 			{
-				char bit = (byte & 128) ? '#' : '.'; 
+				char bit = (byte & 128) ? '#' : '.';
 				
 				*p_view++ = bit;
 				*p_view++ = bit;
@@ -119,7 +122,8 @@ void App_init(App *app, const char *message)
 		view_line_index++;
 
 		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * (view_line_index + screen_y) + screen_x;
+
 		memcpy(
 			app->source_view->buff_lines[view_line_index - 0],
 			app->source_view->buff_lines[view_line_index - 1],
@@ -290,8 +294,8 @@ int main()
 	while (App_listen(&app))
 	{
 		App_update(&app);
-		// Console_render_buff(&console);
-		App_render(&app);
+		Console_render_buff(&console);
+		// App_render(&app);
 		// Sleep(40);
 		usleep(40000);
 	}
