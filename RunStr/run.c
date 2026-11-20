@@ -94,6 +94,9 @@ void App_init(App *app, const char *message)
 		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
 		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
 
+		//
+		// Compose a line
+		//
 		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
 		{
 			char *letter = app->font_buff + (*char_ptr - 32) * DEFAULT_CHAR_H;
@@ -107,12 +110,14 @@ void App_init(App *app, const char *message)
 				byte <<= 1;
 			}
 		}
-		
+
+		//
+		// Duplicate prev line
+		//
 		view_line_index++;
 
 		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
 		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * view_line_index;
-
 		memcpy(
 			app->source_view->buff_lines[view_line_index - 0],
 			app->source_view->buff_lines[view_line_index - 1],
