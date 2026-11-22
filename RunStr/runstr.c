@@ -16,6 +16,9 @@
 #define CHAR_SCALE 1
 #define SCROLL_CHAR_WIDTH 8
 
+#define ON_BIT '#'
+#define NO_BIT '.'
+
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 
@@ -87,6 +90,9 @@ void App_init(App *app, const char *message)
 	app->target_view->line_offset  = 0;
 	app->target_view->scroll_width = scroll_width;
 
+	if (app->source_view->scroll_width > app->console->width)
+		app->source_view->scroll_width = app->console->width;
+
 	int screen_x = (app->console->width - app->source_view->scroll_width) >> 1;
 	int screen_y = (app->console->height - CHAR_H) >> 1;
 
@@ -107,7 +113,7 @@ void App_init(App *app, const char *message)
 
 			for (int i = 0; i < DEFAULT_CHAR_W; i++)
 			{
-				char bit = (byte & 128) ? '#' : '.';
+				char bit = (byte & 128) ? ON_BIT : NO_BIT;
 				
 				*p_view++ = bit;
 				*p_view++ = bit;
@@ -173,24 +179,6 @@ void App_update(App *app)
 
 	if (app->source_view->line_offset == app->source_view->line_width)
 		app->source_view->line_offset = 0;
-}
-
-// =============================================================================
-// @@@ + App_print
-// =============================================================================
-void App_print(App *app)
-{
-	char str[9] = {0};
-
-	for (int index = 0; index < FB_SIZE; index++)
-	{
-		for (int i = 0, mask = 0b10000000; mask; i++)
-		{
-			str[i] = app->font_buff[index] & mask ? '#' : ' ';
-			mask >>= 1;
-		}
-		puts(str);
-	}
 }
 
 // =============================================================================
@@ -267,7 +255,7 @@ uint8_t App_listen(App *app)
 	return 1;
 }
 
-int main()
+int main(int argc, const char *argv[])
 {
 	// system("cls");
 
@@ -289,8 +277,12 @@ int main()
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
 
-	App_init(&app, "RunStr test message * ");
-	// App_init(&app, "R * ");
+	// App_init(&app, "RunStr test message * ");
+
+	App_init(
+		&app,
+		argc == 2 ? argv[1] : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. "
+	);
 	Console_render(&console);
 	App_render(&app);
 
@@ -300,7 +292,7 @@ int main()
 		Console_render_buff(&console);
 		// App_render(&app);
 		// Sleep(40);
-		usleep(40000);
+		usleep(20000);
 	}
 
 	App_destroy(&app);
