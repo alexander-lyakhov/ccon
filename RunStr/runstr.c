@@ -22,9 +22,9 @@
 typedef struct {
 	char *buff;
 	char *buff_lines[CHAR_H];
-	uint32_t width;
+	uint32_t line_width;
+	uint32_t line_offset;
 	uint32_t size;
-	uint32_t offset;
 	uint16_t scroll_width;
 
 } View;
@@ -76,15 +76,15 @@ void App_init(App *app, const char *message)
 	app->view_buff                 = malloc(size);
 
 	app->source_view->buff         = app->view_buff;
-	app->source_view->width        = str_len * CHAR_W;
+	app->source_view->line_width   = str_len * CHAR_W;
+	app->source_view->line_offset  = 0;
 	app->source_view->size         = size;
-	app->source_view->offset       = 0;
 	app->source_view->scroll_width = scroll_width;
 
 	app->target_view->buff         = app->console->buff;
-	app->target_view->width        = app->console->width;
+	app->target_view->line_width   = app->console->width;
 	app->target_view->size         = app->console->size;
-	app->target_view->offset       = 0;
+	app->target_view->line_offset  = 0;
 	app->target_view->scroll_width = scroll_width;
 
 	int screen_x = (app->console->width - app->source_view->scroll_width) >> 1;
@@ -94,8 +94,8 @@ void App_init(App *app, const char *message)
 
 	for (int char_line_index = 0, view_line_index = 0; char_line_index < DEFAULT_CHAR_H; char_line_index++)
 	{
-		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * (view_line_index + screen_y) + screen_x;
+		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->line_width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->line_width * (view_line_index + screen_y) + screen_x;
 
 		//
 		// Compose a line
@@ -121,16 +121,16 @@ void App_init(App *app, const char *message)
 		//
 		view_line_index++;
 
-		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->width * (view_line_index + screen_y) + screen_x;
+		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->line_width * view_line_index;
+		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->line_width * (view_line_index + screen_y) + screen_x;
 
 		memcpy(
 			app->source_view->buff_lines[view_line_index - 0],
 			app->source_view->buff_lines[view_line_index - 1],
-			app->source_view->width
+			app->source_view->line_width
 		);
 
-		p_view += app->source_view->width;
+		p_view += app->source_view->line_width;
 
 		view_line_index++;
 	}
@@ -146,30 +146,33 @@ void App_update(App *app)
 	int str_size = strlen(app->message);
 
 	size_t scroll_width = app->source_view->scroll_width;
-	size_t width        = app->source_view->width;
-	size_t offset       = app->source_view->offset;
+	size_t width        = app->source_view->line_width;
+	size_t offset       = app->source_view->line_offset;
 	size_t fraction     = width - offset;
+
+	size_t len1 = scroll_width < fraction ? scroll_width: fraction;
+	size_t len2 = scroll_width - fraction;
 
 	for (int line_index = 0; line_index < CHAR_H; line_index++)
 	{
 		memcpy(
 			app->target_view->buff_lines[line_index] + 0,
 			app->source_view->buff_lines[line_index] + offset,
-			scroll_width < fraction ? scroll_width: fraction
+			len1
 		);
 
 		if (fraction < scroll_width)
 			memcpy(
 				app->target_view->buff_lines[line_index] + fraction,
 				app->source_view->buff_lines[line_index] + 0,
-				scroll_width - fraction
+				len2
 			);
 	}
 	
-	app->source_view->offset++;
+	app->source_view->line_offset++;
 
-	if (app->source_view->offset == app->source_view->width)
-		app->source_view->offset = 0;
+	if (app->source_view->line_offset == app->source_view->line_width)
+		app->source_view->line_offset = 0;
 }
 
 // =============================================================================
