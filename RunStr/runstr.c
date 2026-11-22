@@ -18,6 +18,7 @@
 
 #define ON_BIT '#'
 #define NO_BIT '.'
+#define DELAY 33000
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
@@ -292,7 +293,7 @@ int main(int argc, const char *argv[])
 		Console_render_buff(&console);
 		// App_render(&app);
 		// Sleep(40);
-		usleep(20000);
+		usleep(DELAY);
 	}
 
 	App_destroy(&app);
