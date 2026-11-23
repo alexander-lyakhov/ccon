@@ -36,11 +36,12 @@ uint8_t App_load_font(App *app, const char *filename)
 
 	// uint16_t *p = (uint16_t*)app->font_buff;
 	char *p = app->font_buff;
+	char byte = 0;
 
-	for(;;)
+	for(int i = 0; i < DEFAULT_FB_SIZE; i++)
 	{
-		char byte = fgetc(fp);
-		// fread(p, 1, 1, fp)
+		// char byte = fgetc(fp);
+		fread(&byte, 1, 1, fp);
 
 		if (byte == EOF)
 			break;
@@ -71,7 +72,7 @@ uint8_t App_load_font(App *app, const char *filename)
 // =============================================================================
 void App_print(App *app)
 {
-	char str[9] = {0};
+	char str[9] = { 0 };
 
 	// uint16_t *p = (uint16_t*)app->font_buff;
 	char *p = app->font_buff;
