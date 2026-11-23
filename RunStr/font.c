@@ -30,35 +30,34 @@ uint8_t App_load_font(App *app, const char *filename)
 
 	fseek(fp, SEEK_OFFSET, SEEK_SET); // seek 17 bytes forward
 
-	app->font_buff = malloc(TARGET_FB_SIZE);
+	app->font_buff = malloc(DEFAULT_FB_SIZE);
 
 	// bool res = fread(app->font_buff, sizeof(char), FB_SIZE, fp) == DEFAULT_FB_SIZE;
 
 	// uint16_t *p = (uint16_t*)app->font_buff;
 	char *p = app->font_buff;
 	char byte = 0;
+	int index = 0;
 
-	for(int i = 0; i < DEFAULT_FB_SIZE; i++)
+	for(;;)
 	{
-		// char byte = fgetc(fp);
-		fread(&byte, 1, 1, fp);
+		int byte = fgetc(fp);
 
 		if (byte == EOF)
 			break;
 
-		uint16_t word = 0;
+		*p = 0;
 
 		for (int i = 0; i < DEFAULT_CHAR_W; i++)
 		{
 			char bit = (byte & 128) ? 1 : 0;
 
+			*p <<= 1;
 			*p |= bit;
-			// *p <<= 1;
-			// *p |= bit;
 			
 			byte <<= 1;
 		}
-		// printf("%d\n", *p);
+		printf("\n%03d: %04zu ", ++index, *p);
 		p++;
 	}
 
@@ -72,22 +71,25 @@ uint8_t App_load_font(App *app, const char *filename)
 // =============================================================================
 void App_print(App *app)
 {
-	char str[9] = { 0 };
+	printf("\n");
+
+	char str[17] = { 0 };
 
 	// uint16_t *p = (uint16_t*)app->font_buff;
 	char *p = app->font_buff;
 
-	for (int index = 0; index < 32; index += 1)
+	for (int index = 0; index < 16; index += 1)
 	{
 	    // uint16_t word = *(uint16_t*)(&app->font_buff[index]);
 
 		// for (int i = 0, mask = 0b1000000000000000; mask; i++)
 		for (int i = 0, mask = 0b10000000; mask; i++)
 		{
-			str[i] = *p & mask ? '#' : ' ';
+			// str[i] = app->font_buff[index] & mask ? '#' : ' ';
+			str[i] = (*p & mask) ? '#' : ' ';
 			mask >>= 1;
 		}
-		puts(str);
+		printf("%s\n", str);
 		p++;
 	}
 }
@@ -101,10 +103,10 @@ int main()
 
 	App_load_font(&app, "DB_fnt.$C");
 
+	App_print(&app);
+
 	if (app.font_buff)
 		free(app.font_buff);
-
-	App_print(&app);
 
 	return 0;
 }

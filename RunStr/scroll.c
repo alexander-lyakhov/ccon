@@ -58,12 +58,12 @@ bool App_load_font(App *app, const char *filename)
 	fseek(fp, SEEK_OFFSET, SEEK_SET); // seek 17 bytes forward
 
 	app->font_buff = malloc(TARGET_FB_SIZE);
-	char *font_data = malloc(DEFAULT_FB_SIZE);
+	// char *font_data = malloc(DEFAULT_FB_SIZE);
 
 	bool res = fread(app->font_buff, sizeof(char), FB_SIZE, fp) == DEFAULT_FB_SIZE;
 
 	fclose(fp);
-	free(default_font_data);
+	// free(default_font_data);
 
 	return res;
 }
