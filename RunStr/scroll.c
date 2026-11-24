@@ -23,7 +23,7 @@
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
-
+/*
 typedef struct {
 	char *buff;
 	char *buff_lines[CHAR_H];
@@ -33,7 +33,16 @@ typedef struct {
 	uint16_t scroll_width;
 
 } View;
+*/
+typedef struct {
+	char    *lines[CHAR_H];
+	char    *current_char;
+	uint16_t current_char_mask;
+	uint16_t width;
+	uint16_t size;
 
+} View;
+/*
 typedef struct {
 	Console *console;
 	View *source_view;
@@ -43,13 +52,21 @@ typedef struct {
 	char *message;
 
 } App;
+*/
+typedef struct {
+	Console *console;
+	View *view;
+	char *font_buff;
+	char *message;
+
+} App;
 
 void App_update(App *app);
 
 // =============================================================================
 // @@@ + App_load_font
 // =============================================================================
-bool App_load_font(App *app, const char *filename)
+uint8_t App_load_font(App *app, const char *filename)
 {
 	FILE *fp = fopen(filename, "rb");
 
@@ -58,14 +75,37 @@ bool App_load_font(App *app, const char *filename)
 	fseek(fp, SEEK_OFFSET, SEEK_SET); // seek 17 bytes forward
 
 	app->font_buff = malloc(TARGET_FB_SIZE);
-	// char *font_data = malloc(DEFAULT_FB_SIZE);
 
-	bool res = fread(app->font_buff, sizeof(char), FB_SIZE, fp) == DEFAULT_FB_SIZE;
+	char byte = 0;
+
+	for(uint16_t *p = (uint16_t*)app->font_buff; ; p += 2)
+	{
+		int byte = fgetc(fp);
+
+		if (byte == EOF)
+			break;
+
+		*p = 0;
+
+		for (int i = 0; i < DEFAULT_CHAR_W; i++)
+		{
+			char bit = (byte & 128) ? 1 : 0;
+
+			*p <<= 1;
+			*p |= bit;
+
+			*p <<= 1;
+			*p |= bit;
+			
+			byte <<= 1;
+		}
+		
+		*(p + 1) = *p;
+	}
 
 	fclose(fp);
-	// free(default_font_data);
 
-	return res;
+	return 1;
 }
 
 // =============================================================================
@@ -75,75 +115,20 @@ void App_init(App *app, const char *message)
 {
 	// puts("App_init");
 
-	size_t str_len                 = strlen(message);
-	size_t scroll_width            = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
-	size_t size                    = str_len * CHAR_W * CHAR_H;
+	size_t str_len      = strlen(message);
+	size_t scroll_width = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
+	size_t size         = str_len * CHAR_W * CHAR_H;
 
-	app->message                   = strdup(message);
-	app->view_buff                 = malloc(size);
+	app->message        = strdup(message);
 
-	app->source_view->buff         = app->view_buff;
-	app->source_view->line_width   = str_len * CHAR_W;
-	app->source_view->line_offset  = 0;
-	app->source_view->size         = size;
-	app->source_view->scroll_width = scroll_width;
+	app->view->width    = scroll_width;
+	app->view->size     = app->console->size;
 
-	app->target_view->buff         = app->console->buff;
-	app->target_view->line_width   = app->console->width;
-	app->target_view->size         = app->console->size;
-	app->target_view->line_offset  = 0;
-	app->target_view->scroll_width = scroll_width;
-
-	if (app->source_view->scroll_width > app->console->width)
-		app->source_view->scroll_width = app->console->width;
-
-	int screen_x = (app->console->width - app->source_view->scroll_width) >> 1;
+	int screen_x = (app->console->width - app->view->width) >> 1;
 	int screen_y = (app->console->height - CHAR_H) >> 1;
 
-	char *p_view = app->view_buff;
-
-	for (int char_line_index = 0, view_line_index = 0; char_line_index < DEFAULT_CHAR_H; char_line_index++)
-	{
-		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->line_width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->line_width * (view_line_index + screen_y) + screen_x;
-
-		//
-		// Compose a line
-		//
-		for (char *char_ptr = app->message; *char_ptr; char_ptr++)
-		{
-			char *letter = app->font_buff + (*char_ptr - 32) * DEFAULT_CHAR_H;
-			char byte = letter[char_line_index];
-
-			for (int i = 0; i < DEFAULT_CHAR_W; i++)
-			{
-				char bit = (byte & 128) ? ON_BIT : NO_BIT;
-				
-				*p_view++ = bit;
-				*p_view++ = bit;
-				
-				byte <<= 1;
-			}
-		}
-
-		//
-		// Duplicate prev line
-		//
-		view_line_index++;
-
-		app->source_view->buff_lines[view_line_index] = app->source_view->buff + app->source_view->line_width * view_line_index;
-		app->target_view->buff_lines[view_line_index] = app->target_view->buff + app->target_view->line_width * (view_line_index + screen_y) + screen_x;
-
-		memcpy(
-			app->source_view->buff_lines[view_line_index - 0],
-			app->source_view->buff_lines[view_line_index - 1],
-			app->source_view->line_width
-		);
-
-		p_view += app->source_view->line_width;
-
-		view_line_index++;
-	}
+	for (int i = 0; i < CHAR_H; i++)
+		view->lines[i] =  screen_x + app->console->width * i;
 }
 
 // =============================================================================
