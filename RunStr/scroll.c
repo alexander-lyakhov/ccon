@@ -14,12 +14,11 @@
 #define DEFAULT_CHAR_H 8
 #define CHAR_W 16
 #define CHAR_H 16
-#define CHAR_SCALE 1
 #define SCROLL_CHAR_WIDTH 8
 
 #define BIT_MASK 0b1000000000000000
 #define ON_BIT '#'
-#define NO_BIT '.'
+#define NO_BIT ':'
 #define DELAY 33000
 
 #define CONSOLE_IMPLEMENTATION
@@ -32,12 +31,12 @@ typedef struct {
 } Line;
 
 typedef struct {
-	Line     lines[CHAR_H];
-	char    *current_char_view;
-	char    *current_char;
-	uint16_t current_char_mask;
-	uint16_t width;
-	uint16_t size;
+	Line      lines[CHAR_H];
+	char     *current_char;
+	uint16_t *current_char_view;
+	uint16_t  current_char_mask;
+	uint16_t  width;
+	uint16_t  size;
 
 } View;
 
@@ -134,7 +133,7 @@ void App_init(App *app, const char *message)
 	app->view->size              = scroll_width * CHAR_W * CHAR_H;
 	app->view->current_char      = (char*)app->message;
 	app->view->current_char_mask = BIT_MASK;
-	app->view->current_char_view = app->font_buff + (message[0] - 32) * 16;
+	app->view->current_char_view = (uint16_t*)app->font_buff + (message[0] - 32) * CHAR_H;
 
 	int screen_x                 = (app->console->width - app->view->width) >> 1;
 	int screen_y                 = (app->console->height - CHAR_H) >> 1;
@@ -145,6 +144,8 @@ void App_init(App *app, const char *message)
 	{
 		view->lines[i].start = app->console->buff + app->console->width * (screen_y + i) + screen_x;
 		view->lines[i].end   = view->lines[i].start + scroll_width - 1;
+
+		memset(view->lines[i].start, NO_BIT, scroll_width);
 	}
 }
 
@@ -161,17 +162,15 @@ void App_update(App *app)
 	uint16_t width = view->width;
 	uint16_t mask = view->current_char_mask;
 
-	char c = *view->current_char;
-
-	if (!c)
-		view->current_char = app->message;
-
 	if (!mask)
 	{
 		view->current_char++;
+
+    	if (*view->current_char == 0)
+    		view->current_char = app->message;
+
 		view->current_char_mask = BIT_MASK;
-		// view->current_char_view = app->font_buff + (c - 32) * CHAR_H;
-		view->current_char_view = app->font_buff;
+		view->current_char_view = (uint16_t*)app->font_buff + (*view->current_char - 32) * CHAR_H;
 	}
 
 	for (int line_index = 0; line_index < CHAR_H; line_index++)
@@ -260,7 +259,7 @@ int main(int argc, const char *argv[])
 	// system("cls");
 
 	Console console = Console_create();
-	Console_mem_fill(&console, ".", 0x07);
+	Console_mem_fill(&console, " ", 0x07);
 
 	View view = { 0 };
 
@@ -278,16 +277,13 @@ int main(int argc, const char *argv[])
 	CURSOR_HIDE(&app);
 
 	// App_init(&app, "RunStr test message * ");
-
+	// App_init(&app, "123 * ");
 	App_init(
 		&app,
 		argc == 2 ? argv[1] : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. "
 	);
 	Console_render(&console);
 	// App_render(&app);
-
-	// App_update(&app);
-	// Console_render_buff(&console);
 		
 	while (App_listen(&app))
 	{
