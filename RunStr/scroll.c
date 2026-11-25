@@ -9,7 +9,7 @@
 
 #define SEEK_OFFSET 17
 #define DEFAULT_FB_SIZE 768
-#define  TARGET_FB_SIZE 3072
+#define TARGET_FB_SIZE 3072
 #define DEFAULT_CHAR_W 8
 #define DEFAULT_CHAR_H 8
 #define CHAR_W 16
@@ -17,45 +17,33 @@
 #define CHAR_SCALE 1
 #define SCROLL_CHAR_WIDTH 8
 
+#define BIT_MASK 0b1000000000000000
 #define ON_BIT '#'
 #define NO_BIT '.'
 #define DELAY 33000
 
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
-/*
-typedef struct {
-	char *buff;
-	char *buff_lines[CHAR_H];
-	uint32_t line_width;
-	uint32_t line_offset;
-	uint32_t size;
-	uint16_t scroll_width;
 
-} View;
-*/
 typedef struct {
-	char    *lines[CHAR_H];
+	char *start;
+	char *end;
+
+} Line;
+
+typedef struct {
+	Line     lines[CHAR_H];
+	char    *current_char_view;
 	char    *current_char;
 	uint16_t current_char_mask;
 	uint16_t width;
 	uint16_t size;
 
 } View;
-/*
-typedef struct {
-	Console *console;
-	View *source_view;
-	View *target_view;
-	char *font_buff;
-	char *view_buff;
-	char *message;
 
-} App;
-*/
 typedef struct {
+	View  *view;
 	Console *console;
-	View *view;
 	char *font_buff;
 	char *message;
 
@@ -109,26 +97,55 @@ uint8_t App_load_font(App *app, const char *filename)
 }
 
 // =============================================================================
+// @@@ + App_print_font
+// =============================================================================
+void App_print_font(App *app)
+{
+	char str[17] = { 0 };
+
+	uint16_t *p = (uint16_t*)app->font_buff;
+
+	for (int index = 0; index < TARGET_FB_SIZE; index += 2)
+	{
+		for (int i = 0, mask = 0b1000000000000000; mask; i++)
+		{
+			str[i] = (*p & mask) ? '#' : ' ';
+			mask >>= 1;
+		}
+		printf("%s\n", str);
+		p++;
+	}
+}
+
+// =============================================================================
 // @@@ + App_init
 // =============================================================================
 void App_init(App *app, const char *message)
 {
 	// puts("App_init");
 
-	size_t str_len      = strlen(message);
-	size_t scroll_width = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
-	size_t size         = str_len * CHAR_W * CHAR_H;
+	size_t str_len               = strlen(message);
+	size_t scroll_width          = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
+	size_t size                  = str_len * CHAR_W * CHAR_H;
 
-	app->message        = strdup(message);
+	app->message                 = strdup(message);
+	
+	app->view->width             = scroll_width;
+	app->view->size              = scroll_width * CHAR_W * CHAR_H;
+	app->view->current_char      = (char*)app->message;
+	app->view->current_char_mask = BIT_MASK;
+	app->view->current_char_view = app->font_buff + (message[0] - 32) * 16;
 
-	app->view->width    = scroll_width;
-	app->view->size     = app->console->size;
+	int screen_x                 = (app->console->width - app->view->width) >> 1;
+	int screen_y                 = (app->console->height - CHAR_H) >> 1;
 
-	int screen_x = (app->console->width - app->view->width) >> 1;
-	int screen_y = (app->console->height - CHAR_H) >> 1;
-
+	View *view = app->view;
+	
 	for (int i = 0; i < CHAR_H; i++)
-		view->lines[i] =  screen_x + app->console->width * i;
+	{
+		view->lines[i].start = app->console->buff + app->console->width * (screen_y + i) + screen_x;
+		view->lines[i].end   = view->lines[i].start + scroll_width - 1;
+	}
 }
 
 // =============================================================================
@@ -138,36 +155,40 @@ void App_update(App *app)
 {
 	// puts("App_update");
 
-	int str_size = strlen(app->message);
+	View *view = app->view;
 
-	size_t scroll_width = app->source_view->scroll_width;
-	size_t width        = app->source_view->line_width;
-	size_t offset       = app->source_view->line_offset;
-	size_t fraction     = width - offset;
+	uint16_t str_size = strlen(app->message);
+	uint16_t width = view->width;
+	uint16_t mask = view->current_char_mask;
 
-	size_t len1 = scroll_width < fraction ? scroll_width: fraction;
-	size_t len2 = scroll_width - fraction;
+	char c = *view->current_char;
+
+	if (!c)
+		view->current_char = app->message;
+
+	if (!mask)
+	{
+		view->current_char++;
+		view->current_char_mask = BIT_MASK;
+		// view->current_char_view = app->font_buff + (c - 32) * CHAR_H;
+		view->current_char_view = app->font_buff;
+	}
 
 	for (int line_index = 0; line_index < CHAR_H; line_index++)
 	{
-		memcpy(
-			app->target_view->buff_lines[line_index] + 0,
-			app->source_view->buff_lines[line_index] + offset,
-			len1
+		Line line = view->lines[line_index];
+
+		memmove(
+			line.start + 0,
+			line.start + 1,
+			width - 1
 		);
-
-		if (fraction < scroll_width)
-			memcpy(
-				app->target_view->buff_lines[line_index] + fraction,
-				app->source_view->buff_lines[line_index] + 0,
-				len2
-			);
+		
+		uint16_t bit = view->current_char_view[line_index] & mask;
+		*line.end = bit ? ON_BIT : NO_BIT;
 	}
-	
-	app->source_view->line_offset++;
 
-	if (app->source_view->line_offset == app->source_view->line_width)
-		app->source_view->line_offset = 0;
+	view->current_char_mask >>= 1;
 }
 
 // =============================================================================
@@ -180,23 +201,11 @@ void App_destroy(App *app)
 	if (app->font_buff)
 		free(app->font_buff);
 
-	if (app->view_buff)
-		free(app->view_buff);
-
 	if (app->message)
 		free(app->message);
 
-	if (app->source_view)
-		free(app->source_view);
-
-	if (app->target_view)
-		free(app->target_view);
-
 	app->font_buff   = NULL;
-	app->view_buff   = NULL;
 	app->message     = NULL;
-	app->source_view = NULL;
-	app->target_view = NULL;
 }
 
 // =============================================================================
@@ -230,6 +239,8 @@ void App_render(App *app)
 // =============================================================================
 uint8_t App_listen(App *app)
 {
+	// puts("App_listen");
+
 	/*if (Console_check_resize(app->console))
 		return App_resize(app);*/
 
@@ -249,20 +260,20 @@ int main(int argc, const char *argv[])
 	// system("cls");
 
 	Console console = Console_create();
-	Console_mem_fill(&console, " ", 0x07);
+	Console_mem_fill(&console, ".", 0x07);
+
+	View view = { 0 };
 
 	App app = {
-		.console     = &console,
-		.source_view = malloc(sizeof(View)),
-		.target_view = malloc(sizeof(View)),
-		.font_buff   = NULL,
-		.view_buff   = NULL,
-		.message     = NULL,
+		.console   = &console,
+		.view      = &view,
+		.font_buff = NULL,
+		.message   = NULL,
 	};
 
 	if (!App_load_font(&app, "DB_fnt.$C"))
 		App_exit(&app, "File open Error");
-	/*
+	
 	CURSOR_INIT(&app);
 	CURSOR_HIDE(&app);
 
@@ -273,8 +284,11 @@ int main(int argc, const char *argv[])
 		argc == 2 ? argv[1] : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. "
 	);
 	Console_render(&console);
-	App_render(&app);
+	// App_render(&app);
 
+	// App_update(&app);
+	// Console_render_buff(&console);
+		
 	while (App_listen(&app))
 	{
 		App_update(&app);
@@ -283,9 +297,9 @@ int main(int argc, const char *argv[])
 		// Sleep(40);
 		usleep(DELAY);
 	}
-
-	CURSOR_SHOW(&app);
-	*/
+	
+	// App_print_font(&app);
+	CURSOR_SHOW(&app);	
 
 	App_destroy(&app);
 	
