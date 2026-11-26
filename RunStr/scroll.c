@@ -111,8 +111,7 @@ void App_init(App *app, const char *message)
 	
 	app->view->width             = scroll_width;
 	app->view->tail              = 0;
-	app->view->size              = scroll_width * CHAR_W * CHAR_H;
-	app->view->current_char      = (char*)app->message;
+	app->view->current_char      = &app->message[0];
 	app->view->current_char_mask = BIT_MASK;
 	app->view->current_char_view = char2view(message[0]);
 
@@ -121,6 +120,9 @@ void App_init(App *app, const char *message)
 
 	View *view = app->view;
 	
+	//
+	// Init view lines
+	//
 	for (int i = 0; i < CHAR_H; i++)
 	{
 		view->lines[i].start = app->console->buff + app->console->width * (screen_y + i) + screen_x;
@@ -142,6 +144,9 @@ void App_update(App *app)
 	uint16_t width = view->width;
 	uint16_t mask = view->current_char_mask;
 
+	//
+	// Move to next character
+	//
 	if (!mask)
 	{
 		view->current_char++;
