@@ -51,8 +51,6 @@ typedef struct {
 
 } App;
 
-void App_update(App *app);
-
 // =============================================================================
 // @@@ + App_load_font
 // =============================================================================
@@ -72,8 +70,7 @@ uint8_t App_load_font(App *app, const char *filename)
 	{
 		int byte = fgetc(fp);
 
-		if (byte == EOF)
-			break;
+		if (byte == EOF) break;
 
 		*p = 0;
 
