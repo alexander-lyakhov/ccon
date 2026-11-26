@@ -21,6 +21,8 @@
 #define NO_BIT ':'
 #define DELAY 33000
 
+#define char2view(ascii) (uint16_t*)app->font_buff + ((ascii) - 32) * CHAR_H
+
 #define CONSOLE_IMPLEMENTATION
 #include "h/console.h"
 
@@ -133,7 +135,7 @@ void App_init(App *app, const char *message)
 	app->view->size              = scroll_width * CHAR_W * CHAR_H;
 	app->view->current_char      = (char*)app->message;
 	app->view->current_char_mask = BIT_MASK;
-	app->view->current_char_view = (uint16_t*)app->font_buff + (message[0] - 32) * CHAR_H;
+	app->view->current_char_view = char2view(message[0]);
 
 	int screen_x                 = (app->console->width - app->view->width) >> 1;
 	int screen_y                 = (app->console->height - CHAR_H) >> 1;
@@ -170,7 +172,7 @@ void App_update(App *app)
     		view->current_char = app->message;
 
 		view->current_char_mask = BIT_MASK;
-		view->current_char_view = (uint16_t*)app->font_buff + (*view->current_char - 32) * CHAR_H;
+		view->current_char_view = char2view(*view->current_char);
 	}
 
 	for (int line_index = 0; line_index < CHAR_H; line_index++)
