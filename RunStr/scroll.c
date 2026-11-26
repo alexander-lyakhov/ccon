@@ -38,6 +38,7 @@ typedef struct {
 	uint16_t *current_char_view;
 	uint16_t  current_char_mask;
 	uint16_t  width;
+	uint16_t  tail;
 	uint16_t  size;
 
 } View;
@@ -97,26 +98,6 @@ uint8_t App_load_font(App *app, const char *filename)
 	return 1;
 }
 
-// =============================================================================
-// @@@ + App_print_font
-// =============================================================================
-void App_print_font(App *app)
-{
-	char str[17] = { 0 };
-
-	uint16_t *p = (uint16_t*)app->font_buff;
-
-	for (int index = 0; index < TARGET_FB_SIZE; index += 2)
-	{
-		for (int i = 0, mask = 0b1000000000000000; mask; i++)
-		{
-			str[i] = (*p & mask) ? '#' : ' ';
-			mask >>= 1;
-		}
-		printf("%s\n", str);
-		p++;
-	}
-}
 
 // =============================================================================
 // @@@ + App_init
@@ -132,6 +113,7 @@ void App_init(App *app, const char *message)
 	app->message                 = strdup(message);
 	
 	app->view->width             = scroll_width;
+	app->view->tail              = scroll_width;
 	app->view->size              = scroll_width * CHAR_W * CHAR_H;
 	app->view->current_char      = (char*)app->message;
 	app->view->current_char_mask = BIT_MASK;
