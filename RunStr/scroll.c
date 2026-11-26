@@ -113,7 +113,7 @@ void App_init(App *app, const char *message)
 	app->message                 = strdup(message);
 	
 	app->view->width             = scroll_width;
-	app->view->tail              = scroll_width;
+	app->view->tail              = 0;
 	app->view->size              = scroll_width * CHAR_W * CHAR_H;
 	app->view->current_char      = (char*)app->message;
 	app->view->current_char_mask = BIT_MASK;
@@ -150,8 +150,11 @@ void App_update(App *app)
 	{
 		view->current_char++;
 
-    	if (*view->current_char == 0)
-    		view->current_char = app->message;
+		if (*view->current_char == 0)
+		{
+			view->current_char = app->message;
+			view->tail = view->width;
+		}
 
 		view->current_char_mask = BIT_MASK;
 		view->current_char_view = char2view(*view->current_char);
@@ -166,10 +169,20 @@ void App_update(App *app)
 			line.start + 1,
 			width - 1
 		);
-		
-		uint16_t bit = view->current_char_view[line_index] & mask;
+
+		uint16_t bit = view->tail
+			? 0
+			: view->current_char_view[line_index] & mask;
+
 		*line.end = bit ? ON_BIT : NO_BIT;
 	}
+
+	//
+	// Decrease tail only in case if it is greater then 0
+	// If tail become 0 then view->current_char looks one byte ahead of app->message
+	//
+	if (view->tail && --view->tail == 0)
+		view->current_char = app->message - 1;
 
 	view->current_char_mask >>= 1;
 }
@@ -240,8 +253,6 @@ uint8_t App_listen(App *app)
 
 int main(int argc, const char *argv[])
 {
-	// system("cls");
-
 	Console console = Console_create();
 	Console_mem_fill(&console, " ", 0x07);
 
@@ -261,7 +272,7 @@ int main(int argc, const char *argv[])
 	CURSOR_HIDE(&app);
 
 	// App_init(&app, "RunStr test message * ");
-	// App_init(&app, "123 * ");
+	// App_init(&app, "123");
 	App_init(
 		&app,
 		argc == 2 ? argv[1] : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. "
