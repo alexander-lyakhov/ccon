@@ -142,7 +142,6 @@ void App_update(App *app)
 
 	View *view = app->view;
 
-	uint16_t str_size = strlen(app->message);
 	uint16_t width = view->width;
 	uint16_t mask = view->current_char_mask;
 
@@ -151,15 +150,15 @@ void App_update(App *app)
 		view->current_char++;
 
 		if (*view->current_char == 0)
-		{
-			view->current_char = app->message;
 			view->tail = view->width;
-		}
 
 		view->current_char_mask = BIT_MASK;
 		view->current_char_view = char2view(*view->current_char);
 	}
 
+	//
+	// Scroll view one pixel left
+	//
 	for (int line_index = 0; line_index < CHAR_H; line_index++)
 	{
 		Line line = view->lines[line_index];
