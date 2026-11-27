@@ -18,7 +18,7 @@
 
 #define BIT_MASK 0b1000000000000000
 #define ON_BIT '#'
-#define NO_BIT ':'
+#define NO_BIT '.'
 #define DELAY 33000
 
 #define char2view(ascii) (uint16_t*)app->font_buff + ((ascii) - 32) * CHAR_H
@@ -105,7 +105,9 @@ void App_init(App *app, const char *message)
 
 	size_t str_len               = strlen(message);
 	size_t scroll_width          = str_len < SCROLL_CHAR_WIDTH ? str_len * CHAR_W: SCROLL_CHAR_WIDTH * CHAR_W;
-	size_t size                  = str_len * CHAR_W * CHAR_H;
+
+	if (scroll_width > app->console->width)
+		scroll_width = app->console->width;
 
 	app->message                 = strdup(message);
 	
@@ -130,6 +132,23 @@ void App_init(App *app, const char *message)
 
 		memset(view->lines[i].start, NO_BIT, scroll_width);
 	}
+}
+
+// =============================================================================
+// @@@ + App_destroy
+// =============================================================================
+void App_destroy(App *app)
+{
+	Console_mem_free(app->console);
+
+	if (app->font_buff)
+		free(app->font_buff);
+
+	if (app->message)
+		free(app->message);
+
+	app->font_buff   = NULL;
+	app->message     = NULL;
 }
 
 // =============================================================================
@@ -189,23 +208,6 @@ void App_update(App *app)
 }
 
 // =============================================================================
-// @@@ + App_destroy
-// =============================================================================
-void App_destroy(App *app)
-{
-	Console_mem_free(app->console);
-
-	if (app->font_buff)
-		free(app->font_buff);
-
-	if (app->message)
-		free(app->message);
-
-	app->font_buff   = NULL;
-	app->message     = NULL;
-}
-
-// =============================================================================
 // @@@ + App_exit
 // =============================================================================
 void App_exit(App *app, const char *message)
@@ -216,19 +218,21 @@ void App_exit(App *app, const char *message)
 }
 
 // =============================================================================
-// @@@ + App_render
+// @@@ + App_resize
 // =============================================================================
-void App_render(App *app)
+uint8_t App_resize(App *app)
 {
-	Console *console = app->console;
+	system("cls");
 
-	WriteConsoleOutputCharacter(
-		console->handle,
-		console->buff,
-		console->width * CHAR_H,
-		(COORD){0, 0},
-		&console->written
-	);
+	Console_mem_reset(app->console);
+	Console_mem_fill(app->console, " ", 0x07);
+
+	App_init(app, app->message);
+
+	CURSOR_INIT(app);
+	CURSOR_HIDE(app);
+
+	return 1;
 }
 
 // =============================================================================
@@ -238,8 +242,8 @@ uint8_t App_listen(App *app)
 {
 	// puts("App_listen");
 
-	/*if (Console_check_resize(app->console))
-		return App_resize(app);*/
+	if (Console_check_resize(app->console))
+		return App_resize(app);
 
 	if (_kbhit())
 	// if (1)
